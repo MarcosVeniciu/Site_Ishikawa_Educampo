@@ -105,8 +105,4 @@ Faremos o seguinte ajuste na configuração da nossa infraestrutura:
    ```
 
 Dessa forma, o seu código já nasce arquitetado para o futuro, mas você não perde tempo implementando algoritmos de criptografia complexos agora, permitindo que foquemos em colocar o site no ar.
-
----
-
-Com esse conceito alinhado e o terreno arquitetural preparado para o futuro, podemos dar o pontapé inicial na nossa tarefa de **Barreira de Segurança (Auth)** gerando o nosso primeiro contrato: o arquivo de testes `tests/security/auth.spec.ts`?
- */
+*/
