@@ -162,6 +162,13 @@ O ecossistema do **Site Ishikawa Educampo** foi cuidadosamente desenhado para ga
 
 ---
 
+### 🏗️ Estratégia de Interface e Reutilização
+Para evitar a duplicação de configurações de estilo e garantir uma experiência fluida em múltiplos dispositivos, adotamos o padrão de **Layout Components**:
+* **Split-Screen Layout:** Centraliza toda a lógica de adaptação mobile/desktop, gradientes institucionais e posicionamento de logos.
+* **Responsividade Centralizada:** As páginas de negócio (Login, Cadastro, etc.) não precisam gerenciar breakpoints. [cite_start]Elas apenas consomem o layout base, o que facilita manutenções futuras na identidade visual sem impactar a lógica funcional[cite: 1805, 1808].
+
+---
+
 ## 🏗️ Estrutura do Projeto
 
 O projeto adota uma arquitetura modular focada no ecossistema Next.js (App Router). Para manter a organização e garantir que qualquer novo desenvolvedor compreenda a base de código, cada diretório principal e subdiretório possui seu próprio arquivo `README.md` detalhando estritamente "o que" aquele módulo faz.
@@ -186,6 +193,7 @@ site_ishikawa_educampo/
 │   │   └── README.md                                # Índice e documentação das páginas de navegação.
 │   ├── components/                                  # Componentes visuais reutilizáveis (UI)
 │   │   ├── ui/                                      # Componentes base: Botões, Inputs, Modais (Tailwind + Lucide).
+│   │   │   └── SplitScreenLayout.tsx                # Componente de layout estrutural que gerencia a responsividade e a identidade visual da marca.
 │   │   ├── ishikawa/                                # Componentes complexos para renderizar a Espinha de Peixe.
 │   │   └── README.md                                # Documentação da biblioteca de componentes visuais.
 │   ├── store/                                       # Gerenciamento de estado global no cliente
@@ -340,7 +348,11 @@ Quando a fase de implementação e testes locais for concluída, a publicação 
 3. As variáveis do arquivo `.env` (como o `API_TOKEN` real) deverão ser cadastradas diretamente no painel de *Environment Variables* do Render, garantindo a proteção total dos segredos.
 
 ### Comandos uteis
-listar a arvore de diretorio ignorando alguns diretorios
+listar a arvore de diretorio ignorando alguns diretorios.
 ```bash
-Get-ChildItem -Recurse | Where-Object { $_.FullName -notmatch 'node_modules|\.swc' } | Select-Object FullName | Format-Table -AutoSize
+Get-ChildItem -Recurse | Where-Object { $_.FullName -notmatch 'node_modules|\.next|\.swc' } | Select-Object FullName | Format-Table -AutoSize
+```
+Desliga e liga o compose
+```bash
+docker-compose down; docker-compose up -d --build
 ```

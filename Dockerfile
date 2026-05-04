@@ -8,7 +8,7 @@ WORKDIR /app
 # Copia os gestores de pacotes
 COPY package.json package-lock.json* ./
 # Instala as dependências de forma limpa
-RUN npm ci
+RUN npm install
 
 # ==========================================
 # Etapa 2: Construtor (builder)
