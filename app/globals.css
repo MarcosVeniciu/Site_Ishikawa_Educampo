@@ -1,0 +1,23 @@
+/**
+ * @file globals.css
+ * @description Estilos globais e inicialização do motor utilitário Tailwind CSS (v4).
+ * * COMO FUNCIONA:
+ * No Tailwind v4, toda a injeção e configuração das camadas base do framework
+ * (base, components, utilities) são feitas diretamente via CSS utilizando a
+ * diretiva `@import "tailwindcss"`. 
+ */
+
+@import "tailwindcss";
+
+/* * Variáveis globais ou configurações de tema podem ser declaradas aqui.
+ * Por padrão, o fundo da aplicação é configurado para proporcionar bom contraste.
+ */
+@theme {
+  --color-educampo-orange: #f97316;
+  --color-educampo-blue: #1d4ed8;
+}
+
+body {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
