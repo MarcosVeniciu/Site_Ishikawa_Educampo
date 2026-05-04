@@ -19,10 +19,10 @@ interface SplitScreenLayoutProps {
 
 export function SplitScreenLayout({ title, subtitle, children }: SplitScreenLayoutProps) {
   return (
-    <div className="min-h-screen flex w-full font-sans bg-[#f9fafb]">
+    <div className="min-h-screen flex w-full font-sans bg-fundo">
       
       {/* LADO ESQUERDO: Branding Institucional (Somente Desktop) */}
-      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-[#003e7d] to-[#1973d3] flex-col justify-between p-12 text-white relative overflow-hidden">
+      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-primary to-primary-light flex-col justify-between p-12 text-white relative overflow-hidden">
         <div className="flex items-center space-x-3 z-10">
           <div className="w-10 h-10 relative">
             <Image 
@@ -45,7 +45,7 @@ export function SplitScreenLayout({ title, subtitle, children }: SplitScreenLayo
           </p>
           <div className="flex flex-wrap gap-3">
             {['Contagem de Células Somáticas', 'Produção Média Diária por Vaca', 'Produção por Área', 'Produção por Funcionário', 'Preço do Leite'].map((pill) => (
-              <span key={pill} className="px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-sm font-medium backdrop-blur-sm shadow-sm">
+              <span key={pill} className="px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-sm font-medium backdrop-blur-sm shadow-sm">
                 {pill}
               </span>
             ))}

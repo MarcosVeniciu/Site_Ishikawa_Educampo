@@ -20,7 +20,7 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="pt-BR">
-      <body className="antialiased bg-[#f8fafc] text-slate-900">
+      <body className="antialiased bg-fundo-alt text-slate-900">
         {/* O 'children' aqui será substituído pelo conteúdo das suas páginas (ex: page.tsx do login) */}
         {children}
       </body>

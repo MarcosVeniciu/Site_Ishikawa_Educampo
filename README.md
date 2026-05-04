@@ -169,6 +169,12 @@ Para evitar a duplicação de configurações de estilo e garantir uma experiên
 
 ---
 
+### 🎨 Design System e Estratégia de Interface
+Para garantir consistência visual e facilidade de manutenção em múltiplas telas, adotamos um sistema de design semântico e layouts reutilizáveis:
+* **Cores Semânticas (Tailwind CSS v4):** Em vez de usar valores hexadecimais espalhados no código, centralizamos o tema no `globals.css` utilizando nomes baseados em propósito (`primary`, `primary-light`, `secondary`, `fundo`, `fundo-alt`). Isso facilita drasticamente manutenções futuras e adequações de *branding*.
+* **Layout Components:** Adotamos o padrão de centralizar a responsividade em componentes estruturais. O `SplitScreenLayout`, por exemplo, abstrai toda a adaptação mobile/desktop, gradientes institucionais e posicionamento de logos, permitindo que as páginas (como Login ou Coleta de Dados) foquem estritamente em suas lógicas de negócio.
+
+---
 ## 🏗️ Estrutura do Projeto
 
 O projeto adota uma arquitetura modular focada no ecossistema Next.js (App Router). Para manter a organização e garantir que qualquer novo desenvolvedor compreenda a base de código, cada diretório principal e subdiretório possui seu próprio arquivo `README.md` detalhando estritamente "o que" aquele módulo faz.
@@ -286,12 +292,12 @@ A estratégia de implementação adota uma construção incremental em blocos. O
 - [x] Elaboração da Documentação Mestra (`README.md`).
 - [x] **Setup de Infraestrutura e Ferramentas:** Configurar contêineres Docker, Next.js, Tailwind CSS, Zustand e as suítes de teste (Jest/JSDOM).
 - [x] **Estado Global e Validações:** Criar os testes unitários e implementar a `useFazendaStore` juntamente com os *schemas* do Zod para os inputs da fazenda.
+- [x] **Barreira de Segurança (Auth):** Desenvolver a rota interna `api/auth/route.ts` (com *mock* de credenciais), o Middleware Edge validando o JWT e a **Tela de Login**. *(Validar com `tests/security/auth.spec.ts`)*.
 
 #### 🚧 Em Desenvolvimento (WIP: 1)
-- [ ] **Barreira de Segurança (Auth):** Desenvolver a rota interna `api/auth/route.ts` (com *mock* de credenciais), o Middleware Edge validando o JWT e a **Tela de Login**. *(Validar com `tests/security/auth.spec.ts`)*.
+- [ ] **Coleta e Injeção de Estado:** Construir a **Tela de Coleta de Dados**, integrando o formulário para salvar as métricas diretamente no Zustand validado pelo Zod.
 
 #### 🎯 A Fazer
-- [ ] **Coleta e Injeção de Estado:** Construir a **Tela de Coleta de Dados**, integrando o formulário para salvar as métricas diretamente no Zustand validado pelo Zod.
 - [ ] **Integração Real (BFF):** Implementar o proxy `api/diagnostico/route.ts` apontando para a API real do Educampo e a **Tela de Carregamento**. Aqui a tela consome o Zustand, envia para o BFF, recebe a resposta real e injeta de volta na *store*. *(Validar com `tests/api/bff.spec.ts`)*.
 - [ ] **Consumo de Dados (Dashboard):** Implementar o **Dashboard Central**. Como a *store* já estará populada com dados reais do passo anterior, basta renderizar os blocos de Benchmarking e o Resumo Estratégico da IA.
 - [ ] **Renderização Complexa:** Desenvolver a **Tela de Diagnóstico**, criando a lógica visual para montar o Diagrama de Ishikawa iterando sobre os dados já salvos no estado.
@@ -355,14 +361,16 @@ Quando a fase de implementação e testes locais for concluída, a publicação 
 3. As variáveis do arquivo `.env` (como o `API_TOKEN` real) deverão ser cadastradas diretamente no painel de *Environment Variables* do Render, garantindo a proteção total dos segredos.
 
 ### Comandos uteis
-listar a arvore de diretorio ignorando alguns diretorios.
-```bash
-Get-ChildItem -Recurse | Where-Object { $_.FullName -notmatch 'node_modules|\.next|\.swc' } | Select-Object FullName | Format-Table -AutoSize
-```
 Desliga e liga o compose
 ```bash
 docker-compose down; docker-compose up -d --build
 ```
+
+listar a arvore de diretorio ignorando alguns diretorios.
+```bash
+Get-ChildItem -Recurse | Where-Object { $_.FullName -notmatch 'node_modules|\.next|\.swc' } | Select-Object FullName | Format-Table -AutoSize
+```
+
 Mostrar o nome da brach atual
 ```bash
 git branch --show-current

@@ -13,11 +13,14 @@
  * Por padrão, o fundo da aplicação é configurado para proporcionar bom contraste.
  */
 @theme {
-  --color-educampo-orange: #f97316;
-  --color-educampo-blue: #1d4ed8;
+  --color-primary: #003e7d;
+  --color-primary-light: #1973d3;
+  --color-secondary: #f97316;
+  --color-fundo: #f9fafb;
+  --color-fundo-alt: #f8fafc;
 }
 
 body {
-  background-color: #f8fafc;
+  background-color: var(--color-fundo-alt);
   color: #0f172a;
 }

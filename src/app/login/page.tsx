@@ -101,7 +101,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full py-3 px-4 mt-2 rounded-lg font-medium text-white bg-[#0052cc] hover:bg-[#003e7d] focus:outline-none focus:ring-4 focus:ring-blue-500/30 transition-all shadow-sm ${
+            className={`w-full py-3 px-4 mt-2 rounded-lg font-medium text-white bg-primary hover:bg-primary-light focus:outline-none focus:ring-4 focus:ring-primary/30 transition-all shadow-sm ${
               isLoading ? 'opacity-75 cursor-not-allowed' : ''
             }`}
           >
@@ -114,7 +114,7 @@ export default function LoginPage() {
         <button 
           type="button"
           onClick={fillTestCredentials}
-          className="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors bg-transparent border-none cursor-pointer focus:outline-none focus:underline"
+          className="text-sm font-medium text-primary hover:text-primary-light transition-colors bg-transparent border-none cursor-pointer focus:outline-none focus:underline"
         >
           Preencher com credenciais de teste
         </button>
