@@ -44,7 +44,7 @@ export function SplitScreenLayout({ title, subtitle, children }: SplitScreenLayo
             Análise sequencial de indicadores chave, benchmarking regional e plano de ação consolidado.
           </p>
           <div className="flex flex-wrap gap-3">
-            {['CCS', 'Prod/Vaca', 'Prod/ha', 'Prod/Trab', 'Preço'].map((pill) => (
+            {['Contagem de Células Somáticas', 'Produção Média Diária por Vaca', 'Produção por Área', 'Produção por Funcionário', 'Preço do Leite'].map((pill) => (
               <span key={pill} className="px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-sm font-medium backdrop-blur-sm shadow-sm">
                 {pill}
               </span>

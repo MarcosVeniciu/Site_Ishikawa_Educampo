@@ -261,11 +261,18 @@ gitGraph
     checkout develop
     merge feature/estado-global-validacoes id: "merge: validações e estado integrados"
 
-    %% --- Início da Tarefa 3 (WIP) ---
+    %% --- Conclusão da Tarefa 3 ---
     branch feature/seguranca-auth
     checkout feature/seguranca-auth
     commit id: "docs: planejamento da barreira de segurança"
+    commit id: "feat: login responsivo e barreira de segurança"
+    checkout develop
+    merge feature/seguranca-auth id: "merge: segurança e login concluídos"
 
+    %% --- Início da Tarefa 4 (WIP) ---
+    branch feature/coleta-dados
+    checkout feature/coleta-dados
+    commit id: "docs: planejamento da interface de coleta de dados"
 ```
 
 ---
@@ -355,4 +362,25 @@ Get-ChildItem -Recurse | Where-Object { $_.FullName -notmatch 'node_modules|\.ne
 Desliga e liga o compose
 ```bash
 docker-compose down; docker-compose up -d --build
+```
+Mostrar o nome da brach atual
+```bash
+git branch --show-current
+```
+
+Encerrando a Feature e Iniciando a Próxima
+```bash
+# Salvar o trabalho final na branch:
+git add .
+git commit -m "feat: implementa interface de login responsiva e segura com Tailwind v4"
+git push origin feature/seguranca-auth
+
+# Integrar com a ramificação principal de desenvolvimento (develop)
+git checkout develop
+git merge feature/seguranca-auth
+git push origin develop
+
+# Criar a ramificação para a nova fase:
+git checkout -b feature/coleta-dados
+git push -u origin feature/coleta-dados
 ```
