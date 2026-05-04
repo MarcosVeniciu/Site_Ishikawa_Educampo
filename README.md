@@ -275,10 +275,19 @@ gitGraph
     checkout develop
     merge feature/seguranca-auth id: "merge: segurança e login concluídos"
 
-    %% --- Início da Tarefa 4 (WIP) ---
+    %% --- Conclusão da Tarefa 4 ---
     branch feature/coleta-dados
     checkout feature/coleta-dados
     commit id: "docs: planejamento da interface de coleta de dados"
+    commit id: "feat: implementa formulário de coleta com Zod e Zustand"
+    commit id: "docs: finaliza readme do módulo de formulário"
+    checkout develop
+    merge feature/coleta-dados id: "merge: coleta de dados e injeção de estado concluídos"
+
+    %% --- Início da Tarefa 5 (WIP) ---
+    branch feature/integracao-bff
+    checkout feature/integracao-bff
+    commit id: "docs: planejamento da integração bff e segurança de payload"
 ```
 
 ---
@@ -293,12 +302,12 @@ A estratégia de implementação adota uma construção incremental em blocos. O
 - [x] **Setup de Infraestrutura e Ferramentas:** Configurar contêineres Docker, Next.js, Tailwind CSS, Zustand e as suítes de teste (Jest/JSDOM).
 - [x] **Estado Global e Validações:** Criar os testes unitários e implementar a `useFazendaStore` juntamente com os *schemas* do Zod para os inputs da fazenda.
 - [x] **Barreira de Segurança (Auth):** Desenvolver a rota interna `api/auth/route.ts` (com *mock* de credenciais), o Middleware Edge validando o JWT e a **Tela de Login**. *(Validar com `tests/security/auth.spec.ts`)*.
+- [x] **Coleta e Injeção de Estado:** Construir a **Tela de Coleta de Dados**, integrando o formulário para salvar as métricas diretamente no Zustand validado pelo Zod.
 
 #### 🚧 Em Desenvolvimento (WIP: 1)
-- [ ] **Coleta e Injeção de Estado:** Construir a **Tela de Coleta de Dados**, integrando o formulário para salvar as métricas diretamente no Zustand validado pelo Zod.
+- [ ] **Integração Real (BFF):** Implementar o proxy `api/diagnostico/route.ts` apontando para a API real do Educampo e a **Tela de Carregamento**. Aqui a tela consome o Zustand, envia para o BFF, recebe a resposta real e injeta de volta na *store*. *(Validar com `tests/api/bff.spec.ts`)*.
 
 #### 🎯 A Fazer
-- [ ] **Integração Real (BFF):** Implementar o proxy `api/diagnostico/route.ts` apontando para a API real do Educampo e a **Tela de Carregamento**. Aqui a tela consome o Zustand, envia para o BFF, recebe a resposta real e injeta de volta na *store*. *(Validar com `tests/api/bff.spec.ts`)*.
 - [ ] **Consumo de Dados (Dashboard):** Implementar o **Dashboard Central**. Como a *store* já estará populada com dados reais do passo anterior, basta renderizar os blocos de Benchmarking e o Resumo Estratégico da IA.
 - [ ] **Renderização Complexa:** Desenvolver a **Tela de Diagnóstico**, criando a lógica visual para montar o Diagrama de Ishikawa iterando sobre os dados já salvos no estado.
 - [ ] **Ferramentas de Ajuste:** Finalizar com a **Tela de Simulação de Cenários** e a interface de **Ajuste de Dados**, reaproveitando os componentes já criados para permitir recálculos ágeis.
