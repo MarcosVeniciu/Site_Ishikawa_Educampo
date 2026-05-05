@@ -293,10 +293,16 @@ gitGraph
     checkout develop
     merge feature/integracao-bff id: "merge: integração bff e api real concluídas"
 
-    %% --- Início da Tarefa 6 (WIP) ---
+    %% --- Conclusão da Tarefa 6 ---
     branch feature/dashboard
     checkout feature/dashboard
     commit id: "docs: planejamento da visualização de benchmarking e ia"
+    commit id: "test: define contrato do dashboard e benchmarks"
+    commit id: "feat: navbar animada e layout split-screen"
+    commit id: "feat: benchmarks temporários e resumo IA"
+    commit id: "docs: registra divida técnica de cálculos no readme local"
+    checkout develop
+    merge feature/dashboard id: "merge: dashboard centralizado e funcional"
 ```
 
 ---
@@ -313,12 +319,12 @@ A estratégia de implementação adota uma construção incremental em blocos. O
 - [x] **Barreira de Segurança (Auth):** Desenvolver a rota interna `api/auth/route.ts` (com *mock* de credenciais), o Middleware Edge validando o JWT e a **Tela de Login**. *(Validar com `tests/security/auth.spec.ts`)*.
 - [x] **Coleta e Injeção de Estado:** Construir a **Tela de Coleta de Dados**, integrando o formulário para salvar as métricas diretamente no Zustand validado pelo Zod.
 - [x] **Integração Real (BFF):** Implementar o proxy `api/diagnostico/route.ts` apontando para a API real do Educampo e a **Tela de Carregamento**. Aqui a tela consome o Zustand, envia para o BFF, recebe a resposta real e injeta de volta na *store*. *(Validar com `tests/api/bff.spec.ts`)*.
+- [x] **Consumo de Dados (Dashboard):** Implementar o **Dashboard Central**. Como a *store* já estará populada com dados reais do passo anterior, basta renderizar os blocos de Benchmarking e o Resumo Estratégico da IA.
 
 #### 🚧 Em Desenvolvimento (WIP: 1)
-- [ ] **Consumo de Dados (Dashboard):** Implementar o **Dashboard Central**. Como a *store* já estará populada com dados reais do passo anterior, basta renderizar os blocos de Benchmarking e o Resumo Estratégico da IA.
+- [ ] **Renderização Complexa:** Desenvolver a **Tela de Diagnóstico**, criando a lógica visual para montar o Diagrama de Ishikawa iterando sobre os dados já salvos no estado.
 
 #### 🎯 A Fazer
-- [ ] **Renderização Complexa:** Desenvolver a **Tela de Diagnóstico**, criando a lógica visual para montar o Diagrama de Ishikawa iterando sobre os dados já salvos no estado.
 - [ ] **Ferramentas de Ajuste:** Finalizar com a **Tela de Simulação de Cenários** e a interface de **Ajuste de Dados**, reaproveitando os componentes já criados para permitir recálculos ágeis.
 
 #### 📝 Backlog

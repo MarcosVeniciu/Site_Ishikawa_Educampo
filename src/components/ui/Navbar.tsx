@@ -45,59 +45,54 @@ export function Navbar() {
         </button>
       </div>
 
-      {/* Menu dropdown animado (Desce do topo) */}
-      <div
-        className={`absolute top-full left-0 w-full bg-white shadow-md border-t border-gray-100 transition-all duration-300 ease-in-out origin-top ${
-          isMenuOpen ? 'opacity-100 scale-y-100' : 'opacity-0 scale-y-0 pointer-events-none'
-        }`}
-      >
-        <nav className="max-w-7xl mx-auto px-6 py-6 flex flex-col gap-6">
-          {/* Sessão 1: Diagnóstico */}
+      {/* Menu Dropdown Expandido */}
+      {isMenuOpen && (
+        <div className="absolute right-6 top-20 w-56 bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 overflow-hidden flex flex-col py-2 transition-all">
+          
+          {/* Sessão 1: Diagnóstico (Azul Principal) */}
           <Link 
-            href="/diagnostico" 
+            href="/dashboard" 
             onClick={() => setIsMenuOpen(false)} 
-            className="group flex items-start gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+            className="group flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
           >
             <div className="p-2 bg-[#f0f7ff] text-[#1973d3] rounded-lg group-hover:bg-[#1973d3] group-hover:text-white transition-colors">
-              <BarChart2 size={24} />
+              <BarChart2 size={20} />
             </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800">Diagnóstico</h3>
-              <p className="text-sm text-gray-500">Veja a análise detalhada de causas e efeitos da sua fazenda.</p>
-            </div>
+            <span className="text-base font-medium text-gray-700 group-hover:text-gray-900">
+              Diagnóstico
+            </span>
           </Link>
 
-          {/* Sessão 2: Simulações */}
+          {/* Sessão 2: Simulações (Âmbar/Laranja) */}
           <Link 
             href="/simulacao" 
             onClick={() => setIsMenuOpen(false)} 
-            className="group flex items-start gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+            className="group flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
           >
-            <div className="p-2 bg-[#f0f7ff] text-[#1973d3] rounded-lg group-hover:bg-[#1973d3] group-hover:text-white transition-colors">
-              <Lightbulb size={24} />
+            <div className="p-2 bg-amber-50 text-amber-500 rounded-lg group-hover:bg-amber-500 group-hover:text-white transition-colors">
+              <Lightbulb size={20} />
             </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800">Simulações</h3>
-              <p className="text-sm text-gray-500">Faça projeções e veja como pequenas mudanças afetam seus resultados.</p>
-            </div>
+            <span className="text-base font-medium text-gray-700 group-hover:text-gray-900">
+              Simulações
+            </span>
           </Link>
 
-          {/* Sessão 3: Configurações (Retorno ao formulário) */}
+          {/* Sessão 3: Configurações (Slate/Cinza) */}
           <Link 
             href="/formulario" 
             onClick={() => setIsMenuOpen(false)} 
-            className="group flex items-start gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+            className="group flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
           >
-            <div className="p-2 bg-[#f0f7ff] text-[#1973d3] rounded-lg group-hover:bg-[#1973d3] group-hover:text-white transition-colors">
-              <Settings size={24} />
+            <div className="p-2 bg-slate-100 text-slate-500 rounded-lg group-hover:bg-slate-500 group-hover:text-white transition-colors">
+              <Settings size={20} />
             </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800">Configurações</h3>
-              <p className="text-sm text-gray-500">Edite as informações e métricas preenchidas sobre sua propriedade.</p>
-            </div>
+            <span className="text-base font-medium text-gray-700 group-hover:text-gray-900">
+              Configurações
+            </span>
           </Link>
-        </nav>
-      </div>
+
+        </div>
+      )}
     </header>
   );
 }
