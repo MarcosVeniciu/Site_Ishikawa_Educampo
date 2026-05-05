@@ -56,8 +56,13 @@ export function Navbar() {
         {/* MENU DROPDOWN EXPANDIDO (Painel Flutuante / Overlay)
             'top-2 right-4' faz o menu sobrepor o cabeçalho, envolvendo o botão X.
         */}
-        {isMenuOpen && (
-          <div className="absolute top-2 right-4 w-[28rem] bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden origin-top transition-all animate-in fade-in slide-in-from-top-8 duration-300 ease-out z-[55]">
+        <div 
+          className={`absolute top-2 right-4 w-[28rem] bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden origin-top transition-all duration-500 ease-out z-[55] ${
+            isMenuOpen 
+              ? 'opacity-100 translate-y-0 visible' 
+              : 'opacity-0 -translate-y-12 invisible pointer-events-none'
+          }`}
+        >
             
             {/* FOCO DA MUDANÇA:
                 O Link agora começa no topo da caixa. 
@@ -128,7 +133,6 @@ export function Navbar() {
 
             </div>
           </div>
-        )}
       </div>
     </header>
   );
