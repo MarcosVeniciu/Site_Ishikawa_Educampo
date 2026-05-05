@@ -18,7 +18,7 @@ export function Navbar() {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   return (
-    <header className="relative z-50 bg-white border-b border-gray-100 shadow-sm w-full">
+    <header className="relative z-50 bg-transparent w-full">
       {/* CONTAINER DE REFERÊNCIA (Centralizado) 
           Colocamos 'relative' aqui para que o menu se posicione em relação ao conteúdo centralizado
       */}
