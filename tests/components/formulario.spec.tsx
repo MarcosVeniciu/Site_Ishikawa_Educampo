@@ -64,22 +64,30 @@ describe('Tela de Coleta de Dados (Formulário)', () => {
     expect(screen.getByLabelText(/Total de Vacas/i)).toBeInTheDocument();
   });
 
-  it('deve bloquear a submissão e exibir erros do Zod quando os dados forem inválidos', async () => {
+  it('deve bloquear a submissão e exibir erros do Zod quando os dados violarem regras zootécnicas', async () => {
     const user = userEvent.setup();
     render(<FormularioPage />);
 
-    // Clica em submeter sem preencher nada
+    // Preenchemos com dados que passam no HTML5 (required), mas falham na malha fina do Zod (Regra Cruzada)
+    await user.type(screen.getByLabelText(/Nome da Fazenda/i), 'Fazenda Errada');
+    await user.selectOptions(screen.getByLabelText(/Sistema de Produção/i), 'confinado');
+    await user.type(screen.getByLabelText(/Total de Vacas/i), '100');
+    await user.type(screen.getByLabelText(/Vacas em Lactação/i), '150'); // Erro Zod (Lactação > Total)
+    await user.type(screen.getByLabelText(/Total no Rebanho/i), '150');
+    await user.type(screen.getByLabelText(/Área da Atividade/i), '10');
+    await user.type(screen.getByLabelText(/Mão de Obra Total/i), '3');
+    await user.type(screen.getByLabelText(/Prod. por Vaca/i), '30');
+    await user.type(screen.getByLabelText(/Qualidade/i), '150');
+    await user.type(screen.getByLabelText(/Preço Recebido/i), '3.20');
+    await user.type(screen.getByLabelText(/Preço de Referência/i), '3.00');
+    await user.selectOptions(screen.getByLabelText(/Região/i), 'sul');
+
     const botaoAvancar = screen.getByRole('button', { name: /Avançar/i });
     await user.click(botaoAvancar);
 
-    // Aguarda a renderização das mensagens de erro (validação em tempo real)
     await waitFor(() => {
-      // Verifica se a função de salvar no Zustand NÃO foi chamada
       expect(mockSetDadosFazenda).not.toHaveBeenCalled();
-      
-      // Verifica se as mensagens de erro apareceram na tela
-      // Nota: Os textos exatos dependerão das mensagens configuradas no Zod schema
-      expect(screen.getAllByText(/Obrigatório|Inválido/i).length).toBeGreaterThan(0);
+      expect(screen.getByText(/Vacas em lactação não pode exceder/i)).toBeInTheDocument();
     });
   });
 
@@ -97,15 +105,15 @@ describe('Tela de Coleta de Dados (Formulário)', () => {
     // Preenche Estrutura e Rebanho
     await user.type(screen.getByLabelText(/Total de Vacas/i), '100');
     await user.type(screen.getByLabelText(/Vacas em Lactação/i), '85');
-    await user.type(screen.getByLabelText(/Total de Animais no Rebanho/i), '150');
+    await user.type(screen.getByLabelText(/Total no Rebanho/i), '150');
     await user.type(screen.getByLabelText(/Área da Atividade/i), '200');
     await user.type(screen.getByLabelText(/Mão de Obra Total/i), '3');
 
     // Preenche Produção e Qualidade (e Região)
-    await user.type(screen.getByLabelText(/Produção por Vaca/i), '35');
-    await user.type(screen.getByLabelText(/Preço do Leite/i), '3.20');
+    await user.type(screen.getByLabelText(/Prod. por Vaca/i), '35');
+    await user.type(screen.getByLabelText(/Preço Recebido/i), '3.20');
     await user.type(screen.getByLabelText(/Preço de Referência/i), '2.50');
-    await user.type(screen.getByLabelText(/CCS/i), '150');
+    await user.type(screen.getByLabelText(/Qualidade/i), '150');
     
     const regiaoSelect = screen.getByLabelText(/Região/i);
     await user.selectOptions(regiaoSelect, 'triangulo');

@@ -73,7 +73,7 @@ As principais camadas de defesa da plataforma incluem:
 * **Cookies Blindados:** Os cookies de sessão utilizam as flags `HttpOnly` (inacessível via JavaScript), `SameSite=Strict` (previne falsificação de requisições/CSRF) e `Secure` (trafega apenas em conexões HTTPS criptografadas).
 
 ### 2. Middleware Guardião e Proxying de API (Ocultação)
-* **Proteção de Rotas em Tempo Real:** Um *Middleware* nativo (Edge Runtime) monitora todas as tentativas de acesso às rotas privadas. Sem um cookie válido e verificado criptograficamente (usando bibliotecas modernas como a `jose`), o usuário é redirecionado instantaneamente para a tela de login.
+* **Proteção de Rotas em Tempo Real e Expiração (TTL):** Um *Middleware* nativo (Edge Runtime) monitora todas as tentativas de acesso às rotas privadas. Sem um cookie válido e verificado criptograficamente (usando bibliotecas modernas como a `jose`), o usuário é redirecionado instantaneamente para a tela de login. Adicionalmente, **a sessão possui um tempo de validade estrito de 5 minutos**, deslogando o usuário automaticamente para mitigar o risco de sequestro de sessão inativa.
 * **Ocultação de Chaves (Proxy):** O frontend não se comunica diretamente com a API de Inteligência Artificial. Toda chamada passa por uma rota interna no servidor Next.js, garantindo que API Keys, endereços IP e a estrutura do banco não fiquem expostos na rede do usuário.
 
 ### 3. Prevenção contra Vazamento de Estado

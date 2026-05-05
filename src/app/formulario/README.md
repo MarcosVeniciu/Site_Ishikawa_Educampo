@@ -17,4 +17,7 @@ Para entender como esses dados são validados, consulte a documentação da [Bib
 ## 🛡️ Segurança e UX
 - **Sanitização:** Todos os inputs numéricos são tratados antes de chegarem à store.
 - **Feedback Visual:** Exibe mensagens de erro em tempo real caso os requisitos do schema não sejam atendidos.
-
+- **Hierarquia de Informação em 3 Níveis:** Para maximizar a clareza para o público rural, o formulário adota:
+  1. **Rótulo e Unidade (Label):** Informa claramente o que é esperado e a métrica (ex: cab., ha, L/dia).
+  2. **Placeholder (Exemplo):** Exemplifica o formato numérico esperado (ex: 35.0, 150).
+  3. **Tooltips (Apoio):** Ícones iterativos (`lucide-react`) que detalham a regra de negócio para campos complexos, como a regra dos "mil" no CCS.
