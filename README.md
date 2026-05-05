@@ -284,10 +284,19 @@ gitGraph
     checkout develop
     merge feature/coleta-dados id: "merge: coleta de dados e injeção de estado concluídos"
 
-    %% --- Início da Tarefa 5 (WIP) ---
+    %% --- Conclusão da Tarefa 5 ---
     branch feature/integracao-bff
     checkout feature/integracao-bff
     commit id: "docs: planejamento da integração bff e segurança de payload"
+    commit id: "test: define contrato de integração e proxy seguro"
+    commit id: "feat: implementa proxy bff e tela de carregamento"
+    checkout develop
+    merge feature/integracao-bff id: "merge: integração bff e api real concluídas"
+
+    %% --- Início da Tarefa 6 (WIP) ---
+    branch feature/dashboard
+    checkout feature/dashboard
+    commit id: "docs: planejamento da visualização de benchmarking e ia"
 ```
 
 ---
@@ -303,12 +312,12 @@ A estratégia de implementação adota uma construção incremental em blocos. O
 - [x] **Estado Global e Validações:** Criar os testes unitários e implementar a `useFazendaStore` juntamente com os *schemas* do Zod para os inputs da fazenda.
 - [x] **Barreira de Segurança (Auth):** Desenvolver a rota interna `api/auth/route.ts` (com *mock* de credenciais), o Middleware Edge validando o JWT e a **Tela de Login**. *(Validar com `tests/security/auth.spec.ts`)*.
 - [x] **Coleta e Injeção de Estado:** Construir a **Tela de Coleta de Dados**, integrando o formulário para salvar as métricas diretamente no Zustand validado pelo Zod.
+- [x] **Integração Real (BFF):** Implementar o proxy `api/diagnostico/route.ts` apontando para a API real do Educampo e a **Tela de Carregamento**. Aqui a tela consome o Zustand, envia para o BFF, recebe a resposta real e injeta de volta na *store*. *(Validar com `tests/api/bff.spec.ts`)*.
 
 #### 🚧 Em Desenvolvimento (WIP: 1)
-- [ ] **Integração Real (BFF):** Implementar o proxy `api/diagnostico/route.ts` apontando para a API real do Educampo e a **Tela de Carregamento**. Aqui a tela consome o Zustand, envia para o BFF, recebe a resposta real e injeta de volta na *store*. *(Validar com `tests/api/bff.spec.ts`)*.
+- [ ] **Consumo de Dados (Dashboard):** Implementar o **Dashboard Central**. Como a *store* já estará populada com dados reais do passo anterior, basta renderizar os blocos de Benchmarking e o Resumo Estratégico da IA.
 
 #### 🎯 A Fazer
-- [ ] **Consumo de Dados (Dashboard):** Implementar o **Dashboard Central**. Como a *store* já estará populada com dados reais do passo anterior, basta renderizar os blocos de Benchmarking e o Resumo Estratégico da IA.
 - [ ] **Renderização Complexa:** Desenvolver a **Tela de Diagnóstico**, criando a lógica visual para montar o Diagrama de Ishikawa iterando sobre os dados já salvos no estado.
 - [ ] **Ferramentas de Ajuste:** Finalizar com a **Tela de Simulação de Cenários** e a interface de **Ajuste de Dados**, reaproveitando os componentes já criados para permitir recálculos ágeis.
 

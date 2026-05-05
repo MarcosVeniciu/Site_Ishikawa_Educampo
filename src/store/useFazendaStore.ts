@@ -15,8 +15,12 @@ import { FazendaFormData } from '../lib/schemas';
 interface FazendaState {
   /** Dados preenchidos no formulário de coleta. */
   dadosFazenda: FazendaFormData | null;
+  /** Dados do diagnóstico retornado pela API da IA. */
+  diagnostico: any | null; // TODO: Substituir 'any' pelo tipo correto extraído do Zod (ex: DiagnosticoData)
   /** Define os dados da fazenda no estado global. */
   setDadosFazenda: (dados: FazendaFormData) => void;
+  /** Define os dados do diagnóstico no estado global. */
+  setDiagnostico: (diagnostico: any) => void;
   /** Reseta a store para o estado inicial (limpeza de sessão). */
   limparDados: () => void;
 }
@@ -28,6 +32,7 @@ interface FazendaState {
  */
 export const useFazendaStore = create<FazendaState>((set) => ({
   dadosFazenda: null,
+  diagnostico: null,
 
   setDadosFazenda: (dados) => {
     /**
@@ -36,10 +41,17 @@ export const useFazendaStore = create<FazendaState>((set) => ({
     set({ dadosFazenda: dados });
   },
 
+  setDiagnostico: (diagnostico) => {
+    /**
+     * @description Atualiza o estado global com o resultado do diagnóstico da IA.
+     */
+    set({ diagnostico });
+  },
+
   limparDados: () => {
     /**
      * @description Garante a limpeza agressiva de estado para segurança e logout.
      */
-    set({ dadosFazenda: null });
+    set({ dadosFazenda: null, diagnostico: null });
   },
 }));

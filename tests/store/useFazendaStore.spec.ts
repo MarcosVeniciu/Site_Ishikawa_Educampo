@@ -24,6 +24,17 @@ describe('Zustand Store: useFazendaStore', () => {
     regiao: 'triangulo',
   };
 
+  const mockDiagnostico = {
+    resumo_geral: {
+      visao_global: "Fazenda com bom potencial, mas requer ajustes.",
+      prioridades: ["Reduzir CCS", "Aumentar produção por vaca"],
+      proximos_passos: "Revisar rotina de ordenha."
+    },
+    diagrama_ishikawa: {
+      ccs: { mao_de_obra: ["Falta de treinamento na ordenha"] }
+    }
+  };
+
   /**
    * @description Limpa o estado global antes de cada teste para garantir isolamento.
    * Utiliza o método `getState().limparDados()` da própria store.
@@ -39,6 +50,7 @@ describe('Zustand Store: useFazendaStore', () => {
   it('deve iniciar com os dados da fazenda vazios (null)', () => {
     const estado = useFazendaStore.getState();
     expect(estado.dadosFazenda).toBeNull();
+    expect(estado.diagnostico).toBeNull();
   });
 
   /**
@@ -54,6 +66,16 @@ describe('Zustand Store: useFazendaStore', () => {
   });
 
   /**
+   * @description Simula o armazenamento da resposta do BFF.
+   */
+  it('deve armazenar os dados do diagnóstico corretamente via setDiagnostico', () => {
+    useFazendaStore.getState().setDiagnostico(mockDiagnostico as any);
+    
+    const estadoAtual = useFazendaStore.getState();
+    expect(estadoAtual.diagnostico).toEqual(mockDiagnostico);
+  });
+
+  /**
    * @description Avalia a mecânica de prevenção de vazamento de estado.
    * Primeiro injeta dados, depois aciona a limpeza e verifica se a referência volta a ser null.
    */
@@ -61,9 +83,12 @@ describe('Zustand Store: useFazendaStore', () => {
     const store = useFazendaStore.getState();
     
     store.setDadosFazenda(dadosMock as any);
+    store.setDiagnostico(mockDiagnostico as any);
     expect(useFazendaStore.getState().dadosFazenda).not.toBeNull();
+    expect(useFazendaStore.getState().diagnostico).not.toBeNull();
     
     store.limparDados();
     expect(useFazendaStore.getState().dadosFazenda).toBeNull();
+    expect(useFazendaStore.getState().diagnostico).toBeNull();
   });
 });

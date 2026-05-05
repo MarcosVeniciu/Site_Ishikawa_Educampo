@@ -21,13 +21,18 @@ const SECRET_KEY = new TextEncoder().encode(
 // Define as rotas que o Middleware irá proteger/interceptar
 export const config = {
   matcher: [
-    '/', // Intercepta a raiz
-    '/login', // Intercepta a tela de login para redirecionar quem já tem sessão
-    '/dashboard/:path*', 
-    '/formulario/:path*', 
-    '/diagnostico/:path*', 
-    '/simulacao/:path*', 
-    '/carregando/:path*'
+    /*
+     * Protege todas as rotas de negócio, exceto:
+     * - login (página pública)
+     * - api/auth (rota de autenticação)
+     * - arquivos estáticos (public, favicon, etc)
+     */
+    '/formulario/:path*',
+    '/carregando/:path*',
+    '/dashboard/:path*',
+    '/diagnostico/:path*',
+    '/simulacao/:path*',
+    '/configuracoes/:path*',
   ],
 };
 
