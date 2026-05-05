@@ -7,15 +7,34 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { BarChart2, Lightbulb, Settings } from 'lucide-react';
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      // Fecha o menu se o clique for fora do menu dropdown e também fora do botão hamburger
+      if (
+        isMenuOpen &&
+        menuRef.current && !menuRef.current.contains(target) &&
+        buttonRef.current && !buttonRef.current.contains(target)
+      ) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMenuOpen]);
 
   return (
     <header className="relative z-50 bg-transparent w-full">
@@ -43,6 +62,7 @@ export function Navbar() {
               Z-index [60] para flutuar SEMPRE acima do menu 
           */}
           <button
+            ref={buttonRef}
             onClick={toggleMenu}
             className="w-11 h-11 flex flex-col items-center justify-center gap-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors relative z-[60]"
             aria-label={isMenuOpen ? "Fechar menu" : "Abrir menu"}
@@ -56,7 +76,8 @@ export function Navbar() {
         {/* MENU DROPDOWN EXPANDIDO (Painel Flutuante / Overlay)
             'top-2 right-4' faz o menu sobrepor o cabeçalho, envolvendo o botão X.
         */}
-        <div 
+        <div
+          ref={menuRef}
           className={`absolute top-2 right-4 w-[28rem] bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden origin-top transition-all duration-500 ease-out z-[55] ${
             isMenuOpen 
               ? 'opacity-100 translate-y-0 visible' 
