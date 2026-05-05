@@ -46,16 +46,14 @@ export function Navbar() {
         {/* Barra Superior */}
         <div className="flex items-center justify-between py-4">
           <div className="flex items-center">
-            <Link href="/">
-              <Image
-                src="/banner_educampo.png"
-                alt="Logo Educampo"
-                width={150}
-                height={40}
-                className="object-contain cursor-pointer"
-                priority
-              />
-            </Link>
+            <Image
+              src="/banner_educampo.png"
+              alt="Logo Educampo"
+              width={150}
+              height={40}
+              className="object-contain"
+              priority
+            />
           </div>
           
           {/* Botão Hamburger com Animação Morph (Hamburger -> X) 
