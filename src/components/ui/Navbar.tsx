@@ -19,9 +19,9 @@ export function Navbar() {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   return (
-    <header className="relative z-50 bg-white shadow-sm">
+    <header className="relative z-50">
       {/* Barra superior fixa */}
-      <div className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto relative z-50 bg-white">
+      <div className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto relative z-50">
         <div className="flex items-center">
           {/* Logo/Banner Educampo no canto superior esquerdo */}
           <Image
@@ -39,7 +39,7 @@ export function Navbar() {
           onClick={toggleMenu}
           aria-label={isMenuOpen ? "Fechar menu" : "Abrir menu"}
           aria-expanded={isMenuOpen}
-          className="p-2 text-[#003e7d] hover:bg-gray-100 rounded-md transition-colors"
+          className="p-2 text-primary hover:bg-fundo rounded-md transition-colors"
         >
           {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
@@ -53,9 +53,9 @@ export function Navbar() {
           <Link 
             href="/dashboard" 
             onClick={() => setIsMenuOpen(false)} 
-            className="group flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
+            className="group flex items-center gap-3 px-4 py-3 hover:bg-fundo transition-colors"
           >
-            <div className="p-2 bg-[#f0f7ff] text-[#1973d3] rounded-lg group-hover:bg-[#1973d3] group-hover:text-white transition-colors">
+            <div className="p-2 bg-primary/10 text-primary-light rounded-lg group-hover:bg-primary-light group-hover:text-white transition-colors">
               <BarChart2 size={20} />
             </div>
             <span className="text-base font-medium text-gray-700 group-hover:text-gray-900">
@@ -67,9 +67,9 @@ export function Navbar() {
           <Link 
             href="/simulacao" 
             onClick={() => setIsMenuOpen(false)} 
-            className="group flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
+            className="group flex items-center gap-3 px-4 py-3 hover:bg-fundo transition-colors"
           >
-            <div className="p-2 bg-amber-50 text-amber-500 rounded-lg group-hover:bg-amber-500 group-hover:text-white transition-colors">
+            <div className="p-2 bg-secondary/10 text-secondary rounded-lg group-hover:bg-secondary group-hover:text-white transition-colors">
               <Lightbulb size={20} />
             </div>
             <span className="text-base font-medium text-gray-700 group-hover:text-gray-900">
@@ -81,7 +81,7 @@ export function Navbar() {
           <Link 
             href="/formulario" 
             onClick={() => setIsMenuOpen(false)} 
-            className="group flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
+            className="group flex items-center gap-3 px-4 py-3 hover:bg-fundo transition-colors"
           >
             <div className="p-2 bg-slate-100 text-slate-500 rounded-lg group-hover:bg-slate-500 group-hover:text-white transition-colors">
               <Settings size={20} />

@@ -24,13 +24,13 @@ export const Acelerometro: React.FC<AcelerometroProps> = ({ status = '' }) => {
     <div className="relative w-48 h-28 flex flex-col items-center justify-end overflow-hidden">
       <svg viewBox="0 0 200 110" className="w-full h-full drop-shadow-sm">
         {/* Zona Vermelha (Crítico) - 180° a 120° */}
-        <path d="M 20 100 A 80 80 0 0 1 60 30.71" fill="none" stroke="#ef4444" strokeWidth="18" strokeLinecap="round" />
+        <path d="M 20 100 A 80 80 0 0 1 60 30.71" fill="none" className="stroke-danger" strokeWidth="18" strokeLinecap="round" />
         
         {/* Zona Amarela (Alerta) - 120° a 60° */}
-        <path d="M 60 30.71 A 80 80 0 0 1 140 30.71" fill="none" stroke="#f59e0b" strokeWidth="18" />
+        <path d="M 60 30.71 A 80 80 0 0 1 140 30.71" fill="none" className="stroke-warning" strokeWidth="18" />
         
         {/* Zona Verde (Bom) - 60° a 0° */}
-        <path d="M 140 30.71 A 80 80 0 0 1 180 100" fill="none" stroke="#10b981" strokeWidth="18" strokeLinecap="round" />
+        <path d="M 140 30.71 A 80 80 0 0 1 180 100" fill="none" className="stroke-success" strokeWidth="18" strokeLinecap="round" />
 
         {/* Ponteiro (Agulha) com animação */}
         <g 
@@ -50,8 +50,8 @@ export const Acelerometro: React.FC<AcelerometroProps> = ({ status = '' }) => {
       
       {/* Texto do Status logo abaixo do centro */}
       <span className={`mt-1 text-sm font-black uppercase tracking-wider ${
-        lowerStatus === 'crítico' || lowerStatus === 'critico' ? 'text-red-600' :
-        lowerStatus === 'alerta' || lowerStatus === 'regular' ? 'text-amber-500' : 'text-green-600'
+        lowerStatus === 'crítico' || lowerStatus === 'critico' ? 'text-danger' :
+        lowerStatus === 'alerta' || lowerStatus === 'regular' ? 'text-warning' : 'text-success'
       }`}>
         {status}
       </span>

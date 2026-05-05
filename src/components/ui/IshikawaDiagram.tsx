@@ -46,7 +46,7 @@ export const IshikawaDiagram: React.FC<IshikawaProps> = ({ data }) => {
             onClick={() => setSelectedCategory(cat)}
             title="Clique para ver os detalhes e práticas recomendadas"
           >
-            <h3 className="font-bold text-lg mb-3 text-blue-900 border-b border-gray-100 pb-2">{cat.title}</h3>
+            <h3 className="font-bold text-lg mb-3 text-primary border-b border-gray-100 pb-2">{cat.title}</h3>
             <ul className="list-disc pl-5 space-y-1">
               {cat.items.length > 0 ? (
                 cat.items.map((item, idx) => (
@@ -67,7 +67,7 @@ export const IshikawaDiagram: React.FC<IshikawaProps> = ({ data }) => {
             onClick={e => e.stopPropagation()}
           >
             <div className="flex justify-between items-center p-6 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-blue-900">{selectedCategory.title}</h2>
+              <h2 className="text-2xl font-bold text-primary">{selectedCategory.title}</h2>
               <button 
                 onClick={() => setSelectedCategory(null)}
                 className="text-gray-500 hover:text-gray-800 transition-colors p-1"
@@ -88,8 +88,8 @@ export const IshikawaDiagram: React.FC<IshikawaProps> = ({ data }) => {
                         {item.causa}
                       </p>
                       {item.pratica && (
-                        <div className="pl-4 border-l-2 border-blue-400">
-                          <span className="font-semibold text-blue-900 text-sm block mb-1">Prática Recomendada:</span>
+                        <div className="pl-4 border-l-2 border-primary-light">
+                          <span className="font-semibold text-primary text-sm block mb-1">Prática Recomendada:</span>
                           <p className="text-sm text-gray-700">{item.pratica}</p>
                         </div>
                       )}
@@ -101,10 +101,10 @@ export const IshikawaDiagram: React.FC<IshikawaProps> = ({ data }) => {
               )}
             </div>
             
-            <div className="p-4 border-t border-gray-200 text-right bg-gray-50 rounded-b-xl">
+            <div className="p-4 border-t border-gray-200 text-right bg-fundo rounded-b-xl">
               <button 
                 onClick={() => setSelectedCategory(null)}
-                className="bg-blue-900 hover:bg-blue-800 text-white px-6 py-2 rounded-lg transition-colors font-medium"
+                className="bg-primary hover:opacity-90 text-white px-6 py-2 rounded-lg transition-colors font-medium"
               >
                 Fechar
               </button>

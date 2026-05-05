@@ -18,6 +18,9 @@
   --color-secondary: #f97316;
   --color-fundo: #f9fafb;
   --color-fundo-alt: #f8fafc;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
 }
 
 body {
