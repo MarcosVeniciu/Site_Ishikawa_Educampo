@@ -11,4 +11,4 @@ A página de carregamento atua como o **orquestrador de fluxo** da aplicação. 
 4.  **Feedback Visual:** Utiliza animações e mensagens de status para reduzir a percepção de espera do usuário.
 
 ## Fluxo de Navegação
-`Formulário` -> `Carregando (Processamento)` -> `Dashboard`
+`Formulário` -> `Carregando (Processamento)` -> `Diagnóstico`

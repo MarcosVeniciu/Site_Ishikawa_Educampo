@@ -40,10 +40,10 @@ A arquitetura do site foi pensada para acompanhar o produtor desde a entrada dos
 * **Login:** Porta de entrada segura para o usuário acessar o sistema.
 * **Coleta de Dados:** Formulário onde o produtor insere as informações-chave da fazenda (tamanho do rebanho, área, trabalhadores, produção, preço, qualidade do leite, etc.).
 * **Tela de Carregamento:** Feedback visual de espera enquanto o frontend envia os dados para a API analisar as informações e formatar as respostas com Inteligência Artificial.
-* **Dashboard Central:** O painel principal de visualização de resultados, que apresenta:
+* **Tela de Diagnóstico (Hub Central):** O painel principal de visualização de resultados e coração analítico do site, que apresenta:
     * **Benchmarking:** Comparativo de desempenho da fazenda *versus* a base de dados do Educampo.
-    * **Resumo Estratégico (IA):** Retorno da API contendo a visão geral da propriedade, lista de prioridades e os próximos passos sugeridos.
-* **Tela de Diagnóstico (Ishikawa):** O coração analítico do site. Renderiza de forma interativa o Diagrama de Ishikawa enviado pela API, detalhando as causas dos problemas categorizadas em 6 pilares (Mão de Obra, Método, Máquina, Material, Meio Ambiente e Medida) e listando as respectivas práticas de melhoria.
+    * **Resumo Estratégico (IA):** Visão geral da propriedade.
+    * **Mapeamento de Causas (Ishikawa):** Renderização visual interativa detalhando as causas dos problemas categorizadas em 6 pilares (Mão de Obra, Método, Máquina, Material, Meio Ambiente e Medida) e listando as respectivas práticas de melhoria.
 * **Tela de Simulação:** Uma ferramenta de projeção onde o produtor pode selecionar perfis de referência (inferior, intermediário ou superior) e brincar com os números da sua fazenda para entender o impacto financeiro e zootécnico de possíveis mudanças.
 * **Ajuste de Dados:** Interface rápida para edição das informações preenchidas inicialmente, permitindo recálculos e geração de novos diagnósticos sem complicação.
 
@@ -54,9 +54,9 @@ O site foi desenhado para oferecer uma jornada analítica completa, unindo simpl
 
 * **Autenticação Simples e Segura:** Tela de acesso dedicada para que o produtor faça o login de forma segura informando apenas nome de usuário e senha.
 * **Coleta Dinâmica de Dados:** Formulário intuitivo para a inserção das métricas operacionais da fazenda. O sistema suporta propriedades geridas sob três modelos distintos: Compost Barn, Semi-confinado e Confinado.
-* **Dashboard de Benchmarking:** Um painel central que exibe o comparativo de desempenho do produtor em relação à média de mercado extraída da base de dados consolidada do Educampo.
+* **Benchmarking Integrado:** Um painel que exibe o comparativo de desempenho do produtor em relação à média de mercado extraída da base de dados consolidada do Educampo.
 * **Consultoria Estratégica Inteligente:** Integração direta com a inteligência da API para apresentar um "Resumo Geral" da fazenda, que inclui uma visão global do cenário, prioridades de ação e os próximos passos recomendados.
-* **Diagnóstico Visual Interativo (Diagrama de Ishikawa):** Uma visão detalhada das raízes dos problemas da fazenda. O sistema renderiza o diagrama focado em 5 indicadores-chave (CCS, preço do leite, produção por área, por funcionário e por vaca), listando causas exatas e práticas de melhoria recomendadas para correção.
+* **Diagnóstico Visual Interativo (Diagrama de Ishikawa):** Uma visão detalhada das raízes dos problemas da fazenda integrada na mesma tela principal.
 * **Simulador de Cenários:** Uma ferramenta de projeção onde o produtor pode adotar parâmetros de referência (como nível inferior, intermediário e superior) e alterar as próprias variáveis. Isso permite visualizar como diferentes ajustes impactam diretamente nos seus resultados e o quão próximo ele fica do cenário ideal.
 * **Edição e Recálculo Ágil:** Interface de ajuste rápido que permite ao usuário revisar e modificar os dados preenchidos inicialmente caso tenha cometido algum erro, atualizando instantaneamente os resultados sem precisar refazer todo o processo.
 
@@ -191,8 +191,7 @@ site_ishikawa_educampo/
 │   │   ├── login/page.tsx                           # Tela de autenticação do produtor.
 │   │   ├── formulario/page.tsx                      # Tela de coleta de dados operacionais da fazenda.
 │   │   ├── carregando/page.tsx                      # Tela de feedback visual e validação de hidratação de dados.
-│   │   ├── dashboard/page.tsx                       # Painel central com Benchmarking e Resumo Estratégico da IA.
-│   │   ├── diagnostico/page.tsx                     # Tela interativa para renderização do Diagrama de Ishikawa.
+│   │   ├── diagnostico/page.tsx                     # Painel central unificado: Benchmarking, IA e Diagrama de Ishikawa.
 │   │   ├── simulacao/page.tsx                       # Simulador iterativo de cenários zootécnicos.
 │   │   ├── configuracoes/page.tsx                   # Ajustes de usuário e logout seguro (destruição de sessão).
 │   │   ├── layout.tsx                               # Layout global, fontes e base visual da aplicação.
@@ -294,15 +293,14 @@ gitGraph
     merge feature/integracao-bff id: "merge: integração bff e api real concluídas"
 
     %% --- Conclusão da Tarefa 6 ---
-    branch feature/dashboard
-    checkout feature/dashboard
+    branch feature/diagnostico-hub
+    checkout feature/diagnostico-hub
     commit id: "docs: planejamento da visualização de benchmarking e ia"
-    commit id: "test: define contrato do dashboard e benchmarks"
+    commit id: "test: define contrato do diagnostico e benchmarks"
     commit id: "feat: navbar animada e layout split-screen"
     commit id: "feat: benchmarks temporários e resumo IA"
-    commit id: "docs: registra divida técnica de cálculos no readme local"
     checkout develop
-    merge feature/dashboard id: "merge: dashboard centralizado e funcional"
+    merge feature/diagnostico-hub id: "merge: modulo centralizado funcional"
 ```
 
 ---

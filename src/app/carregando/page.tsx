@@ -5,7 +5,7 @@
  * 1. Recuperar os dados da fazenda salvos no Zustand.
  * 2. Enviar os dados para a API interna (BFF).
  * 3. Gerenciar o estado de espera visual do usuário com feedback elegante.
- * 4. Salvar o diagnóstico retornado no estado global e redirecionar para o Dashboard.
+ * 4. Salvar o diagnóstico retornado no estado global e redirecionar para o Diagnóstico.
  */
 
 "use client";
@@ -47,10 +47,10 @@ export default function CarregandoPage() {
         // Injeta o diagnóstico real retornado da API Python no estado global
         setDiagnosticoIA(data);
         
-        setMensagem("Análise concluída! Montando seu Dashboard...");
+        setMensagem("Análise concluída! Montando seu Diagnóstico...");
         
         // Pequeno delay para garantir que o usuário veja a conclusão antes da troca de tela
-        setTimeout(() => router.push("/dashboard"), 1500);
+        setTimeout(() => router.push("/diagnostico"), 1500);
 
       } catch (error) {
         console.error("Falha no processamento:", error);

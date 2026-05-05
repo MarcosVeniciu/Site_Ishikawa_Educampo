@@ -120,8 +120,8 @@ describe('🔒 Barreira de Segurança e Autenticação', () => {
 
   describe('Middleware Guardião (Proteção de Rotas Privadas)', () => {
     it('DEVE redirecionar para a tela de /login se o cookie de sessão não existir', () => {
-      // Simula uma tentativa de acessar o dashboard sem estar logado
-      const request = new NextRequest('http://localhost:3000/dashboard');
+      // Simula uma tentativa de acessar o diagnóstico sem estar logado
+      const request = new NextRequest('http://localhost:3000/diagnostico');
       
       // Simula a lógica básica que o Middleware deverá ter
       const hasSession = request.cookies.has('educampo_session');
@@ -140,7 +140,7 @@ describe('🔒 Barreira de Segurança e Autenticação', () => {
 
     it('DEVE permitir o acesso se o cookie de sessão for válido e presente', () => {
       // Simula uma requisição autenticada
-      const request = new NextRequest('http://localhost:3000/dashboard');
+      const request = new NextRequest('http://localhost:3000/diagnostico');
       request.cookies.set('educampo_session', 'valid-jwt-token');
       
       const hasSession = request.cookies.has('educampo_session');
