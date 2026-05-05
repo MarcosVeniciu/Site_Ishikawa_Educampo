@@ -65,16 +65,16 @@ export default function FormularioPage() {
 
   // Estados dos formulários (tipados e inicializados)
   const [formData, setFormData] = useState({
-    nomeFazenda: '',
-    sistemaProducao: '',
-    totalVacas: '',
-    vacasLactacao: '',
-    totalAnimais: '',
-    areaAtividade: '',
-    maoDeObra: '',
-    producaoPorVaca: '',
-    precoLeite: '',
-    precoReferencia: '',
+    nome_fazenda: '',
+    sistema_producao: '',
+    total_vacas: '',
+    vacas_lactacao: '',
+    animais_rebanho: '',
+    area_atividade: '',
+    mao_obra_total: '',
+    producao_vaca: '',
+    preco_leite: '',
+    preco_referencia: '',
     ccs: '',
     regiao: '',
   });
@@ -90,24 +90,8 @@ export default function FormularioPage() {
     e.preventDefault();
     setErros([]);
 
-    // Mapeamento e conversão de tipos para o formato esperado pelo schema
-    const dadosParaValidar = {
-      nomeFazenda: formData.nomeFazenda,
-      sistemaProducao: formData.sistemaProducao,
-      totalVacas: Number(formData.totalVacas),
-      vacasLactacao: Number(formData.vacasLactacao),
-      animaisRebanho: Number(formData.totalAnimais),
-      areaAtividade: Number(formData.areaAtividade),
-      maoObraTotal: Number(formData.maoDeObra),
-      producaoVaca: Number(formData.producaoPorVaca),
-      precoLeite: Number(formData.precoLeite),
-      precoRegional: Number(formData.precoReferencia),
-      ccs: Number(formData.ccs),
-      regiao: formData.regiao,
-    };
-
-    // Validação real usando o Schema centralizado do projeto
-    const validacao = fazendaSchema.safeParse(dadosParaValidar);
+    // Validação real usando o Schema centralizado do projeto (z.coerce fará a conversão numérica)
+    const validacao = fazendaSchema.safeParse(formData);
 
     if (!validacao.success) {
       // Garante suporte robusto para extrair a lista de erros, evitando falhas de prototype no JSDOM
@@ -168,26 +152,26 @@ export default function FormularioPage() {
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Informações Gerais</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <InputComDica 
-                id="nomeFazenda" name="nomeFazenda" type="text" 
+                id="nome_fazenda" name="nome_fazenda" type="text" 
                 label="Nome da Fazenda"
                 placeholder="Fazenda Leiteira Experimental"
                 dica="Nome de identificação da sua propriedade."
-                value={formData.nomeFazenda} onChange={handleChange} required maxLength={100}
+                value={formData.nome_fazenda} onChange={handleChange} required maxLength={100}
               />
               <div className="flex flex-col gap-1 w-full">
                 <LabelComDica 
-                  htmlFor="sistemaProducao" 
+                  htmlFor="sistema_producao" 
                   label="Sistema de Produção" 
                   dica="Modelo de confinamento ou pastagem adotado na propriedade." 
                 />
                 <select 
-                  id="sistemaProducao" name="sistemaProducao" 
+                  id="sistema_producao" name="sistema_producao" 
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                  value={formData.sistemaProducao} onChange={handleChange} required
+                  value={formData.sistema_producao} onChange={handleChange} required
                 >
                   <option value="">Selecione o sistema</option>
-                  <option value="semi confinado">Semi-confinado</option>
-                  <option value="compost barn">Compost Barn</option>
+                  <option value="semi_confinado">Semi-confinado</option>
+                  <option value="compost_barn">Compost Barn</option>
                   <option value="confinado">Confinado</option>
                 </select>
               </div>
@@ -199,35 +183,35 @@ export default function FormularioPage() {
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Estrutura e Rebanho</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <InputComDica 
-                id="totalVacas" name="totalVacas" type="number" 
+                id="total_vacas" name="total_vacas" type="number" 
                 label="Total de Vacas" unidade="cab." placeholder="100"
                 dica="Quantidade total de vacas (secas e em lactação)."
-                value={formData.totalVacas} onChange={handleChange} min={0} max={50000} required 
+                value={formData.total_vacas} onChange={handleChange} min={0} max={50000} required 
               />
               <InputComDica 
-                id="vacasLactacao" name="vacasLactacao" type="number" 
+                id="vacas_lactacao" name="vacas_lactacao" type="number" 
                 label="Vacas em Lactação" unidade="cab." placeholder="85"
                 dica="Apenas as vacas que estão produzindo leite atualmente."
-                value={formData.vacasLactacao} onChange={handleChange} min={0} max={50000} required 
+                value={formData.vacas_lactacao} onChange={handleChange} min={0} max={50000} required 
               />
               <InputComDica 
-                id="totalAnimais" name="totalAnimais" type="number" 
+                id="animais_rebanho" name="animais_rebanho" type="number" 
                 label="Total no Rebanho" unidade="cab." placeholder="150"
                 dica="Todas as categorias de animais do rebanho leiteiro."
-                value={formData.totalAnimais} onChange={handleChange} min={0} max={100000} required 
+                value={formData.animais_rebanho} onChange={handleChange} min={0} max={100000} required 
               />
               <InputComDica 
-                id="areaAtividade" name="areaAtividade" type="number" step="0.01" 
+                id="area_atividade" name="area_atividade" type="number" step="0.01" 
                 label="Área da Atividade" unidade="ha" placeholder="10.0"
                 dica="Área total destinada à pecuária de leite em hectares."
-                value={formData.areaAtividade} onChange={handleChange} min={0.1} max={50000} required 
+                value={formData.area_atividade} onChange={handleChange} min={0.1} max={50000} required 
               />
               <div className="md:col-span-2">
                 <InputComDica 
-                  id="maoDeObra" name="maoDeObra" type="number" 
+                  id="mao_obra_total" name="mao_obra_total" type="number" 
                   label="Mão de Obra Total" unidade="trabalhadores" placeholder="3"
                   dica="Número total de trabalhadores envolvidos na atividade leiteira."
-                  value={formData.maoDeObra} onChange={handleChange} min={1} max={1000} required 
+                  value={formData.mao_obra_total} onChange={handleChange} min={1} max={1000} required 
                 />
               </div>
             </div>
@@ -238,10 +222,10 @@ export default function FormularioPage() {
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Produção e Qualidade</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <InputComDica 
-                id="producaoPorVaca" name="producaoPorVaca" type="number" step="0.01" 
+                id="producao_vaca" name="producao_vaca" type="number" step="0.01" 
                 label="Prod. por Vaca" unidade="L/dia" placeholder="35.0"
                 dica="Média de litros produzidos por vaca em lactação."
-                value={formData.producaoPorVaca} onChange={handleChange} min={0} max={100} required 
+                value={formData.producao_vaca} onChange={handleChange} min={0} max={100} required 
               />
               <div>
                 <InputComDica 
@@ -253,16 +237,16 @@ export default function FormularioPage() {
                 <p className="text-xs text-gray-500 mt-1.5 ml-1">Informe o valor simplificado. O sistema multiplicará por 1.000 automaticamente.</p>
               </div>
               <InputComDica 
-                id="precoLeite" name="precoLeite" type="number" step="0.01" 
+                id="preco_leite" name="preco_leite" type="number" step="0.01" 
                 label="Preço Recebido" unidade="R$/L" placeholder="3.20"
                 dica="Valor bruto recebido pelo litro do leite."
-                value={formData.precoLeite} onChange={handleChange} min={0} max={15} required 
+                value={formData.preco_leite} onChange={handleChange} min={0} max={15} required 
               />
               <InputComDica 
-                id="precoReferencia" name="precoReferencia" type="number" step="0.01" 
+                id="preco_referencia" name="preco_referencia" type="number" step="0.01" 
                 label="Preço de Referência" unidade="R$/L" placeholder="2.50"
                 dica="Preço base ou média regional para comparação."
-                value={formData.precoReferencia} onChange={handleChange} min={0} max={15} required 
+                value={formData.preco_referencia} onChange={handleChange} min={0} max={15} required 
               />
               <div className="md:col-span-2">
                 <div className="flex flex-col gap-1 w-full">
@@ -308,16 +292,16 @@ export default function FormularioPage() {
           <button
             type="button"
             onClick={() => setFormData({
-              nomeFazenda: 'Fazenda Auto Teste',
-              sistemaProducao: 'compost barn',
-              totalVacas: '100',
-              vacasLactacao: '85',
-              totalAnimais: '120',
-              areaAtividade: '10.0',
-              maoDeObra: '2',
-              producaoPorVaca: '35.0',
-              precoLeite: '3.20',
-              precoReferencia: '2.50',
+              nome_fazenda: 'Fazenda Auto Teste',
+              sistema_producao: 'compost_barn',
+              total_vacas: '100',
+              vacas_lactacao: '85',
+              animais_rebanho: '120',
+              area_atividade: '10.0',
+              mao_obra_total: '2',
+              producao_vaca: '35.0',
+              preco_leite: '3.20',
+              preco_referencia: '2.50',
               ccs: '150',
               regiao: 'triangulo',
             })}

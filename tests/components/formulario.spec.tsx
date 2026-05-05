@@ -100,7 +100,7 @@ describe('Tela de Coleta de Dados (Formulário)', () => {
     
     // O select nativo ou componente de UI sendo alterado
     const sistemaSelect = screen.getByLabelText(/Sistema de Produção/i);
-    await user.selectOptions(sistemaSelect, 'semi confinado');
+    await user.selectOptions(sistemaSelect, 'semi_confinado');
 
     // Preenche Estrutura e Rebanho
     await user.type(screen.getByLabelText(/Total de Vacas/i), '100');
@@ -126,10 +126,10 @@ describe('Tela de Coleta de Dados (Formulário)', () => {
     await waitFor(() => {
       // Verifica se o Zustand foi chamado com os dados corretos (tipados pelo schema)
       expect(mockSetDadosFazenda).toHaveBeenCalledWith(expect.objectContaining({
-        nomeFazenda: 'Fazenda Leiteira Experimental',
-        sistemaProducao: 'semi confinado',
-        totalVacas: 100,
-        vacasLactacao: 85,
+        nome_fazenda: 'Fazenda Leiteira Experimental',
+        sistema_producao: 'semi_confinado',
+        total_vacas: 100,
+        vacas_lactacao: 85,
       }));
 
       // Verifica se o usuário foi redirecionado para a tela de espera da API

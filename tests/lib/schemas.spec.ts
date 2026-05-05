@@ -11,16 +11,16 @@ import { fazendaSchema } from '../../src/lib/schemas';
 
 describe('Validações Zod: fazendaSchema', () => {
   const dadosValidos = {
-    nomeFazenda: 'Fazenda Leiteira Experimental',
-    sistemaProducao: 'compost barn',
-    totalVacas: 100,
-    vacasLactacao: 85,
-    animaisRebanho: 120,
-    areaAtividade: 10.0,
-    maoObraTotal: 2,
-    producaoVaca: 35.0,
-    precoLeite: 3.20,
-    precoRegional: 2.50,
+    nome_fazenda: 'Fazenda Leiteira Experimental',
+    sistema_producao: 'compost_barn',
+    total_vacas: 100,
+    vacas_lactacao: 85,
+    animais_rebanho: 120,
+    area_atividade: 10.0,
+    mao_obra_total: 2,
+    producao_vaca: 35.0,
+    preco_leite: 3.20,
+    preco_referencia: 2.50,
     ccs: 150,
     regiao: 'triangulo',
   };
@@ -34,29 +34,29 @@ describe('Validações Zod: fazendaSchema', () => {
   });
 
   /**
-   * @description Injeta uma string contendo 101 caracteres no campo nomeFazenda.
+   * @description Injeta uma string contendo 101 caracteres no campo nome_fazenda.
    * O Zod deve identificar o excesso e lançar um ZodError, validando a proteção contra abusos no banco.
    */
   it('deve rejeitar nome da fazenda com mais de 100 caracteres', () => {
-    const dadosInvalidos = { ...dadosValidos, nomeFazenda: 'A'.repeat(101) };
+    const dadosInvalidos = { ...dadosValidos, nome_fazenda: 'A'.repeat(101) };
     expect(() => fazendaSchema.parse(dadosInvalidos)).toThrow();
   });
 
   /**
-   * @description Injeta um valor negativo em um campo financeiro (precoLeite).
+   * @description Injeta um valor negativo em um campo financeiro (preco_leite).
    * O método deve lançar um erro provando que a aplicação não aceitará prejuízos matemáticos irreais.
    */
   it('deve rejeitar valores negativos em campos estritamente positivos', () => {
-    const dadosInvalidos = { ...dadosValidos, precoLeite: -1.5 };
+    const dadosInvalidos = { ...dadosValidos, preco_leite: -1.5 };
     expect(() => fazendaSchema.parse(dadosInvalidos)).toThrow();
   });
 
   /**
    * @description Testa a lógica zootécnica cruzada (Super Refine do Zod).
-   * Define vacasLactacao (110) maior que totalVacas (100). O schema deve barrar a inconsistência.
+   * Define vacas_lactacao (110) maior que total_vacas (100). O schema deve barrar a inconsistência.
    */
   it('deve rejeitar vacas em lactação maior que o total de vacas (Regra Cruzada)', () => {
-    const dadosInvalidos = { ...dadosValidos, totalVacas: 100, vacasLactacao: 110 };
+    const dadosInvalidos = { ...dadosValidos, total_vacas: 100, vacas_lactacao: 110 };
     expect(() => fazendaSchema.parse(dadosInvalidos)).toThrow();
   });
 
@@ -65,7 +65,7 @@ describe('Validações Zod: fazendaSchema', () => {
    * não pode superar o total de animais do rebanho (90).
    */
   it('deve rejeitar total de vacas maior que o total do rebanho (Regra Cruzada)', () => {
-    const dadosInvalidos = { ...dadosValidos, totalVacas: 100, animaisRebanho: 90 };
+    const dadosInvalidos = { ...dadosValidos, total_vacas: 100, animais_rebanho: 90 };
     expect(() => fazendaSchema.parse(dadosInvalidos)).toThrow();
   });
 
@@ -74,7 +74,7 @@ describe('Validações Zod: fazendaSchema', () => {
    * O Zod deve lançar erro garantindo o funcionamento estrito dos Enums definidos pela API.
    */
   it('deve rejeitar sistemas de produção ou regiões fora do Enum permitido', () => {
-    const dadosInvalidos = { ...dadosValidos, sistemaProducao: 'pastagem', regiao: 'capital' };
+    const dadosInvalidos = { ...dadosValidos, sistema_producao: 'pastagem', regiao: 'capital' };
     expect(() => fazendaSchema.parse(dadosInvalidos)).toThrow();
   });
 });

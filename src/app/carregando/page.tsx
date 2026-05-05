@@ -17,7 +17,7 @@ import Image from "next/image";
 
 export default function CarregandoPage() {
   const router = useRouter();
-  const { dadosFazenda, setDiagnostico } = useFazendaStore();
+  const { dadosFazenda, setDiagnosticoIA } = useFazendaStore();
   const [mensagem, setMensagem] = useState("Preparando análise...");
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export default function CarregandoPage() {
         const data = await response.json();
         
         // Injeta o diagnóstico real retornado da API Python no estado global
-        setDiagnostico(data);
+        setDiagnosticoIA(data);
         
         setMensagem("Análise concluída! Montando seu Dashboard...");
         
@@ -60,7 +60,7 @@ export default function CarregandoPage() {
     };
 
     processarAnalise();
-  }, [dadosFazenda, router, setDiagnostico]);
+  }, [dadosFazenda, router, setDiagnosticoIA]);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-fundo p-6">

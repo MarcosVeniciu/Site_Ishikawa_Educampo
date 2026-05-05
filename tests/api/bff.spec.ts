@@ -63,16 +63,16 @@ describe('BFF Proxy API - POST /api/diagnostico', () => {
    * Mock de um payload válido enviado pelo frontend (Zustand).
    */
   const mockValidPayload = {
-    nomeFazenda: 'Fazenda Leiteira Experimental',
-    sistemaProducao: 'compost barn',
-    totalVacas: 100,
-    vacasLactacao: 85,
-    animaisRebanho: 120,
-    areaAtividade: 10.0,
-    maoObraTotal: 2,
-    producaoVaca: 35.0,
-    precoLeite: 3.20,
-    precoRegional: 2.50,
+    nome_fazenda: 'Fazenda Leiteira Experimental',
+    sistema_producao: 'compost_barn',
+    total_vacas: 100,
+    vacas_lactacao: 85,
+    animais_rebanho: 120,
+    area_atividade: 10.0,
+    mao_obra_total: 2,
+    producao_vaca: 35.0,
+    preco_leite: 3.20,
+    preco_referencia: 2.50,
     ccs: 150,
     regiao: 'triangulo',
   };
@@ -113,12 +113,13 @@ describe('BFF Proxy API - POST /api/diagnostico', () => {
 
     expect(response.status).toBe(200);
     expect(global.fetch).toHaveBeenCalledWith(
-      `${process.env.API_BASE_URL}/diagnostico`,
+      `${process.env.API_BASE_URL}/api/diagnostico`,
       expect.objectContaining({
         method: 'POST',
         headers: expect.objectContaining({
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.API_TOKEN}`
+          'Authorization': `Bearer ${process.env.API_TOKEN}`,
+          'X-API-KEY': process.env.API_TOKEN
         })
       })
     );
@@ -127,8 +128,7 @@ describe('BFF Proxy API - POST /api/diagnostico', () => {
   });
 
   it('deve simular o desvio de fluxo quando ENABLE_PAYLOAD_ENCRYPTION estiver ativo', async () => {
-    /**
-     * @description Valida a nossa Feature Flag de Security by Design.
+    /** Security by Design.
      * Quando o interruptor estiver ligado, o comportamento interno de envio deve ser diferente
      * (preparando o terreno para a futura criptografia AES).
      */
@@ -172,6 +172,28 @@ describe('BFF Proxy API - POST /api/diagnostico', () => {
 
     expect(response.status).toBe(502);
     expect(data.error).toBe('Falha ao comunicar com a API de Diagnóstico.');
+  });
+
+  it('deve retornar erro 403 se a API externa recusar a autenticação', async () => {
+    /**
+     * @description Teste de repasse de falha de segurança. Se o token for inválido,
+     * o BFF deve retornar um 403 claro em vez de mascarar como 502.
+     */
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: false,
+      status: 403,
+    });
+
+    const req = new NextRequest('http://localhost:3000/api/diagnostico', {
+      method: 'POST',
+      body: JSON.stringify(mockValidPayload),
+    });
+
+    const response = await POST(req);
+    const data = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(data.error).toBe('Falha de autenticação ao comunicar com a inteligência.');
   });
 
   it('deve bloquear a requisição com erro 400 se o payload estiver malformado', async () => {

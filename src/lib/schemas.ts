@@ -12,7 +12,7 @@ import { z } from 'zod';
 /**
  * Enum para os sistemas de produção suportados pela API.
  */
-export const SistemaProducaoEnum = z.enum(['compost barn', 'confinado', 'semi confinado']);
+export const SistemaProducaoEnum = z.enum(['compost_barn', 'confinado', 'semi_confinado']);
 
 /**
  * Enum para as regiões geográficas mapeadas pelo SEBRAE/Educampo.
@@ -36,51 +36,51 @@ export const RegiaoEnum = z.enum([
  * utiliza superRefine para validações cruzadas entre campos (ex: lactação vs total).
  */
 export const fazendaSchema = z.object({
-  nomeFazenda: z.string()
+  nome_fazenda: z.string()
     .min(1, 'O nome da fazenda é obrigatório')
     .max(100, 'O nome deve ter no máximo 100 caracteres'),
   
-  sistemaProducao: SistemaProducaoEnum,
+  sistema_producao: SistemaProducaoEnum,
   
-  totalVacas: z.number().int().min(0).max(50000),
+  total_vacas: z.coerce.number().int().min(0).max(50000),
   
-  vacasLactacao: z.number().int().min(0).max(50000),
+  vacas_lactacao: z.coerce.number().int().min(0).max(50000),
   
-  animaisRebanho: z.number().int().min(0).max(100000),
+  animais_rebanho: z.coerce.number().int().min(0).max(100000),
   
-  areaAtividade: z.number().min(0.1, 'A área mínima é 0.1 ha').max(50000),
+  area_atividade: z.coerce.number().min(0.1, 'A área mínima é 0.1 ha').max(50000),
   
-  maoObraTotal: z.number().int().min(1, 'Mínimo de 1 trabalhador').max(1000),
+  mao_obra_total: z.coerce.number().int().min(1, 'Mínimo de 1 trabalhador').max(1000),
   
-  producaoVaca: z.number().min(0).max(100),
+  producao_vaca: z.coerce.number().min(0).max(100),
   
-  precoLeite: z.number().min(0).max(15),
+  preco_leite: z.coerce.number().min(0).max(15),
   
-  precoRegional: z.number().min(0).max(15),
+  preco_referencia: z.coerce.number().min(0).max(15),
   
-  ccs: z.number().int().min(0).max(9999),
+  ccs: z.coerce.number().int().min(0).max(9999),
   
   regiao: RegiaoEnum,
 }).superRefine((data, ctx) => {
   /**
    * Validação Cruzada: Vacas em Lactação não pode ser maior que o Total de Vacas.
    */
-  if (data.vacasLactacao > data.totalVacas) {
+  if (data.vacas_lactacao > data.total_vacas) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: 'Vacas em lactação não pode exceder o total de vacas',
-      path: ['vacasLactacao'],
+      path: ['vacas_lactacao'],
     });
   }
 
   /**
    * Validação Cruzada: Total de Vacas não pode ser maior que o Rebanho Total.
    */
-  if (data.totalVacas > data.animaisRebanho) {
+  if (data.total_vacas > data.animais_rebanho) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: 'O total de vacas não pode exceder o total do rebanho',
-      path: ['totalVacas'],
+      path: ['total_vacas'],
     });
   }
 });

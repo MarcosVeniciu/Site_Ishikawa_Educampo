@@ -50,7 +50,7 @@ describe('Zustand Store: useFazendaStore', () => {
   it('deve iniciar com os dados da fazenda vazios (null)', () => {
     const estado = useFazendaStore.getState();
     expect(estado.dadosFazenda).toBeNull();
-    expect(estado.diagnostico).toBeNull();
+    expect(estado.diagnosticoIA).toBeNull();
   });
 
   /**
@@ -68,11 +68,11 @@ describe('Zustand Store: useFazendaStore', () => {
   /**
    * @description Simula o armazenamento da resposta do BFF.
    */
-  it('deve armazenar os dados do diagnóstico corretamente via setDiagnostico', () => {
-    useFazendaStore.getState().setDiagnostico(mockDiagnostico as any);
+  it('deve armazenar os dados do diagnóstico corretamente via setDiagnosticoIA', () => {
+    useFazendaStore.getState().setDiagnosticoIA(mockDiagnostico as any);
     
     const estadoAtual = useFazendaStore.getState();
-    expect(estadoAtual.diagnostico).toEqual(mockDiagnostico);
+    expect(estadoAtual.diagnosticoIA).toEqual(mockDiagnostico);
   });
 
   /**
@@ -83,12 +83,12 @@ describe('Zustand Store: useFazendaStore', () => {
     const store = useFazendaStore.getState();
     
     store.setDadosFazenda(dadosMock as any);
-    store.setDiagnostico(mockDiagnostico as any);
+    store.setDiagnosticoIA(mockDiagnostico as any);
     expect(useFazendaStore.getState().dadosFazenda).not.toBeNull();
-    expect(useFazendaStore.getState().diagnostico).not.toBeNull();
+    expect(useFazendaStore.getState().diagnosticoIA).not.toBeNull();
     
     store.limparDados();
     expect(useFazendaStore.getState().dadosFazenda).toBeNull();
-    expect(useFazendaStore.getState().diagnostico).toBeNull();
+    expect(useFazendaStore.getState().diagnosticoIA).toBeNull();
   });
 });
