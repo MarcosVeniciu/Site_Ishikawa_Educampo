@@ -25,7 +25,7 @@ const TABS = [
   { id: 'ccs', label: 'CCS' },
   { id: 'producao_vaca', label: 'Produção/Vaca' },
   { id: 'producao_area', label: 'Produção/Área' },
-  { id: 'producao_funcionario', label: 'Produção/Func.' },
+  { id: 'producao_funcionario', label: 'Produção/Funcionário' },
   { id: 'preco_leite', label: 'Preço Leite' },
 ];
 
@@ -222,7 +222,7 @@ export default function DiagnosticoPage() {
                       {index + 1}
                     </button>
                     <span 
-                      className={`text-center text-sm font-bold leading-tight transition-colors duration-200 ${
+                      className={`text-center text-sm font-bold leading-tight whitespace-nowrap transition-colors duration-200 ${
                         isActive ? 'text-[#003e7d]' : 'text-gray-500'
                       }`}
                       aria-hidden="true"

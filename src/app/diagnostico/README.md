@@ -29,7 +29,7 @@ Conforme definição de projeto para a Sprint atual, os cálculos de benchmarkin
 * **Top Bar:** Navbar animada com menu hamburger e identidade visual Educampo.
 * **Benchmarking:** Grid de 3 colunas com comparativos rápidos de performance (Produção, Qualidade, Preço).
 * **Resumo IA:** Bloco de largura total e alto contraste (Azul Educampo) que apresenta a conclusão principal e visão macro do negócio gerada pela inteligência artificial.
-* **Navegação de Indicadores:** Abas dinâmicas que alternam o contexto de análise sem recarregar a página.
+* **Navegação de Indicadores (Stepper):** Fluxo de navegação visual baseado em passos (círculos numerados interativos e conectores horizontais) que orienta o usuário através de cada indicador de forma sequencial e imersiva.
 * **Ishikawa:** Painel visual mostrando o status do indicador, textos estratégicos e detalhamento causal (6 Ms).
 
 ## 🧪 Validação
