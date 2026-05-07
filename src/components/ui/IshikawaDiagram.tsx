@@ -11,18 +11,35 @@ import { IshikawaItem, IshikawaCategorias } from '../../types/diagnostico';
 
 interface IshikawaProps {
   data: IshikawaCategorias;
+  impactoPilares?: Record<string, number>;
 }
 
-export const IshikawaDiagram: React.FC<IshikawaProps> = ({ data }) => {
+export const IshikawaDiagram: React.FC<IshikawaProps> = ({ data, impactoPilares }) => {
   const [selectedCategory, setSelectedCategory] = useState<{ id: string, title: string, items: IshikawaItem[] } | null>(null);
 
+  const getImpacto = (categoryId: string) => {
+    if (!impactoPilares) return undefined;
+    
+    const entries = Object.entries(impactoPilares);
+    for (const [key, value] of entries) {
+      const pilarLower = key.toLowerCase();
+      if (categoryId === 'mao_de_obra' && pilarLower.includes('obra')) return value;
+      if (categoryId === 'maquina' && (pilarLower.includes('maquina') || pilarLower.includes('máquina'))) return value;
+      if (categoryId === 'meio_ambiente' && pilarLower.includes('ambiente')) return value;
+      if (categoryId === 'metodo' && (pilarLower.includes('metodo') || pilarLower.includes('método'))) return value;
+      if (categoryId === 'medida' && (pilarLower.includes('medida') || pilarLower.includes('medição') || pilarLower.includes('medicao'))) return value;
+      if (categoryId === 'material' && pilarLower.includes('material')) return value;
+    }
+    return undefined;
+  };
+
   const categories = [
-    { id: 'mao_de_obra', title: 'Mão de Obra', items: data?.mao_de_obra || [] },
-    { id: 'maquina', title: 'Máquina', items: data?.maquina || [] },
-    { id: 'meio_ambiente', title: 'Meio Ambiente', items: data?.meio_ambiente || [] },
-    { id: 'metodo', title: 'Método', items: data?.metodo || [] },
-    { id: 'medida', title: 'Medida', items: data?.medida || [] },
-    { id: 'material', title: 'Material', items: data?.material || [] },
+    { id: 'mao_de_obra', title: 'Mão de Obra', items: data?.mao_de_obra || [], impacto: getImpacto('mao_de_obra') },
+    { id: 'maquina', title: 'Máquina', items: data?.maquina || [], impacto: getImpacto('maquina') },
+    { id: 'meio_ambiente', title: 'Meio Ambiente', items: data?.meio_ambiente || [], impacto: getImpacto('meio_ambiente') },
+    { id: 'metodo', title: 'Método', items: data?.metodo || [], impacto: getImpacto('metodo') },
+    { id: 'medida', title: 'Medida', items: data?.medida || [], impacto: getImpacto('medida') },
+    { id: 'material', title: 'Material', items: data?.material || [], impacto: getImpacto('material') },
   ];
 
   return (
@@ -35,7 +52,14 @@ export const IshikawaDiagram: React.FC<IshikawaProps> = ({ data }) => {
             onClick={() => setSelectedCategory(cat)}
             title="Clique para ver os detalhes e práticas recomendadas"
           >
-            <h3 className="font-bold text-lg mb-3 text-primary border-b border-gray-100 pb-2">{cat.title}</h3>
+            <div className="flex justify-between items-center mb-3 border-b border-gray-100 pb-2">
+              <h3 className="font-bold text-lg text-primary">{cat.title}</h3>
+              {cat.impacto !== undefined && (
+                <span className="font-bold text-primary bg-blue-50 px-2 py-0.5 rounded-md text-sm">
+                  {cat.impacto}%
+                </span>
+              )}
+            </div>
             <ul className="list-disc pl-5 space-y-1">
               {cat.items.length > 0 ? (
                 cat.items.map((item, idx) => (

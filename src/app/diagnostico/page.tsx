@@ -317,7 +317,7 @@ export default function DiagnosticoPage() {
                 <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
                   Mapeamento de Causas (Ishikawa)
                 </h2>
-                <IshikawaDiagram data={processedData.ishikawa} />
+                <IshikawaDiagram data={processedData.ishikawa} impactoPilares={processedData.impacto_pilares} />
               </div>
 
               {/* Ranking de Prioridade (Rodapé) */}
