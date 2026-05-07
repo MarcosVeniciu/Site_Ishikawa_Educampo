@@ -1,60 +1,155 @@
 /**
  * @file src/components/ui/Acelerometro.tsx
- * @description Componente visual de velocímetro (Gauge Chart) construído em puro SVG.
- * Recebe o status do indicador e rotaciona o ponteiro com uma animação fluida.
+ * @description Widget de diagnóstico completo em formato de velocímetro (Gauge Chart).
+ * Renderiza o gráfico, o valor numérico, a unidade, os limites (thresholds) e a legenda.
  */
 
 import React from 'react';
 
-interface AcelerometroProps {
-  status: 'bom' | 'alerta' | 'crítico' | string;
+interface Thresholds {
+  bom?: string;
+  regular?: string;
+  critico?: string;
 }
 
-export const Acelerometro: React.FC<AcelerometroProps> = ({ status = '' }) => {
-  // Define a rotação do ponteiro com base no status
-  // 0 graus aponta para cima (Amarelo). -60 para a esquerda (Vermelho), +60 para a direita (Verde).
-  let rotation = 0;
-  const lowerStatus = status?.toLowerCase() || '';
+interface AcelerometroProps {
+  valor: number | string;
+  unidade?: string;
+  status: string;
+  thresholds?: Thresholds;
+  minimo?: number; 
+  maximo?: number; 
+}
+
+export function Acelerometro({ 
+  valor, 
+  unidade, 
+  status, 
+  thresholds,
+  minimo = 50,
+  maximo = 700 
+}: AcelerometroProps) {
   
-  if (lowerStatus === 'crítico' || lowerStatus === 'critico') rotation = -60;
-  if (lowerStatus === 'alerta' || lowerStatus === 'regular') rotation = 0;
-  if (lowerStatus === 'bom') rotation = 60;
+  const allThresholdsStr = `${thresholds?.bom || ''} ${thresholds?.regular || ''} ${thresholds?.critico || ''}`;
+  const numbers = allThresholdsStr.match(/-?\d+(\.\d+)?/g)?.map(Number) || [];
+  const uniqueNumbers = Array.from(new Set(numbers)).sort((a, b) => a - b);
+  
+  const minBound = uniqueNumbers.length > 0 ? uniqueNumbers[0] : 200;
+  const maxBound = uniqueNumbers.length > 1 ? uniqueNumbers[1] : 500;
+
+  const bomStr = thresholds?.bom || '';
+  const criticoStr = thresholds?.critico || '';
+  const isLowerBetter = bomStr.includes('<') || criticoStr.includes('>');
+
+  let rotation = 0;
+  
+  switch (status?.toLowerCase()) {
+    case 'bom':
+    case 'positivo':
+      rotation = isLowerBetter ? -55 : 55; 
+      break;
+    case 'regular':
+    case 'atencao':
+    case 'alerta':
+      rotation = 0; 
+      break;
+    case 'critico':
+    case 'negativo':
+      rotation = isLowerBetter ? 55 : -55; 
+      break;
+  }
+
+  const colorBom = '#22c55e';
+  const colorRegular = '#f59e0b';
+  const colorCritico = '#ef4444';
+
+  const leftArcColor = isLowerBetter ? colorBom : colorCritico;
+  const middleArcColor = colorRegular;
+  const rightArcColor = isLowerBetter ? colorCritico : colorBom;
 
   return (
-    <div className="relative w-48 h-28 flex flex-col items-center justify-end overflow-hidden">
-      <svg viewBox="0 0 200 110" className="w-full h-full drop-shadow-sm">
-        {/* Zona Vermelha (Crítico) - 180° a 120° */}
-        <path d="M 20 100 A 80 80 0 0 1 60 30.71" fill="none" className="stroke-danger" strokeWidth="18" strokeLinecap="round" />
-        
-        {/* Zona Amarela (Alerta) - 120° a 60° */}
-        <path d="M 60 30.71 A 80 80 0 0 1 140 30.71" fill="none" className="stroke-warning" strokeWidth="18" />
-        
-        {/* Zona Verde (Bom) - 60° a 0° */}
-        <path d="M 140 30.71 A 80 80 0 0 1 180 100" fill="none" className="stroke-success" strokeWidth="18" strokeLinecap="round" />
-
-        {/* Ponteiro (Agulha) com animação */}
-        <g 
-          style={{ 
-            transform: `rotate(${rotation}deg)`, 
-            transformOrigin: '100px 100px',
-            transition: 'transform 1s cubic-bezier(0.34, 1.56, 0.64, 1)' // Efeito de mola suave
-          }}
-        >
-          {/* Corpo da Agulha */}
-          <path d="M 96 100 L 100 25 L 104 100 Z" fill="#374151" />
-          {/* Base Redonda da Agulha */}
-          <circle cx="100" cy="100" r="10" fill="#1f2937" />
-          <circle cx="100" cy="100" r="4" fill="#ffffff" />
-        </g>
-      </svg>
+    <div className="flex flex-col items-center w-full max-w-xs font-sans">
       
-      {/* Texto do Status logo abaixo do centro */}
-      <span className={`mt-1 text-sm font-black uppercase tracking-wider ${
-        lowerStatus === 'crítico' || lowerStatus === 'critico' ? 'text-danger' :
-        lowerStatus === 'alerta' || lowerStatus === 'regular' ? 'text-warning' : 'text-success'
-      }`}>
-        {status}
-      </span>
+      {/* 1. Topo: Gráfico SVG Interativo */}
+      <div className="relative w-full max-w-[240px] overflow-visible mb-1 mt-4">
+        {/* ViewBox ajustado para caber perfeitamente todos os números sem cortar */}
+        <svg viewBox="0 0 200 125" className="w-full h-full overflow-visible">
+          
+          {/* ARCOS DE COR */}
+          {/* Matemática do arco: Raio=75, Centro=(100, 95), Espessura=20.
+              Os cortes estão exatamente a -25 e +25 graus do topo. */}
+          <path d="M 25 95 A 75 75 0 0 1 68.3 27" fill="none" stroke={leftArcColor} strokeWidth="20" />
+          <path d="M 68.3 27 A 75 75 0 0 1 131.7 27" fill="none" stroke={middleArcColor} strokeWidth="20" />
+          <path d="M 131.7 27 A 75 75 0 0 1 175 95" fill="none" stroke={rightArcColor} strokeWidth="20" />
+
+          {/* VALORES EXTREMOS (Base Esquerda e Direita - não rotacionam) */}
+          <text x="25" y="120" textAnchor="middle" fontSize="11" fill="#6b7280" fontWeight="700">
+            {minimo}
+          </text>
+          <text x="175" y="120" textAnchor="middle" fontSize="11" fill="#6b7280" fontWeight="700">
+            {maximo}
+          </text>
+
+          {/* MARCADOR ESQUERDO (-25 graus) */}
+          <g transform="rotate(-25, 100, 95)">
+            {/* Traço separador (Radial) */}
+            <line x1="100" y1="10" x2="100" y2="30" stroke="#374151" strokeWidth="2.5" />
+            {/* Texto tangencial rotacionado com o grupo */}
+            <text x="100" y="5" textAnchor="middle" fontSize="11" fill="#4b5563" fontWeight="800">
+              {minBound}
+            </text>
+          </g>
+
+          {/* MARCADOR DIREITO (+25 graus) */}
+          <g transform="rotate(25, 100, 95)">
+            {/* Traço separador (Radial) */}
+            <line x1="100" y1="10" x2="100" y2="30" stroke="#374151" strokeWidth="2.5" />
+            {/* Texto tangencial rotacionado com o grupo */}
+            <text x="100" y="5" textAnchor="middle" fontSize="11" fill="#4b5563" fontWeight="800">
+              {maxBound}
+            </text>
+          </g>
+
+          {/* PONTEIRO (Agulha) */}
+          {/* Eixo no centro do arco (100, 95) */}
+          <g 
+            transform={`translate(100, 95) rotate(${rotation})`} 
+            className="transition-transform duration-1000 ease-out"
+            style={{ filter: 'drop-shadow(0px 3px 2px rgba(0,0,0,0.3))' }}
+          >
+            {/* Corpo da agulha (atinge a base das cores) */}
+            <polygon points="-3.5,0 3.5,0 0,-70" fill="#1f2937" />
+            {/* Círculo base vazado */}
+            <circle cx="0" cy="0" r="8" fill="#f8fafc" stroke="#1f2937" strokeWidth="4" />
+          </g>
+        </svg>
+      </div>
+
+      {/* 2. Legenda de Cores */}
+      <div className="flex items-center justify-center gap-4 mt-1 mb-5 text-[11px] font-bold text-gray-600 uppercase tracking-wider">
+        <div className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-full bg-[#22c55e]"></span> BOM
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-full bg-[#f59e0b]"></span> REGULAR
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-full bg-[#ef4444]"></span> CRÍTICO
+        </div>
+      </div>
+
+      {/* 3. Centro: Valor e Unidade */}
+      <div className="bg-slate-50 border border-gray-200 rounded-2xl px-10 py-3 text-center min-w-[140px] shadow-sm">
+        <div className="text-[2.5rem] leading-none font-black text-gray-900 tracking-tight">
+          {valor}
+        </div>
+        {unidade && (
+          <div className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mt-2">
+            {unidade}
+          </div>
+        )}
+      </div>
+
     </div>
   );
-};
+}

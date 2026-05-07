@@ -263,11 +263,16 @@ export default function DiagnosticoPage() {
           {processedData ? (
             <div className="animate-in fade-in duration-500 space-y-8">
               {/* Painel de Diagnóstico do Indicador (Centro) */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                {/* Status (Acelerômetro) */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Widget do Acelerômetro (Unificado com Valor e Thresholds) */}
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center min-h-[200px]">
-                  <span className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-2">Status</span>
-                  <Acelerometro status={processedData.status || ''} />
+                  <span className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-4">Análise do Indicador</span>
+                  <Acelerometro 
+                    valor={processedData.valor_atual} 
+                    unidade={processedData.unidade || ''} 
+                    status={processedData.status || ''} 
+                    thresholds={processedData.thresholds} 
+                  />
                 </div>
 
                 {/* Textos da Análise (Centro - Ocupa 2 colunas) */}
@@ -279,14 +284,6 @@ export default function DiagnosticoPage() {
                   <p className="text-gray-700 leading-relaxed text-sm md:text-base">
                     {processedData.textos_analise}
                   </p>
-                </div>
-
-                {/* Valor Atual */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center">
-                  <span className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-3">Valor Atual</span>
-                  <div className="text-4xl font-black text-[#003e7d]">
-                    {processedData.valor_atual}
-                  </div>
                 </div>
               </div>
 
