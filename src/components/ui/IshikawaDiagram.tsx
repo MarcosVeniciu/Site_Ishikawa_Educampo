@@ -7,21 +7,10 @@
  */
 
 import React, { useState } from 'react';
-
-export interface IshikawaItem {
-  causa: string;
-  pratica?: string;
-}
+import { IshikawaItem, IshikawaCategorias } from '../../types/diagnostico';
 
 interface IshikawaProps {
-  data: {
-    mao_de_obra: IshikawaItem[];
-    maquina: IshikawaItem[];
-    meio_ambiente: IshikawaItem[];
-    metodo: IshikawaItem[];
-    medida: IshikawaItem[];
-    material: IshikawaItem[];
-  };
+  data: IshikawaCategorias;
 }
 
 export const IshikawaDiagram: React.FC<IshikawaProps> = ({ data }) => {

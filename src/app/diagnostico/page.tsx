@@ -21,18 +21,7 @@ import {
   Minus,
   AlertTriangle
 } from 'lucide-react';
-
-export type StatusComparacao = 'positivo' | 'neutro' | 'negativo' | 'alerta';
-
-export interface BenchmarkingCardData {
-  titulo: string;
-  valor_produtor: number;
-  valor_referencia: number;
-  unidade: string;
-  status_comparacao: StatusComparacao;
-  mensagem_curta: string;
-  mensagem_detalhada: string;
-}
+import { StatusComparacao, BenchmarkingCardData } from '../../types/diagnostico';
 
 const TABS = [
   { id: 'ccs', label: 'CCS' },

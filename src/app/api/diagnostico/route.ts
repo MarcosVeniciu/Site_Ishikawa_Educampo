@@ -14,6 +14,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { fazendaSchema } from '@/lib/schemas';
+import { DiagnosticoIAResponse } from '../../../types/diagnostico';
 
 /**
  * Manipula requisições POST para gerar o diagnóstico da fazenda.
@@ -121,7 +122,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 5. Sucesso: Captura metadados e repassa os dados da IA para o Frontend
-    const data = await apiResponse.json();
+    const data: DiagnosticoIAResponse = await apiResponse.json();
 
     // 5.1 Captura e loga os metadados de performance e custo da IA (dos headers)
     const totalTokens = apiResponse.headers.get('X-IA-Total-Tokens');

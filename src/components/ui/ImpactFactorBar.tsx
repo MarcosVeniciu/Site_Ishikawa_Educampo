@@ -5,14 +5,7 @@
  */
 
 import React from 'react';
-
-export interface ImpactThresholds {
-  bom?: string;
-  regular?: string;
-  critico?: string;
-  valor?: number;
-  unidade?: string;
-}
+import { ImpactThresholds } from '../../types/diagnostico';
 
 interface ImpactFactorBarProps {
   label: string;
