@@ -301,6 +301,11 @@ gitGraph
     commit id: "feat: benchmarks temporários e resumo IA"
     checkout develop
     merge feature/diagnostico-hub id: "merge: modulo centralizado funcional"
+
+    %% --- Início da Tarefa 7 ---
+    branch feature/simulacao-ajuste
+    checkout feature/simulacao-ajuste
+    commit id: "docs: planejamento de simulação e ajustes"
 ```
 
 ---
@@ -318,12 +323,11 @@ A estratégia de implementação adota uma construção incremental em blocos. O
 - [x] **Coleta e Injeção de Estado:** Construir a **Tela de Coleta de Dados**, integrando o formulário para salvar as métricas diretamente no Zustand validado pelo Zod.
 - [x] **Integração Real (BFF):** Implementar o proxy `api/diagnostico/route.ts` apontando para a API real do Educampo e a **Tela de Carregamento**. Aqui a tela consome o Zustand, envia para o BFF, recebe a resposta real e injeta de volta na *store*. *(Validar com `tests/api/bff.spec.ts`)*.
 - [x] **Consumo de Dados (Dashboard):** Implementar o **Dashboard Central**. Como a *store* já estará populada com dados reais do passo anterior, basta renderizar os blocos de Benchmarking e o Resumo Estratégico da IA.
-
+- [x] **Renderização Complexa:** Desenvolver a **Tela de Diagnóstico**, criando a lógica visual para montar o Diagrama de Ishikawa iterando sobre os dados já salvos no estado.
 #### 🚧 Em Desenvolvimento (WIP: 1)
-- [ ] **Renderização Complexa:** Desenvolver a **Tela de Diagnóstico**, criando a lógica visual para montar o Diagrama de Ishikawa iterando sobre os dados já salvos no estado.
+- [ ] **Ferramentas de Ajuste:** Finalizar com a **Tela de Simulação de Cenários** e a interface de **Ajuste de Dados**, reaproveitando os componentes já criados para permitir recálculos ágeis.
 
 #### 🎯 A Fazer
-- [ ] **Ferramentas de Ajuste:** Finalizar com a **Tela de Simulação de Cenários** e a interface de **Ajuste de Dados**, reaproveitando os componentes já criados para permitir recálculos ágeis.
 
 #### 📝 Backlog
 - [ ] Substituir o *mock* de autenticação pela integração com o backend definitivo de usuários.
