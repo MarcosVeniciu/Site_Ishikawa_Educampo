@@ -13,6 +13,7 @@ import { useFazendaStore } from '@/store/useFazendaStore';
 import { Navbar } from '@/components/ui/Navbar';
 import { IshikawaDiagram } from '@/components/ui/IshikawaDiagram';
 import { Acelerometro } from '@/components/ui/Acelerometro';
+import { ImpactFactorBar } from '@/components/ui/ImpactFactorBar';
 import { 
   TrendingUp, 
   Activity,
@@ -134,6 +135,7 @@ export default function DiagnosticoPage() {
     return {
       ...data,
       valor_atual: (dadosFazenda as any)?.[tabId] || '--',
+      fatores_impacto: data.fatores_impacto || {},
       ishikawa,
       ranking: praticas.slice(0, 5)
     };
@@ -262,11 +264,11 @@ export default function DiagnosticoPage() {
 
           {processedData ? (
             <div className="animate-in fade-in duration-500 space-y-8">
-              {/* Painel de Diagnóstico do Indicador (Centro) */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Widget do Acelerômetro (Unificado com Valor e Thresholds) */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center min-h-[200px]">
-                  <span className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-4">Análise do Indicador</span>
+              {/* Linha 1: Status Atual e Fatores de Impacto */}
+              <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-6">
+                {/* Coluna Esquerda: Acelerômetro */}
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center min-h-[200px] md:min-w-[360px]">
+                  <span className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-4">Status Atual</span>
                   <Acelerometro 
                     valor={processedData.valor_atual} 
                     unidade={processedData.unidade || ''} 
@@ -275,16 +277,52 @@ export default function DiagnosticoPage() {
                   />
                 </div>
 
-                {/* Textos da Análise (Centro - Ocupa 2 colunas) */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 md:col-span-2 flex flex-col justify-center">
-                  <h3 className="font-bold text-gray-800 mb-2 flex items-center gap-2">
-                    <span className="bg-blue-100 text-blue-800 p-1 rounded-md text-xs">IA</span>
-                    Análise Estratégica
-                  </h3>
-                  <p className="text-gray-700 leading-relaxed text-sm md:text-base">
-                    {processedData.textos_analise}
-                  </p>
+                {/* Coluna Direita: Fatores de Impacto */}
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-center min-h-[200px] min-w-0">
+                  <h3 className="font-bold text-gray-800 mb-5 border-b border-gray-100 pb-2">Fatores de Impacto</h3>
+                  <div className="flex-1 flex flex-col justify-center w-full lg:px-4">
+                    {(() => {
+                      const fatores = processedData.fatores_impacto || {};
+                      const fatoresKeys = Object.keys(fatores);
+                      
+                      if (fatoresKeys.length === 0) {
+                        return <p className="text-sm text-gray-500 italic text-center">Nenhum fator de impacto detalhado para este indicador.</p>;
+                      }
+
+                      return fatoresKeys.map((chave) => {
+                        let config = fatores[chave];
+                        
+                        // FIX TEMPORÁRIO: API retornando fórmula para volume
+                        // TODO: Remover hardcode assim que a API Python calcular as medianas de volume
+                        if (chave === 'volume') {
+                           config = { bom: "> 2500", regular: "1000 - 2500", critico: "< 1000" };
+                        }
+
+                        const valorFator = (dadosFazenda as any)?.[chave] ?? undefined;
+                        
+                        return (
+                          <ImpactFactorBar 
+                            key={chave} 
+                            label={chave} 
+                            valor={valorFator}
+                            thresholds={config} 
+                          />
+                        );
+                      });
+                    })()}
+                  </div>
                 </div>
+              </div>
+
+              {/* Linha 2: Análise Estratégica */}
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-center">
+                <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                  <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md text-xs font-bold uppercase tracking-wide">IA</span>
+                  Análise Estratégica
+                </h3>
+                <p className="text-gray-700 leading-relaxed text-sm md:text-base">
+                  {processedData.textos_analise || "Análise estratégica em processamento."}
+                </p>
               </div>
 
               {/* Cards do Diagrama Ishikawa (Inferior) */}
