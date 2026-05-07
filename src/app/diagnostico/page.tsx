@@ -3,9 +3,6 @@
  * @description Página principal de Diagnóstico (Hub 360º) do Educampo.
  * Consome os dados da 'useFazendaStore' para renderizar os indicadores de performance,
  * benchmarking, o resumo estratégico gerado pela IA e o diagrama de Ishikawa.
- * * TODO: [TEMPORÁRIO] Os cálculos de benchmarking estão sendo feitos no frontend.
- * Esta lógica deve ser migrada para o BFF/API assim que os endpoints de comparação
- * regional estiverem disponíveis.
  */
 
 "use client";
@@ -18,8 +15,23 @@ import { IshikawaDiagram } from '@/components/ui/IshikawaDiagram';
 import { Acelerometro } from '@/components/ui/Acelerometro';
 import { 
   TrendingUp, 
-  Activity
+  Activity,
+  TrendingDown,
+  Minus,
+  AlertTriangle
 } from 'lucide-react';
+
+export type StatusComparacao = 'positivo' | 'neutro' | 'negativo' | 'alerta';
+
+export interface BenchmarkingCardData {
+  titulo: string;
+  valor_produtor: number;
+  valor_referencia: number;
+  unidade: string;
+  status_comparacao: StatusComparacao;
+  mensagem_curta: string;
+  mensagem_detalhada: string;
+}
 
 const TABS = [
   { id: 'ccs', label: 'CCS' },
@@ -55,30 +67,35 @@ export default function DiagnosticoPage() {
     );
   }
 
-  /**
-   * TODO: [LOGICA-TEMPORARIA] 
-   * Cálculos baseados na referência da imagem image_1f931e.png
-   */
-  const getBenchmarkStatus = () => {
-    return {
-      producao: {
-        label: dadosFazenda.producao_vaca >= 30 ? "Acima da Média" : "Atenção",
-        color: dadosFazenda.producao_vaca >= 30 ? "text-green-600" : "text-amber-500"
-      },
-      qualidade: {
-        label: dadosFazenda.ccs <= 200 ? "Padrão Ideal" : "Atenção",
-        color: dadosFazenda.ccs <= 200 ? "text-green-600" : "text-amber-500"
-      },
-      mercado: {
-        label: dadosFazenda.preco_leite >= (dadosFazenda.preco_referencia || 0) 
-          ? "Competitivo" : "Abaixo do Mercado",
-        color: dadosFazenda.preco_leite >= (dadosFazenda.preco_referencia || 0) 
-          ? "text-green-600" : "text-amber-500"
-      }
-    };
+  // Dicionário visual para traduzir o status textual em Design Semântico
+  const getStatusUI = (status: StatusComparacao) => {
+    switch (status) {
+      case 'positivo':
+        return {
+          bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200',
+          icon: <TrendingUp size={24} className="text-green-600" />
+        };
+      case 'negativo':
+        return {
+          bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200',
+          icon: <TrendingDown size={24} className="text-red-600" />
+        };
+      case 'alerta':
+        return {
+          bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200',
+          icon: <AlertTriangle size={24} className="text-amber-600" />
+        };
+      case 'neutro':
+      default:
+        return {
+          bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200',
+          icon: <Minus size={24} className="text-gray-600" />
+        };
+    }
   };
 
-  const status = getBenchmarkStatus();
+  // Extração do array processado pelo BFF Global State (Segurança contra falhas com fallback para array vazio)
+  const benchmarks: BenchmarkingCardData[] = diagnosticoIA?.benchmarking || [];
 
   // ============================================================================
   // LÓGICA DE DIAGNÓSTICO (Trazida da antiga tela diagnostico/page.tsx)
@@ -133,49 +150,44 @@ export default function DiagnosticoPage() {
         {/* SEÇÃO 1: BENCHMARKING (TOP) */}
         <section aria-labelledby="benchmark-title">
           <h2 id="benchmark-title" className="text-xl font-bold text-[#003e7d] mb-4 flex items-center gap-2">
-            <TrendingUp size={24} /> Benchmarking Regional
+            <TrendingUp size={24} /> Benchmarkings
           </h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Card Produção */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <p className="text-sm text-gray-500 font-medium uppercase tracking-wider">Produção por Vaca</p>
-              <div className="mt-2">
-                {/* Nó de texto unificado para acessibilidade (Leitores de Tela) e Testes Estritos (A Lei) */}
-                <span className="sr-only">{Number(dadosFazenda?.producao_vaca || 0).toFixed(1)} L/dia</span>
-                
-                {/* Renderização visual com tamanhos divididos (oculta da árvore de acessibilidade) */}
-                <div aria-hidden="true" className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold text-gray-800">{Number(dadosFazenda?.producao_vaca || 0).toFixed(1)}</span>
-                  <span className="text-base font-normal text-gray-500">L/dia</span>
-                </div>
-              </div>
-              <p className={`text-sm font-semibold mt-2 ${status.producao.color}`}>
-                {status.producao.label}
-              </p>
-            </div>
-
-            {/* Card Qualidade */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <p className="text-sm text-gray-500 font-medium uppercase tracking-wider">Qualidade do Leite</p>
-              <div className="flex items-baseline gap-2 mt-2">
-                <span className="text-3xl font-bold text-gray-800">CCS: {dadosFazenda?.ccs || 0}</span>
-              </div>
-              <p className={`text-sm font-semibold mt-2 ${status.qualidade.color}`}>
-                {status.qualidade.label}
-              </p>
-            </div>
-
-            {/* Card Preço */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <p className="text-sm text-gray-500 font-medium uppercase tracking-wider">Preço Recebido</p>
-              <div className="flex items-baseline gap-2 mt-2">
-                <span className="text-3xl font-bold text-gray-800">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(dadosFazenda?.preco_leite || 0))}</span>
-              </div>
-              <p className={`text-sm font-semibold mt-2 ${status.mercado.color}`}>
-                {status.mercado.label}
-              </p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {benchmarks.length > 0 ? (
+              benchmarks.map((card, index) => {
+                const ui = getStatusUI(card.status_comparacao);
+                return (
+                  <div key={index} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-sm text-gray-500 font-medium uppercase tracking-wider">{card.titulo}</p>
+                        {ui.icon}
+                      </div>
+                      <div className="mt-2">
+                        <span className="sr-only">{card.valor_produtor} {card.unidade}</span>
+                        <div aria-hidden="true" className="flex items-baseline gap-2">
+                          <span className="text-3xl font-bold text-gray-800">
+                            {Number(card.valor_produtor).toLocaleString('pt-BR')}
+                          </span>
+                          <span className="text-base font-normal text-gray-500">{card.unidade}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-4 space-y-2">
+                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold border ${ui.bg} ${ui.text} ${ui.border}`}>
+                        {card.mensagem_curta}
+                      </span>
+                      <p className="text-xs text-gray-500 leading-relaxed">
+                        {card.mensagem_detalhada} (Ref: {Number(card.valor_referencia).toLocaleString('pt-BR')} {card.unidade})
+                      </p>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <p className="text-gray-500 italic md:col-span-3">Carregando dados de benchmarking...</p>
+            )}
           </div>
         </section>
 
