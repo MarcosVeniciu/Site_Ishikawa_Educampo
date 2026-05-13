@@ -4,6 +4,11 @@
             "path": "src",
             "envManager": "ms-python.python:venv",
             "packageManager": "ms-python.python:pip"
+        },
+        {
+            "path": "src/components/ui",
+            "envManager": "ms-python.python:venv",
+            "packageManager": "ms-python.python:pip"
         }
     ]
 }

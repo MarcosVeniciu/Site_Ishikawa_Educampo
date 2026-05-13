@@ -128,7 +128,7 @@ export default function DiagnosticoPage() {
 
     if (data.ishikawa && data.ranking) return {
       ...data,
-      valor_atual: (dadosFazenda as any)?.[tabId] || '--',
+      valor_atual: data.thresholds?.valor_atual ?? (dadosFazenda as any)?.[tabId] ?? '--',
     };
 
     const ishikawa: any = { mao_de_obra: [], maquina: [], meio_ambiente: [], metodo: [], medida: [], material: [] };
@@ -159,7 +159,7 @@ export default function DiagnosticoPage() {
 
     return {
       ...data,
-      valor_atual: (dadosFazenda as any)?.[tabId] || '--',
+      valor_atual: data.thresholds?.valor_atual ?? (dadosFazenda as any)?.[tabId] ?? '--',
       fatores_impacto: data.fatores_impacto || {},
       ishikawa,
       ranking: praticas.slice(0, 5)

@@ -10,6 +10,10 @@ interface Thresholds {
   bom?: string;
   regular?: string;
   critico?: string;
+  bom_alto?: string;
+  bom_baixo?: string;
+  critico_alto?: string;
+  critico_baixo?: string;
 }
 
 interface AcelerometroProps {
@@ -30,12 +34,16 @@ export function Acelerometro({
   maximo 
 }: AcelerometroProps) {
   
-  const allThresholdsStr = `${thresholds?.bom || ''} ${thresholds?.regular || ''} ${thresholds?.critico || ''}`;
+  const bomStr = thresholds?.bom || thresholds?.bom_alto || thresholds?.bom_baixo || '';
+  const criticoStr = thresholds?.critico || thresholds?.critico_alto || thresholds?.critico_baixo || '';
+  const regularStr = thresholds?.regular || '';
+
+  const allThresholdsStr = `${bomStr} ${regularStr} ${criticoStr}`;
   const numbers = allThresholdsStr.match(/-?\d+(\.\d+)?/g)?.map(Number) || [];
   const uniqueNumbers = Array.from(new Set(numbers)).sort((a, b) => a - b);
   
   const minBound = uniqueNumbers.length > 0 ? uniqueNumbers[0] : 200;
-  const maxBound = uniqueNumbers.length > 1 ? uniqueNumbers[1] : 500;
+  const maxBound = uniqueNumbers.length > 1 ? uniqueNumbers[uniqueNumbers.length - 1] : (uniqueNumbers.length === 1 ? (uniqueNumbers[0] === 0 ? 100 : uniqueNumbers[0] * 1.5) : 500);
 
   // Cálculo dinâmico dos extremos do gráfico baseado na distância entre os limites (thresholds)
   const diff = maxBound - minBound > 0 ? maxBound - minBound : maxBound * 0.5;
@@ -44,9 +52,7 @@ export function Acelerometro({
   const displayMin = Number.isInteger(calcMinimo) ? calcMinimo : Number(calcMinimo).toFixed(2);
   const displayMax = Number.isInteger(calcMaximo) ? calcMaximo : Number(calcMaximo).toFixed(2);
 
-  const bomStr = thresholds?.bom || '';
-  const criticoStr = thresholds?.critico || '';
-  const isLowerBetter = bomStr.includes('<') || criticoStr.includes('>');
+  const isLowerBetter = bomStr.includes('<') || bomStr.includes('&lt;') || criticoStr.includes('>') || criticoStr.includes('&gt;');
 
   let rotation = 0;
   

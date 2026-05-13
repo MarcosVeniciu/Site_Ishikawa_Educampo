@@ -18,19 +18,22 @@ export function ImpactFactorBar({ label, valor, unidade, thresholds }: ImpactFac
   // Tenta extrair o valor e unidade das props ou do objeto thresholds
   const rawValor = valor !== undefined ? valor : thresholds?.valor;
   const numValor = Number(rawValor) || 0;
-  const displayUnidade = unidade || thresholds?.unidade || '';
+  const displayUnidade = unidade || (thresholds as any)?.unidade || '';
 
-  const bomStr = thresholds?.bom || '';
-  const criticoStr = thresholds?.critico || '';
-  const isLowerBetter = bomStr.includes('<') || criticoStr.includes('>');
+  const tAny = thresholds as any;
+  const bomStr = tAny?.bom || tAny?.bom_alto || tAny?.bom_baixo || '';
+  const criticoStr = tAny?.critico || tAny?.critico_alto || tAny?.critico_baixo || '';
+  const regularStr = tAny?.regular || '';
+
+  const isLowerBetter = bomStr.includes('<') || bomStr.includes('&lt;') || criticoStr.includes('>') || criticoStr.includes('&gt;');
 
   // Extrair números das strings de limites para calcular a amplitude e extremos
-  const allThresholdsStr = `${bomStr} ${thresholds?.regular || ''} ${criticoStr}`;
+  const allThresholdsStr = `${bomStr} ${regularStr} ${criticoStr}`;
   const numbers = allThresholdsStr.match(/-?\d+(\.\d+)?/g)?.map(Number) || [];
   const uniqueNumbers = Array.from(new Set(numbers)).sort((a, b) => a - b);
 
   let minBound = uniqueNumbers.length > 0 ? uniqueNumbers[0] : 0;
-  let maxBound = uniqueNumbers.length > 1 ? uniqueNumbers[uniqueNumbers.length - 1] : 100;
+  let maxBound = uniqueNumbers.length > 1 ? uniqueNumbers[uniqueNumbers.length - 1] : (uniqueNumbers.length === 1 ? (uniqueNumbers[0] === 0 ? 100 : uniqueNumbers[0] * 1.5) : 100);
 
   let diff = maxBound - minBound;
   if (diff === 0) diff = maxBound > 0 ? maxBound * 0.5 : 100;
