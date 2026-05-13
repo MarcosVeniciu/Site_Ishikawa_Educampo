@@ -48,7 +48,7 @@ const BarChartSimulacao = ({
       {/* Container das Barras (Cresce de baixo para cima) */}
       <div className="flex-1 flex items-end justify-center gap-6 pb-2">
         {/* Barra de Referência (Educampo) */}
-        <div className="flex flex-col items-center w-16 group">
+        <div className="flex flex-col items-center justify-end w-16 group h-full">
           <span className="text-xs text-gray-500 mb-1 font-medium">{valorReferencia.toLocaleString('pt-BR')}</span>
           <div 
             className="w-full bg-slate-300 rounded-t-sm transition-all duration-500 ease-out relative"
@@ -63,7 +63,7 @@ const BarChartSimulacao = ({
         </div>
 
         {/* Barra Simulada (Em Tempo Real) */}
-        <div className="flex flex-col items-center w-16 group">
+        <div className="flex flex-col items-center justify-end w-16 group h-full">
           <span className={`text-xs font-bold mb-1 ${isMelhor ? 'text-green-600' : 'text-red-600'}`}>
             {valorSimulado.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}
           </span>
