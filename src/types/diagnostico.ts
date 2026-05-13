@@ -9,11 +9,11 @@ export type SeveridadeCausa = 'critica' | 'atencao' | 'monitorar' | 'neutra';
 
 export interface BenchmarkingCardData {
   titulo: string;
-  valor_produtor: number;
-  valor_referencia: number;
-  unidade: string;
-  status_comparacao: StatusComparacao;
-  mensagem_curta: string;
+  valor_produtor: number | string;
+  valor_referencia?: number | string;
+  unidade?: string;
+  status_comparacao?: StatusComparacao;
+  mensagem_curta?: string;
   mensagem_detalhada: string;
 }
 

@@ -40,6 +40,22 @@ describe('Feature: Hub Central de Diagnóstico', () => {
           { id: "2", analise_tecnica: "A qualidade sanitária eleva o preço base." }
         ]
       },
+      benchmarking: [
+        {
+          titulo: "Lotação Animal",
+          valor_produtor: 8.5,
+          valor_referencia: 1.78,
+          unidade: "cab/ha",
+          status_comparacao: "positivo",
+          mensagem_curta: "Acima da média",
+          mensagem_detalhada: "Seu resultado está 377.5% superior à média regional."
+        },
+        {
+          titulo: "Sistema de Produção",
+          valor_produtor: "Compost Barn",
+          mensagem_detalhada: "19.7% das fazendas da região utilizam este sistema."
+        }
+      ],
       ccs: {
         status: 'bom',
         textos_analise: 'O CCS está excelente.',
@@ -88,5 +104,14 @@ describe('Feature: Hub Central de Diagnóstico', () => {
   it('deve carregar o diagnóstico de CCS por padrão', async () => {
     render(<DiagnosticoPage />);
     expect(screen.getByText(/O CCS está excelente/i)).toBeInTheDocument();
+  });
+
+  it('deve renderizar perfeitamente cards de benchmark descritivos (sem valor_referencia e unidade)', async () => {
+    render(<DiagnosticoPage />);
+    
+    // Garante que o Card qualitativo com strings e sem referência não quebrou a UI do React
+    expect(screen.getByText('Sistema de Produção')).toBeInTheDocument();
+    expect(screen.getAllByText('Compost Barn').length).toBeGreaterThan(0);
+    expect(screen.getByText('19.7% das fazendas da região utilizam este sistema.')).toBeInTheDocument();
   });
 });

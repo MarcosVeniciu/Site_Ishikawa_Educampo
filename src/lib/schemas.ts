@@ -89,6 +89,19 @@ export const fazendaSchema = z.object({
 });
 
 /**
+ * Schema flexível para os dados de Benchmarking recebidos da IA.
+ */
+export const benchmarkingSchema = z.object({
+  titulo: z.string(),
+  valor_produtor: z.union([z.number(), z.string()]),
+  valor_referencia: z.union([z.number(), z.string()]).optional(),
+  unidade: z.string().optional(),
+  status_comparacao: z.enum(['positivo', 'neutro', 'negativo', 'alerta']).optional(),
+  mensagem_curta: z.string().optional(),
+  mensagem_detalhada: z.string(),
+});
+
+/**
  * Tipo TypeScript extraído automaticamente do Schema do Zod.
  */
 export type FazendaFormData = z.infer<typeof fazendaSchema>;

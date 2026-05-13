@@ -81,7 +81,7 @@ export default function DiagnosticoPage() {
    * @param status String classificada (positivo, negativo, alerta).
    * @returns Objetos definidos com classes tailwind e elemento JSX de ícone.
    */
-  const getStatusUI = (status: StatusComparacao) => {
+  const getStatusUI = (status?: StatusComparacao | string) => {
     switch (status) {
       case 'positivo':
         return {
@@ -94,6 +94,7 @@ export default function DiagnosticoPage() {
           icon: <TrendingDown size={24} className="text-red-600" />
         };
       case 'alerta':
+      case 'critico':
         return {
           bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200',
           icon: <AlertTriangle size={24} className="text-amber-600" />
@@ -182,30 +183,48 @@ export default function DiagnosticoPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {benchmarks.length > 0 ? (
               benchmarks.map((card, index) => {
+                const isComparativo = card.valor_referencia !== undefined;
                 const ui = getStatusUI(card.status_comparacao);
+                
+                const formatValor = (val: any) => {
+                  if (val === undefined || val === null) return '';
+                  if (typeof val === 'number') return val.toLocaleString('pt-BR');
+                  if (!isNaN(Number(val)) && String(val).trim() !== '') return Number(val).toLocaleString('pt-BR');
+                  return String(val);
+                };
+
                 return (
                   <div key={index} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <p className="text-sm text-gray-500 font-medium uppercase tracking-wider">{card.titulo}</p>
-                        {ui.icon}
+                        {isComparativo && ui.icon}
                       </div>
                       <div className="mt-2">
-                        <span className="sr-only">{card.valor_produtor} {card.unidade}</span>
+                        <span className="sr-only">{card.valor_produtor} {card.unidade || ''}</span>
                         <div aria-hidden="true" className="flex items-baseline gap-2">
                           <span className="text-3xl font-bold text-gray-800">
-                            {Number(card.valor_produtor).toLocaleString('pt-BR')}
+                            {formatValor(card.valor_produtor)}
                           </span>
-                          <span className="text-base font-normal text-gray-500">{card.unidade}</span>
+                          {card.unidade && (
+                            <span className="text-base font-normal text-gray-500">{card.unidade}</span>
+                          )}
                         </div>
                       </div>
                     </div>
                     <div className="mt-4 space-y-2">
-                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold border ${ui.bg} ${ui.text} ${ui.border}`}>
-                        {card.mensagem_curta}
-                      </span>
+                      {isComparativo && card.mensagem_curta && (
+                        <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold border ${ui.bg} ${ui.text} ${ui.border}`}>
+                          {card.mensagem_curta}
+                        </span>
+                      )}
                       <p className="text-xs text-gray-500 leading-relaxed">
-                        {card.mensagem_detalhada} (Ref: {Number(card.valor_referencia).toLocaleString('pt-BR')} {card.unidade})
+                        {card.mensagem_detalhada}
+                        {isComparativo && (
+                          <span className="block mt-1 font-medium text-gray-400">
+                            (Ref: {formatValor(card.valor_referencia)} {card.unidade || ''})
+                          </span>
+                        )}
                       </p>
                     </div>
                   </div>
