@@ -306,6 +306,9 @@ gitGraph
     branch feature/simulacao-ajuste
     checkout feature/simulacao-ajuste
     commit id: "docs: planejamento de simulação e ajustes"
+    commit id: "feat: endpoint de simulacao e ux interativa"
+    checkout develop
+    merge feature/simulacao-ajuste id: "merge: modulo de simulacao finalizado"
 ```
 
 ---

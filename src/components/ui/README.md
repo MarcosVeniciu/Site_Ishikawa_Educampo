@@ -24,3 +24,15 @@ Este diretório armazena os **Componentes de Interface (UI)** que são reutiliz�
   Componente visual responsável por estruturar os retornos complexos da metodologia de causa e efeito.
   - **Layout Acessível:** Substitui gráficos de espinha de peixe complexos por um design de grid com 6 *cards* responsivos para cada pilar (os 6 Ms), facilitando drasticamente a leitura em dispositivos móveis.
   - **Interatividade:** Apresenta um Modal centralizado para o aprofundamento das causas raiz e exibição das práticas recomendadas sugeridas pela IA.
+
+* **`CausaItem.tsx`:**
+  Representa um "espinho" (causa-raiz) individual dentro do Diagrama de Ishikawa.
+  - **Feedback Visual (Flags):** Renderiza automaticamente uma etiqueta colorida (vermelha, amarela, azul) baseada no nível de "severidade" retornado pela Inteligência Artificial.
+
+* **`TextoComCitacoes.tsx`:**
+  Componente inteligente de varredura textual para o "Resumo Geral" da IA.
+  - **Regex Interativo:** Procura padrões de citação (ex: `[1]`, `[2]`) no texto bruto e os transforma em botões clicáveis sobrescritos, que abrem modais com o raciocínio técnico da IA sem poluir a leitura inicial.
+
+* **`ImpactFactorBar.tsx`:**
+  Barra linear de progresso para detalhar os Fatores de Impacto de um indicador.
+  - **Matemática Visual:** Calcula dinamicamente os percentuais da régua de medição (Bom, Regular, Crítico) com base nos limiares regionais e posiciona um marcador (bolha) visual exatamente sobre a posição numérica em que a fazenda do produtor se encontra.

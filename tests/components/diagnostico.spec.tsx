@@ -44,6 +44,15 @@ describe('Feature: Hub Central de Diagnóstico', () => {
         status: 'bom',
         textos_analise: 'O CCS está excelente.',
         valor_atual: 150,
+        causas: [
+          { 
+            pilar: "Mão de Obra", 
+            causa: "Falta de Treinamento", 
+            pratica: "Capacitar equipe",
+            severidade: "Alta",
+            analise: "A falta de rotina na ordenha eleva a CCS."
+          }
+        ],
         ishikawa: { mao_de_obra: [], maquina: [], meio_ambiente: [], metodo: [], medida: [], material: [] }
       },
       producao_vaca: {

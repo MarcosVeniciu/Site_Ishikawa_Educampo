@@ -24,6 +24,9 @@ import {
 } from 'lucide-react';
 import { StatusComparacao, BenchmarkingCardData } from '../../types/diagnostico';
 
+/**
+ * @description Estrutura das pontuações dos limitadores do Acelerômetro por métrica.
+ */
 export interface FatorImpacto {
   valor_atual: number;
   regras: {
@@ -39,6 +42,13 @@ const TABS = [
   { id: 'preco_leite', label: 'Preço do Leite' },
 ];
 
+/**
+ * @description Tela principal do Hub 360º de Diagnóstico.
+ * Consome o Zustand ativamente após hidratação e constrói de forma unificada:
+ * 1. O painel de Benchmarking
+ * 2. O Resumo de Inteligência e as Citações
+ * 3. O Diagrama de Ishikawa de acordo com o indicador no Stepper.
+ */
 export default function DiagnosticoPage() {
   const router = useRouter();
   const { dadosFazenda, diagnosticoIA } = useFazendaStore();
@@ -65,7 +75,12 @@ export default function DiagnosticoPage() {
     );
   }
 
-  // Dicionário visual para traduzir o status textual em Design Semântico
+  /**
+   * @description Dicionário visual que atua como tradutor semântico.
+   * Converte a string de "status" crua em estilos e iconografia do Tailwind.
+   * @param status String classificada (positivo, negativo, alerta).
+   * @returns Objetos definidos com classes tailwind e elemento JSX de ícone.
+   */
   const getStatusUI = (status: StatusComparacao) => {
     switch (status) {
       case 'positivo':
@@ -100,6 +115,13 @@ export default function DiagnosticoPage() {
   // ============================================================================
   const rawData = diagnosticoIA?.indicadores?.[activeTab] || diagnosticoIA?.[activeTab];
 
+  /**
+   * @description Responsável pelo "ETL" final no frontend. Mapeia a estrutura bruta 
+   * da Inteligência Artificial em um formato diretamente consumível pelo componente IshikawaDiagram.
+   * @param data Nó cru vindo do `diagnosticoIA` da API externa.
+   * @param tabId O indicador selecionado no momento (ex: ccs).
+   * @returns O objeto processado com as causas e práticas ramificadas por pilar.
+   */
   const processarDados = (data: any, tabId: string) => {
     if (!data) return null;
 
@@ -114,7 +136,12 @@ export default function DiagnosticoPage() {
     if (data.causas && Array.isArray(data.causas)) {
       data.causas.forEach((item: any) => {
         const pilar = (item.pilar || '').toLowerCase();
-        const causaObj = { causa: item.causa, pratica: item.pratica };
+        const causaObj = { 
+          causa: item.causa, 
+          pratica: item.pratica,
+          severidade: item.severidade,
+          analise: item.analise
+        };
         
         if (pilar.includes('obra')) ishikawa.mao_de_obra.push(causaObj);
         else if (pilar.includes('maquina') || pilar.includes('máquina')) ishikawa.maquina.push(causaObj);

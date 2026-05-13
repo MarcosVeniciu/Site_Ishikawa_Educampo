@@ -13,7 +13,15 @@ import { Navbar } from '@/components/ui/Navbar';
 import { useFazendaStore } from '@/store/useFazendaStore';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
-// --- COMPONENTE DE GRÁFICO PURO (SEM BIBLIOTECAS) ---
+/**
+ * @description Renderiza um gráfico de barra comparativo puro, sem dependências.
+ * Calcula a escala proporcionalmente aos valores fornecidos para alinhar as barras.
+ * @param titulo Título exibido acima das barras.
+ * @param valorSimulado O valor resultante da simulação em tempo real.
+ * @param valorReferencia O valor base para comparação do cenário.
+ * @param unidade A unidade de medida (ex: Litros, R$).
+ * @param inverterCores Se verdadeiro, barras menores ganham cores positivas (ex: CCS).
+ */
 const BarChartSimulacao = ({ 
   titulo, 
   valorSimulado, 
@@ -78,7 +86,11 @@ const BarChartSimulacao = ({
   );
 };
 
-// --- PÁGINA PRINCIPAL DE SIMULAÇÃO ---
+/**
+ * @description Tela interativa do Simulador de Cenários.
+ * Mantém um estado local que herda a base da store do Zustand para permitir manipulações
+ * descartáveis sem corromper o diagnóstico original do produtor.
+ */
 export default function SimulacaoPage() {
   const { dadosFazenda } = useFazendaStore();
   
@@ -92,6 +104,8 @@ export default function SimulacaoPage() {
     ccs: dadosFazenda?.ccs || 150,
   });
 
+  const [isSimulando, setIsSimulando] = useState(false);
+  const [resultadoSimulacao, setResultadoSimulacao] = useState<any>(null);
   const [cenarioAtivo, setCenarioAtivo] = useState<'inferior' | 'intermediario' | 'superior'>('intermediario');
 
   // Valores de referência do Educampo (Mockados temporariamente para a simulação funcionar de imediato)
@@ -102,7 +116,11 @@ export default function SimulacaoPage() {
     superior:      { producao: 35.0, preco: 3.20, area: 8,  ccs: 100 },
   };
 
-  // 🧮 MOTOR DE CÁLCULO LOCAL (Executa a cada movimento do slider)
+  /**
+   * @description Motor de recálculo local de alta frequência.
+   * Disparado instantaneamente (via useMemo) a cada arraste nos sliders para evitar requisições
+   * à rede enquanto projeta variáveis triviais e independentes de IA (ex: Receita Bruta).
+   */
   const calculos = useMemo(() => {
     const pDiariaSim = simulacao.vacas_lactacao * simulacao.producao_vaca;
     const pDiariaRef = simulacao.vacas_lactacao * referencias[cenarioAtivo].producao; // Usando vacas da fazenda como base
@@ -122,6 +140,58 @@ export default function SimulacaoPage() {
     };
   }, [simulacao, cenarioAtivo]);
 
+  /**
+   * @description Define a faixa estatística de produção baseada no volume gerado.
+   * É essencial como insumo (feature) para o modelo de Machine Learning no backend.
+   * @param diaria Volume diário total projetado pelo produtor.
+   * @returns String contendo o quartil estatístico.
+   */
+  const getFaixaProducao = (diaria: number) => {
+    if (diaria < 500) return "< 500";
+    if (diaria <= 1000) return "500-1000";
+    if (diaria <= 2000) return "1000-2000";
+    if (diaria <= 5000) return "2000-5000";
+    return "> 5000";
+  };
+
+  /**
+   * @description Mescla as edições locais da simulação e solicita à API
+   * externa a projeção avançada de custo (Machine Learning) e re-divisão dos quartis.
+   */
+  const executarSimulacao = async () => {
+    setIsSimulando(true);
+    
+    // Mesclamos o estado original com as modificações dos sliders e injetamos a faixa calculada
+    const payloadSimulacao = {
+      ...dadosFazenda,
+      ...simulacao,
+      faixa_producao: getFaixaProducao(calculos.producao_diaria),
+    };
+
+    try {
+      const response = await fetch('/api/simulacao', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payloadSimulacao),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setResultadoSimulacao(data); // Pode ser usado no 9º quadrante para mostrar o Custo Estimado
+      } else {
+        console.error("Falha na simulação");
+      }
+    } catch (error) {
+      console.error("Erro ao simular:", error);
+    } finally {
+      setIsSimulando(false);
+    }
+  };
+
+  /**
+   * @description Manipula a alteração dos inputs do tipo `range` injetando
+   * valores numéricos válidos no estado da simulação.
+   */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setSimulacao(prev => ({ ...prev, [name]: parseFloat(value) || 0 }));
@@ -212,6 +282,14 @@ export default function SimulacaoPage() {
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 accent-primary"
               />
             </div>
+
+            <button 
+              onClick={executarSimulacao}
+              disabled={isSimulando}
+              className={`w-full py-3 mt-4 rounded-xl font-bold text-white transition-all shadow-md ${isSimulando ? 'bg-gray-400 cursor-not-allowed' : 'bg-primary hover:bg-[#003e7d]'}`}
+            >
+              {isSimulando ? 'Calculando com ML...' : 'Analisar Cenário (ML)'}
+            </button>
           </div>
         </aside>
 

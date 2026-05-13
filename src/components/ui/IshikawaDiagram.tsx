@@ -8,15 +8,31 @@
 
 import React, { useState } from 'react';
 import { IshikawaItem, IshikawaCategorias } from '../../types/diagnostico';
+import { CausaItem } from './CausaItem';
 
+/**
+ * @description Tipagem dos dados brutos estruturados e a tabela
+ * de impacto percentual calculada para cada um dos 6Ms.
+ */
 interface IshikawaProps {
   data: IshikawaCategorias;
   impactoPilares?: Record<string, number>;
 }
 
+/**
+ * @description Renderiza o diagrama responsivo e lida com o estado 
+ * do modal expansivo quando o usuário clica sobre a estrutura de um pilar específico.
+ * Iterage internamente acionando os subcomponentes `CausaItem`.
+ */
 export const IshikawaDiagram: React.FC<IshikawaProps> = ({ data, impactoPilares }) => {
   const [selectedCategory, setSelectedCategory] = useState<{ id: string, title: string, items: IshikawaItem[] } | null>(null);
 
+  /**
+   * @description Localiza, a prova de falhas de digitação ('obra', 'mão'),
+   * o valor exato de distribuição percentual associado ao pilar iterado atualmente.
+   * @param categoryId Chave de ID nativa estrita aos 6M's.
+   * @returns Valor em Number caso exista atribuição no processamento da API, undefined caso não.
+   */
   const getImpacto = (categoryId: string) => {
     if (!impactoPilares) return undefined;
     
@@ -60,15 +76,21 @@ export const IshikawaDiagram: React.FC<IshikawaProps> = ({ data, impactoPilares 
                 </span>
               )}
             </div>
-            <ul className="list-disc pl-5 space-y-1">
+            <div className="flex flex-col gap-1 w-full">
               {cat.items.length > 0 ? (
                 cat.items.map((item, idx) => (
-                  <li key={idx} className="text-gray-700 text-sm">{item.causa}</li>
+                  <CausaItem 
+                    key={idx} 
+                    causa={item.causa} 
+                    pratica={item.pratica} 
+                    severidade={(item as any).severidade} 
+                    analise={(item as any).analise} 
+                  />
                 ))
               ) : (
-                <li className="text-gray-400 text-sm italic">Nenhuma causa associada</li>
+                <div className="text-gray-400 text-sm italic px-2 py-1">Nenhuma causa associada</div>
               )}
-            </ul>
+            </div>
           </div>
         ))}
       </div>
@@ -96,17 +118,13 @@ export const IshikawaDiagram: React.FC<IshikawaProps> = ({ data, impactoPilares 
               {selectedCategory.items.length > 0 ? (
                 <div className="space-y-4">
                   {selectedCategory.items.map((item, idx) => (
-                    <div key={idx} className={`pb-4 ${idx !== selectedCategory.items.length - 1 ? 'border-b border-gray-100' : ''}`}>
-                      <p className="font-semibold text-gray-800 text-base mb-2">
-                        {item.causa}
-                      </p>
-                      {item.pratica && (
-                        <div className="pl-4 border-l-2 border-primary-light">
-                          <span className="font-semibold text-primary text-sm block mb-1">Prática Recomendada:</span>
-                          <p className="text-sm text-gray-700">{item.pratica}</p>
-                        </div>
-                      )}
-                    </div>
+                    <CausaItem 
+                      key={idx} 
+                      causa={item.causa} 
+                      pratica={item.pratica} 
+                      severidade={(item as any).severidade} 
+                      analise={(item as any).analise} 
+                    />
                   ))}
                 </div>
               ) : (

@@ -10,16 +10,30 @@
 import React, { useState } from 'react';
 import { X, BookOpen } from 'lucide-react';
 
+/**
+ * @description Contrato do objeto com explicação técnica ligada a um ID de 
+ * referência devolvido pela IA Gerativa (OpenRouter).
+ */
 interface Raciocinio {
   id: string | number;
   analise_tecnica: string;
 }
 
+/**
+ * @description Propriedades mínimas a serem resolvidas no texto 
+ * mestre do Visão Global da propriedade.
+ */
 interface TextoComCitacoesProps {
   texto: string;
   raciocinios?: Raciocinio[];
 }
 
+/**
+ * @description Varredor Textual baseada em Regex. Lida com a string crua que chega 
+ * do backend, separa padrões envoltos em colchetes como '[1]' ou '[2]' e as transforma
+ * em botões interativos renderizados em Sobrescrito, mantendo preservado o restante 
+ * da frase.
+ */
 export const TextoComCitacoes: React.FC<TextoComCitacoesProps> = ({ texto, raciocinios = [] }) => {
   const [citacaoAtiva, setCitacaoAtiva] = useState<Raciocinio | null>(null);
 
