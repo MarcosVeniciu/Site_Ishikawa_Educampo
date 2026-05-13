@@ -12,7 +12,8 @@ import { ZodError } from 'zod';
 import { useFazendaStore } from '@/store/useFazendaStore';
 import { fazendaSchema, FazendaFormData } from '@/lib/schemas';
 import { Navbar } from '@/components/ui/Navbar'; // Assumindo que a Navbar existe
-import { Info, AlertCircle, CheckCircle } from 'lucide-react';
+import { Info, AlertCircle, CheckCircle, Loader2, X } from 'lucide-react';
+import Link from 'next/link';
 
 const LabelComDica = ({ htmlFor, label, unidade, dica }: { htmlFor: string, label: string, unidade?: string, dica?: string }) => (
   <div className="flex items-center gap-2 mb-1">
@@ -43,19 +44,34 @@ export default function AjustesPage() {
 
   // Efeito para gerir a contagem decrescente do botão
   useEffect(() => {
-    if (feedback) setFeedback(null); // Limpa feedback antigo no início do cooldown
     if (cooldown > 0) {
       const timerId = setTimeout(() => setCooldown(cooldown - 1), 1000);
       return () => clearTimeout(timerId); // Limpa o timeout se o componente desmontar ou atualizar
     }
   }, [cooldown]);
 
+  // Efeito para esconder o popup de sucesso automaticamente após 5 segundos
+  useEffect(() => {
+    if (feedback?.type === 'success') {
+      const timerId = setTimeout(() => setFeedback(null), 5000);
+      return () => clearTimeout(timerId);
+    }
+  }, [feedback]);
+
+  /**
+   * Manipula as alterações nos campos do formulário.
+   * @param {React.ChangeEvent<HTMLInputElement | HTMLSelectElement>} e - O evento de alteração do input/select.
+   */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFeedback(null); // Limpa o feedback ao alterar qualquer campo
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  /**
+   * Intercepta a submissão do formulário, valida os dados no Zod e envia para a API recalcular o diagnóstico.
+   * @param {React.FormEvent} e - O evento de submissão do formulário.
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (cooldown > 0 || isSubmitting) return; // Barreira de proteção extra
@@ -85,8 +101,8 @@ export default function AjustesPage() {
       // 3. Sucesso: Atualiza o Zustand e inicia Cooldown de 30s
       setDadosFazenda(dadosValidados);
       setDiagnosticoIA(diagnostico);
-      setCooldown(30);
-      setFeedback({ type: 'success', message: 'Dados atualizados com sucesso e análises refeitas!' });
+      setCooldown(12); // Tempo padrão em caso de sucesso
+      setFeedback({ type: 'success', message: 'A atualização foi concluída com sucesso!' });
 
     } catch (error: any) {
       console.error('Erro na submissão:', error);
@@ -99,7 +115,8 @@ export default function AjustesPage() {
         errorMessage = error.message;
       }
 
-      setFeedback({ type: 'error', message: `Erro ao atualizar: ${errorMessage}` });
+      setCooldown(5); // Tempo ajustado para 5s em caso de erro
+      setFeedback({ type: 'error', message: `Erro ao atualizar: ${errorMessage}. Por favor, espere 10 segundos e tente novamente.` });
     } finally {
       setIsSubmitting(false);
     }
@@ -107,7 +124,15 @@ export default function AjustesPage() {
 
   // Se não houver dados, idealmente redirecionar ou mostrar aviso
   if (!dadosFazenda) {
-    return <div className="p-8 text-center text-red-500 font-bold">Nenhum dado encontrado. Por favor, preencha o formulário inicial.</div>;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-8">
+        <div className="text-center text-red-500 font-bold text-2xl mb-4">Nenhum dado encontrado.</div>
+        <p className="text-gray-600 mb-8 text-center max-w-md">Por favor, preencha o formulário inicial para gerar um diagnóstico antes de tentar ajustar os dados da fazenda.</p>
+        <Link href="/formulario" className="bg-primary hover:bg-primary-light text-white font-bold py-3 px-8 rounded-lg shadow-md transition duration-200">
+          Ir para Coleta de Dados
+        </Link>
+      </div>
+    );
   }
 
   return (
@@ -120,16 +145,6 @@ export default function AjustesPage() {
           <p className="text-gray-600 mb-8">Modifique os valores abaixo para recalcular o diagnóstico. Limite de uma atualização a cada 30 segundos.</p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {feedback && (
-              <div className={`p-4 rounded-lg flex items-center gap-3 text-sm font-medium ${
-                feedback.type === 'success' 
-                  ? 'bg-green-100 border border-green-200 text-green-800' 
-                  : 'bg-red-100 border border-red-200 text-red-800'
-              }`}>
-                {feedback.type === 'success' ? <CheckCircle className="w-5 h-5 flex-shrink-0" /> : <AlertCircle className="w-5 h-5 flex-shrink-0" />}
-                <span>{feedback.message}</span>
-              </div>
-            )}
 
             {/* Bloco 1: Estrutura da Fazenda (Exemplo, adicione os outros baseados no seu page.tsx) */}
             <section className="bg-gray-50 p-6 rounded-xl border border-gray-200">
@@ -167,8 +182,11 @@ export default function AjustesPage() {
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition bg-white"
                   >
                     <option value="" disabled>Selecione...</option>
-                    <option value="triangulo">Triângulo, Alto Paranaíba e Noroeste de Minas</option>
-                    <option value="sul">Sul e Sudoeste de Minas</option>
+                    <option value="triangulo">Triângulo</option>
+                    <option value="alto_paranaiba">Alto Paranaíba</option>
+                    <option value="noroeste_minas">Noroeste de Minas</option>
+                    <option value="sul">Sul de Minas</option>
+                    <option value="sudoeste">Sudoeste de Minas</option>
                   </select>
                 </div>
                 <div>
@@ -237,27 +255,73 @@ export default function AjustesPage() {
                   <LabelComDica htmlFor="preco_referencia" label="Preço de Referência" unidade="R$/L" dica="Preço médio de referência para sua região." />
                   <input id="preco_referencia" name="preco_referencia" type="number" step="0.01" required value={formData.preco_referencia || ''} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition" />
                 </div>
+                <div>
+                  <LabelComDica htmlFor="preco_concentrado" label="Preço do Concentrado" unidade="R$/kg" dica="Preço médio pago pelo produtor no kg do concentrado." />
+                  <input id="preco_concentrado" name="preco_concentrado" type="number" step="0.01" required value={formData.preco_concentrado || ''} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition" />
+                </div>
               </div>
             </section>
 
             {/* Rodapé de Ações com Cooldown */}
-            <div className="flex justify-end pt-2">
+            <div className="flex justify-center pt-2">
               <button 
                 type="submit" 
                 disabled={isSubmitting || cooldown > 0}
-                className={`font-bold py-3 px-10 rounded-lg shadow-md transition duration-200 ${
+                className={`flex items-center justify-center font-bold py-3 px-10 rounded-lg shadow-md transition duration-200 ${
                   isSubmitting || cooldown > 0 
                     ? 'bg-gray-400 text-gray-200 cursor-not-allowed' 
                     : 'bg-primary hover:bg-primary-light text-white'
                 }`}
               >
-                {isSubmitting ? 'Recalculando...' : cooldown > 0 ? `Aguarde ${cooldown}s` : 'Atualizar Dados'}
+                {isSubmitting ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Atualizando...
+                  </span>
+                ) : cooldown > 0 ? (
+                  `Aguarde ${cooldown}s`
+                ) : (
+                  'Atualizar dados'
+                )}
               </button>
             </div>
 
           </form>
         </div>
       </main>
+
+      {/* Popup de Feedback (Toast) */}
+      {feedback && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-300"
+          onClick={() => setFeedback(null)}
+        >
+          <div 
+            className={`p-4 rounded-lg shadow-2xl flex items-start gap-3 text-sm font-medium border-l-4 w-full max-w-md ${
+              feedback.type === 'success' 
+                ? 'bg-white border-green-500 text-gray-800' 
+                : 'bg-white border-red-500 text-gray-800'
+            }`}
+            onClick={e => e.stopPropagation()}
+          >
+            {feedback.type === 'success' ? (
+              <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
+            ) : (
+              <AlertCircle className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
+            )}
+            <div className="flex-1">
+              <p className="font-bold text-base mb-1">
+                {feedback.type === 'success' ? 'Sucesso!' : 'Atenção!'}
+              </p>
+              <p className="text-gray-600 font-normal leading-relaxed">{feedback.message}</p>
+            </div>
+            <button onClick={() => setFeedback(null)} className="ml-4 text-gray-400 hover:text-gray-600 transition-colors" title="Fechar">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

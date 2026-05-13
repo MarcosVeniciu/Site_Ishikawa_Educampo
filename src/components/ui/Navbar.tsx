@@ -131,7 +131,7 @@ export function Navbar() {
 
               {/* Coluna Direita: Dados Fazendas */}
               <Link 
-                href="/formulario" 
+                href="/ajustes" 
                 onClick={() => setIsMenuOpen(false)}
                 className="block p-6 hover:bg-white transition-colors group"
               >
