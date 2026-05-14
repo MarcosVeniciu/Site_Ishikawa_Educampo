@@ -98,6 +98,8 @@ Para rotas protegidas, o seguinte header é mandatório:
           "thresholds": {
             "valor_atual": 18.5,
             "unidade": "L/vaca/dia",
+            "grafico_min": 12.0,
+            "grafico_max": 38.5,
             "bom": "> 26.89",
             "regular": "> 22.39 AND <= 26.89",
             "critico": "<= 22.39"
@@ -106,6 +108,8 @@ Para rotas protegidas, o seguinte header é mandatório:
             "ccs": {
               "valor_atual": 650.0,
               "unidade": "x1000 cél/mL",
+              "grafico_min": 0.0,
+              "grafico_max": 1000.0,
               "regras": {
                 "bom": "< 200",
                 "critico": "> 500"
@@ -139,7 +143,6 @@ Para rotas protegidas, o seguinte header é mandatório:
     | :--- | :--- | :--- | :--- |
     | `sistema_producao` | string | `"compost_barn"` | Sistema produtivo. |
     | `regiao_sebrae` | string | `"triangulo"` | Região geográfica para benchmarking. |
-    | `faixa_producao` | string | `"2000-5000"` | Faixa de volume diário de leite produzido. |
     | `total_vacas` | integer | `100` | Número total de vacas. |
     | `vacas_lactacao` | integer | `85` | Número de vacas em lactação. |
     | `area_atividade` | float | `10.0` | Área em hectares dedicada à atividade. |
@@ -159,7 +162,6 @@ Para rotas protegidas, o seguinte header é mandatório:
       -d '{
       "area_atividade": 10,
       "ccs": 150,
-      "faixa_producao": "2000-5000",
       "numero_trabalhadores": 2,
       "preco_concentrado": 1.81,
       "preco_recebido": 3.2,
@@ -219,7 +221,7 @@ Para rotas protegidas, o seguinte header é mandatório:
 
 #### `GET /api/ping`
 
-*   **Propósito:** Rota ultra-leve, sem autenticação, projetada para "acordar" a API em ambientes de nuvem com *cold start* (como o Render). Usada pelo `healthcheck` do Docker.
+*   **Propósito:** Rota ultra-leve, sem autenticação, projetada para "acordar" a API em ambientes de nuvem com *cold start* (como o Render). Usada pelo `healthcheck` do Docker ou monitores externos (ex: UptimeRobot). Ao manter esta API acordada, uma tarefa em *background* acoplada ao ciclo de vida da API continua em execução, garantindo que as APIs terceiras (como a de Machine Learning) também recebam "pings" contínuos em uma **Reação em Cadeia**.
 *   **Autenticação:** Nenhuma.
 
 ---
@@ -320,6 +322,36 @@ Para evitar alucinações matemáticas e refletir a realidade do campo, a IA obe
 *   **`neutra` (Peso Zero)**: A fazenda já consolidou excelência nesse ponto. A causa genérica sugerida pelo motor não possui peso negativo, pois representa uma batalha já vencida pelo produtor.
     *   *✅ Quando é aplicado*: CCS é excelente (150). A causa sugere "Implementar pré-dipping rigoroso". A IA deduz com segurança que, se o resultado é perfeito, a fazenda já implementa isso, marcando-a como **neutra**.
     *   *❌ Quando NÃO é aplicado*: CCS é péssima (800). A IA não pode marcar "Implementar pré-dipping" como neutra, visto que a não-execução dessa prática é exatamente a origem (raiz) da nota ruim.
+
+### 📊 Proteção contra Outliers nos Gráficos (A Abordagem Híbrida)
+
+Nas rotas de diagnóstico, a API fornece as chaves `grafico_min` e `grafico_max` dentro dos nós `thresholds` (indicador principal) e `fatores_impacto` (subindicadores).
+
+O objetivo dessas chaves é proteger a interface visual (ex: componentes de Velocímetro ou Barras de Progresso) de **Outliers Extremos** que deformam a proporção do gráfico.
+A API gera esses limites usando uma **Abordagem Híbrida**:
+
+1.  **Limites Fixos e Absolutos (via CMS)**: Métricas com tetos inegociáveis (ex: `% de Vacas em Lactação` vai de `0` a `100`, ou `CCS` fixado até `1000`) vêm diretamente fixadas pela equipe zootécnica.
+2.  **Cálculo Estatístico Dinâmico (Cercas de Tukey - IQR)**: Variáveis suscetíveis ao mercado (ex: `Preço do Leite`, `Volume Diário`, `Produção por Área`) têm os limites renderizados dinamicamente. A API varre a base de dados da região e do sistema do produtor, encontra o 1º Quartil (P25) e o 3º Quartil (P75) e estipula o limite máximo excluindo anomalias e valores discrepantes da região.
+
+#### 👨‍💻 Como o Front-end deve consumir isso:
+Pode ocorrer de o `valor_atual` de um produtor ser *maior* do que o `grafico_max` caso ele seja um outlier agressivo (ex: Um CCS de `1500` com um gráfico com limite em `1000`).
+
+Para o gráfico não "vazar" da tela (quebrando o CSS), ao popular a largura da barra, aplique uma função `Math.min()` limitando visualmente a `100%`, mas exibindo a label textual com o número real:
+
+```javascript
+// Exemplo em JS/React:
+const calcWidth = (valor, min, max) => {
+  const range = max - min;
+  const preenchimento = valor - min;
+  // Impede que a barra de progresso ultrapasse 100% ou seja menor que 0%
+  const percentual = Math.max(0, Math.min((preenchimento / range) * 100, 100));
+  return `${percentual}%`;
+};
+
+// Componente Visual
+<div className="barra-progresso" style={{ width: calcWidth(data.valor_atual, data.grafico_min, data.grafico_max) }}></div>
+<span className="texto-informativo">{data.valor_atual} {data.unidade}</span> // Exibe o valor real que estourou a margem
+```
 
 ---
 
