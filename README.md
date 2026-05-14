@@ -389,10 +389,11 @@ Quando a fase de implementação e testes locais for concluída, a publicação 
 2. O Render identificará nosso `Dockerfile`, realizando o *build* seguro e isolado.
 3. As variáveis do arquivo `.env` (como o `API_TOKEN` real) deverão ser cadastradas diretamente no painel de *Environment Variables* do Render, garantindo a proteção total dos segredos.
 
-### Comandos uteis
-Executar os testes
+## 🚀 Comandos uteis
+Fazer os testes
 ```bash
-npm run test 
+# Testar tudo
+clear; npm run test  
 ```
 
 Desliga e liga o compose
@@ -400,15 +401,26 @@ Desliga e liga o compose
 docker-compose down; docker-compose up -d --build
 ```
 
-listar a arvore de diretorio ignorando alguns diretorios.
+Verificar logs do docker
 ```bash
-Get-ChildItem -Recurse | Where-Object { $_.FullName -notmatch 'node_modules|\.next|\.swc' } | Select-Object FullName | Format-Table -AutoSize
+docker logs ishikawa_api -f
+```
+
+Listar a arvore de diretorio ignorando alguns diretorios.
+```bash
+Get-ChildItem -Recurse | Where-Object { $_.FullName -notmatch 'node_modules|\.next|\.swc|__pycache__|\.pytest_cache|\.venv|\.vscode' } | Select-Object FullName | Format-Table -AutoSize
 ```
 
 Mostrar o nome da brach atual
 ```bash
 git branch --show-current
 ```
+
+Listar os commits recentes incluindo as mensagems usadas
+```bash
+git log --oneline
+```
+---
 
 Encerrando a Feature e Iniciando a Próxima
 ```bash
@@ -425,4 +437,39 @@ git push origin develop
 # Criar a ramificação para a nova fase:
 git checkout -b feature/coleta-dados
 git push -u origin feature/coleta-dados
+
+# Lançando uma Release (Merge de develop para main)
+git checkout main
+git pull origin main
+git merge develop
+git push origin main
+
+# (Opcional) Criar uma tag de versão (ex: v3.0.0)
+git tag -a v3.0.0 -m "Release v3.0.0"
+git push origin v3.0.0
+```
+Criando e encerrando uma Hotfix
+```bash
+# Criando um Hotfix (Correção Urgente em Produção)
+git checkout main
+git pull origin main
+git checkout -b hotfix/descricao-do-bug
+git push -u origin hotfix/descricao-do-bug
+
+# Encerrando um Hotfix (Enviando para Produção e Nuvem)
+# 1. Merge na main (Gatilho de deploy na nuvem)
+git checkout main
+git pull origin main
+git merge hotfix/descricao-do-bug
+git push origin main
+
+# 2. Criar tag da versão corrigida (ex: v3.0.1)
+git tag -a v3.0.1 -m "Hotfix: correção crítica"
+git push origin v3.0.1
+
+# 3. Merge na develop (Para não perder a correção no futuro)
+git checkout develop
+git pull origin develop
+git merge hotfix/descricao-do-bug
+git push origin develop
 ```

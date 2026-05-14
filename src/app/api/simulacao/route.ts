@@ -18,9 +18,9 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     // Barreira leve de payload: garante o insumo da Machine Learning
-    if (body.preco_concentrado === undefined || body.preco_concentrado === null) {
+    if (body.custo_concentrado === undefined || body.custo_concentrado === null) {
       return NextResponse.json(
-        { error: 'O campo preco_concentrado é obrigatório para as estimativas de custo.' },
+        { error: 'O campo custo_concentrado é obrigatório para as estimativas de custo.' },
         { status: 400 }
       );
     }

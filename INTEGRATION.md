@@ -137,7 +137,7 @@ Para rotas protegidas, o seguinte header é mandatório:
 *   **Autenticação:** Requer `X-API-KEY`.
 *   **Rate Limit:** 60 requisições por minuto (adequado para uso contínuo em interfaces reativas).
 *   **Campos de Entrada (`application/json`):**
-    Além dos dados operacionais padrão, exige a `faixa_producao` e o `preco_concentrado` fundamentais para as estimativas de custo do modelo de ML.
+    Além dos dados operacionais padrão, exige o `custo_concentrado` fundamental para as estimativas de custo do modelo de ML.
 
     | Campo | Tipo | Exemplo | Descrição |
     | :--- | :--- | :--- | :--- |
@@ -146,8 +146,8 @@ Para rotas protegidas, o seguinte header é mandatório:
     | `total_vacas` | integer | `100` | Número total de vacas. |
     | `vacas_lactacao` | integer | `85` | Número de vacas em lactação. |
     | `area_atividade` | float | `10.0` | Área em hectares dedicada à atividade. |
-    | `numero_trabalhadores`| integer | `2` | Número de funcionários. |
-    | `preco_concentrado` | float | `1.81` | Preço pago pelo produtor no kg do concentrado (R$). |
+    | `quantidade_funcionarios`| integer | `2` | Número de funcionários. |
+    | `custo_concentrado` | float | `1.81` | Preço pago pelo produtor no kg do concentrado (R$). |
     | `producao_vaca` | float | `35.0` | Produção média diária por vaca (L/dia). |
     | `preco_recebido` | float | `3.20` | Preço recebido por litro de leite (R$). |
     | `ccs` | integer | `150` | Contagem de Células Somáticas. |
@@ -162,8 +162,8 @@ Para rotas protegidas, o seguinte header é mandatório:
       -d '{
       "area_atividade": 10,
       "ccs": 150,
-      "numero_trabalhadores": 2,
-      "preco_concentrado": 1.81,
+      "quantidade_funcionarios": 2,
+      "custo_concentrado": 1.81,
       "preco_recebido": 3.2,
       "producao_vaca": 35,
       "regiao_sebrae": "triangulo",

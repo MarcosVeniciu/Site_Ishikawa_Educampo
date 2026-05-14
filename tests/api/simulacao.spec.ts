@@ -1,7 +1,7 @@
 /**
  * @file tests/api/simulacao.spec.ts
  * @description Contrato de testes para o Proxy BFF do endpoint de Simulação.
- * Garante o repasse correto do preco_concentrado e as proteções básicas de payload.
+ * Garante o repasse correto do custo_concentrado e as proteções básicas de payload.
  */
 
 import { POST } from '@/app/api/simulacao/route';
@@ -47,9 +47,9 @@ describe('BFF Route: POST /api/simulacao', () => {
 
   /**
    * @description Verifica o caminho feliz de submissão do formulário.
-   * Assegura que todas as variáveis (inclusive preco_concentrado) estão compondo o body do fetch real.
+   * Assegura que todas as variáveis (inclusive custo_concentrado) estão compondo o body do fetch real.
    */
-  it('deve processar o payload de simulação incluindo o preco_concentrado', async () => {
+  it('deve processar o payload de simulação incluindo o custo_concentrado', async () => {
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ resultado: 'simulacao_ok' }),
@@ -58,7 +58,7 @@ describe('BFF Route: POST /api/simulacao', () => {
     const payload = {
       nome_fazenda: 'Fazenda Simulador',
       producao_vaca: 38.0,
-      preco_concentrado: 2.50
+      custo_concentrado: 2.50
     };
 
     const req = new NextRequest('http://localhost:3000/api/simulacao', {
@@ -82,10 +82,10 @@ describe('BFF Route: POST /api/simulacao', () => {
 
   /**
    * @description Teste de resiliência. Valida se o BFF evita gastos de tráfego/nuvem
-   * bloqueando requisições sem o preço de concentrado já na borda da aplicação.
+   * bloqueando requisições sem o custo do concentrado já na borda da aplicação.
    */
-  it('deve retornar erro 400 se preco_concentrado não for fornecido', async () => {
-    const payload = { producao_vaca: 38.0 }; // Faltando o preco_concentrado
+  it('deve retornar erro 400 se custo_concentrado não for fornecido', async () => {
+    const payload = { producao_vaca: 38.0 }; // Faltando o custo_concentrado
 
     const req = new NextRequest('http://localhost:3000/api/simulacao', {
       method: 'POST',

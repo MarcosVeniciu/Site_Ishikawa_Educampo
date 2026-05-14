@@ -16,20 +16,6 @@ import { FazendaFormData } from "@/lib/schemas";
 import { useFazendaStore } from "@/store/useFazendaStore"; 
 import Image from "next/image";
 
-/**
- * @description Define a faixa estatística de produção baseada no volume gerado.
- * É essencial como insumo (feature) para o modelo de Machine Learning no backend.
- * @param diaria Volume diário total projetado.
- * @returns String contendo o quartil estatístico.
- */
-const getFaixaProducao = (diaria: number) => {
-  if (diaria < 500) return "< 500";
-  if (diaria <= 1000) return "500-1000";
-  if (diaria <= 2000) return "1000-2000";
-  if (diaria <= 5000) return "2000-5000";
-  return "> 5000";
-};
-
 export default function CarregandoPage() {
   const router = useRouter();
   const { dadosFazenda, setDiagnosticoIA, setResultadoSimulacao } = useFazendaStore();
@@ -50,16 +36,14 @@ export default function CarregandoPage() {
         setMensagem("A Inteligência Artificial está projetando seus cenários...");
 
         // Prepara os payloads para as duas requisições
-        const producaoDiaria = (dadosFazenda.producao_vaca || 0) * (dadosFazenda.vacas_lactacao || 0);
         const payloadSimulacao = {
           sistema_producao: dadosFazenda.sistema_producao,
           regiao_sebrae: dadosFazenda.regiao,
-          faixa_producao: getFaixaProducao(producaoDiaria),
           total_vacas: dadosFazenda.total_vacas,
           vacas_lactacao: dadosFazenda.vacas_lactacao,
           area_atividade: dadosFazenda.area_atividade,
           numero_trabalhadores: dadosFazenda.mao_obra_total,
-          preco_concentrado: dadosFazenda.preco_concentrado || 1.81,
+          custo_concentrado: dadosFazenda.preco_concentrado || 1.81,
           producao_vaca: dadosFazenda.producao_vaca,
           preco_recebido: dadosFazenda.preco_leite,
           ccs: dadosFazenda.ccs,

@@ -186,20 +186,6 @@ export default function SimulacaoPage() {
   }, [simulacao, cenarioAtivo]);
 
   /**
-   * @description Define a faixa estatística de produção baseada no volume gerado.
-   * É essencial como insumo (feature) para o modelo de Machine Learning no backend.
-   * @param diaria Volume diário total projetado pelo produtor.
-   * @returns String contendo o quartil estatístico.
-   */
-  const getFaixaProducao = (diaria: number) => {
-    if (diaria < 500) return "< 500";
-    if (diaria <= 1000) return "500-1000";
-    if (diaria <= 2000) return "1000-2000";
-    if (diaria <= 5000) return "2000-5000";
-    return "> 5000";
-  };
-
-  /**
    * @description Mescla as edições locais da simulação e solicita à API
    * externa a projeção avançada de custo (Machine Learning) e re-divisão dos quartis.
    */
@@ -211,12 +197,11 @@ export default function SimulacaoPage() {
     const payloadSimulacao = {
       sistema_producao: dadosFazenda.sistema_producao,
       regiao_sebrae: dadosFazenda.regiao,
-      faixa_producao: getFaixaProducao(calculos.producao_diaria),
       total_vacas: simulacao.total_vacas,
       vacas_lactacao: simulacao.vacas_lactacao,
       area_atividade: simulacao.area_atividade,
       numero_trabalhadores: dadosFazenda.mao_obra_total,
-      preco_concentrado: dadosFazenda.preco_concentrado || 1.81, // Fallback de segurança
+      custo_concentrado: dadosFazenda.preco_concentrado || 1.81, // Fallback de segurança
       producao_vaca: simulacao.producao_vaca,
       preco_recebido: simulacao.preco_leite,
       ccs: simulacao.ccs
