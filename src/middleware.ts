@@ -13,6 +13,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
+import { SECURITY_CONSTANTS, ROUTES } from './lib/constants';
 
 const SECRET_KEY = new TextEncoder().encode(
   process.env.ENCRYPTION_SECRET_KEY || 'chave_secreta_padrao_para_desenvolvimento_educampo'
@@ -37,33 +38,33 @@ export const config = {
 };
 
 export async function middleware(request: NextRequest) {
-  const sessionCookie = request.cookies.get('educampo_session');
+  const sessionCookie = request.cookies.get(SECURITY_CONSTANTS.SESSION_COOKIE_NAME);
   const pathname = request.nextUrl.pathname;
   
-  const isAuthPage = pathname === '/login';
-  const isRootPath = pathname === '/';
+  const isAuthPage = pathname === ROUTES.LOGIN;
+  const isRootPath = pathname === ROUTES.ROOT;
 
   if (!sessionCookie) {
     // Deslogado tentando acessar rota privada: manda pro login. Deslogado já no /login: deixa passar.
-    return isAuthPage ? NextResponse.next() : NextResponse.redirect(new URL('/login', request.url));
+    return isAuthPage ? NextResponse.next() : NextResponse.redirect(new URL(ROUTES.LOGIN, request.url));
   }
 
   try {
     // Valida a assinatura do JWT e enforça que o token não tenha mais de 5 minutos de idade
-    await jwtVerify(sessionCookie.value, SECRET_KEY, { maxTokenAge: '5m' });
+    await jwtVerify(sessionCookie.value, SECRET_KEY, { maxTokenAge: SECURITY_CONSTANTS.MAX_TOKEN_AGE });
     
     // Autenticado tentando acessar rotas públicas (raiz ou login): pula direto para a área interna
     if (isRootPath || isAuthPage) {
-      return NextResponse.redirect(new URL('/formulario', request.url));
+      return NextResponse.redirect(new URL(ROUTES.HOME, request.url));
     }
     return NextResponse.next();
   } catch (error) {
     // Token corrompido/expirado: limpa o cookie e redireciona (se já estiver no /login, apenas renderiza)
     const response = isAuthPage 
       ? NextResponse.next() 
-      : NextResponse.redirect(new URL('/login', request.url));
+      : NextResponse.redirect(new URL(ROUTES.LOGIN, request.url));
       
-    response.cookies.delete('educampo_session');
+    response.cookies.delete(SECURITY_CONSTANTS.SESSION_COOKIE_NAME);
     return response;
   }
 }

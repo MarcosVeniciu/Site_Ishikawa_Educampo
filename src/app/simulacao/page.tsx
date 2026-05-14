@@ -8,7 +8,7 @@
 
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/ui/Navbar';
 import { useFazendaStore } from '@/store/useFazendaStore';
 import { TrendingUp, TrendingDown, Minus, Loader2 } from 'lucide-react';
@@ -32,10 +32,10 @@ const BarChartSimulacao = ({
 }: { 
   titulo: string, valorSimulado: number, valorReferencia: number, unidade: string, inverterCores?: boolean 
 }) => {
-  // Encontra o teto para calcular a altura percentual (100% da barra)
-  const maxVal = Math.max(valorSimulado, valorReferencia, 1); 
-  const alturaSimulado = `${(valorSimulado / maxVal) * 100}%`;
-  const alturaReferencia = `${(valorReferencia / maxVal) * 100}%`;
+  // Encontra o teto para calcular a altura percentual lidando com possíveis valores negativos (ex: margem)
+  const maxVal = Math.max(Math.abs(valorSimulado), Math.abs(valorReferencia), 0.01); 
+  const alturaSimulado = `${(Math.abs(valorSimulado) / maxVal) * 100}%`;
+  const alturaReferencia = `${(Math.abs(valorReferencia) / maxVal) * 100}%`;
 
   // Lógica de cores: Verde (Melhor), Vermelho (Pior), Cinza (Igual)
   let corBarraSimulada = 'bg-gray-400';
@@ -49,7 +49,7 @@ const BarChartSimulacao = ({
 
   // Cálculos do Indicador Percentual (Top Right)
   const diff = valorSimulado - valorReferencia;
-  const pct = valorReferencia > 0 ? (diff / valorReferencia) * 100 : 0;
+  const pct = Math.abs(valorReferencia) > 0 ? (diff / Math.abs(valorReferencia)) * 100 : 0;
   
   let indicatorColor = 'text-gray-500 bg-gray-100';
   let prefix = '';
@@ -61,9 +61,17 @@ const BarChartSimulacao = ({
     indicatorColor = inverterCores ? 'text-red-600 bg-red-50' : 'text-green-600 bg-green-50';
   } else if (diff < 0) {
     Icon = TrendingDown;
-    prefix = '-';
+    prefix = '-'; // Exibido com o Math.abs abaixo
     indicatorColor = inverterCores ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50';
   }
+
+  // Formatação para grandes números (K) e moedas/frações pequenas
+  const formatNumber = (num: number) => {
+    if (Math.abs(num) >= 1000) {
+      return num.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+    }
+    return num.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+  };
 
   return (
     <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col h-64 relative">
@@ -83,7 +91,7 @@ const BarChartSimulacao = ({
         {/* Barra Simulada (Em Tempo Real) */}
         <div className="flex flex-col items-center justify-end w-16 group h-full">
           <span className={`text-xs font-bold mb-1 ${corTextoSimulado}`}>
-            {valorSimulado.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}
+            {formatNumber(valorSimulado)}
           </span>
           <div 
             className={`w-full ${corBarraSimulada} rounded-t-sm transition-all duration-300 ease-out relative shadow-sm`}
@@ -99,7 +107,7 @@ const BarChartSimulacao = ({
 
         {/* Barra de Referência (Educampo) */}
         <div className="flex flex-col items-center justify-end w-16 group h-full">
-          <span className="text-xs text-gray-500 mb-1 font-medium">{valorReferencia.toLocaleString('pt-BR')}</span>
+          <span className="text-xs text-gray-500 mb-1 font-medium">{formatNumber(valorReferencia)}</span>
           <div 
             className="w-full bg-primary rounded-t-sm transition-all duration-500 ease-out relative"
             style={{ height: alturaReferencia }}
@@ -113,9 +121,11 @@ const BarChartSimulacao = ({
         </div>
       </div>
       
-      <div className="text-center mt-2 pt-2 border-t border-gray-50">
-        <span className="text-xs text-gray-500">{unidade}</span>
-      </div>
+      {unidade && (
+        <div className="text-center mt-2 pt-2 border-t border-gray-50">
+          <span className="text-xs text-gray-500">{unidade}</span>
+        </div>
+      )}
     </div>
   );
 };
@@ -133,9 +143,11 @@ export default function SimulacaoPage() {
     total_vacas: dadosFazenda?.total_vacas || 100,
     vacas_lactacao: dadosFazenda?.vacas_lactacao || 85,
     producao_vaca: dadosFazenda?.producao_vaca || 30.0,
-    preco_leite: dadosFazenda?.preco_leite || 3.00,
+    preco_recebido: dadosFazenda?.preco_leite || 3.00,
     area_atividade: dadosFazenda?.area_atividade || 10.0,
     ccs: dadosFazenda?.ccs || 150,
+    numero_trabalhadores: dadosFazenda?.mao_obra_total || 2,
+    custo_concentrado: dadosFazenda?.preco_concentrado || 2.00,
   });
 
   const [isSimulando, setIsSimulando] = useState(false);
@@ -153,38 +165,6 @@ export default function SimulacaoPage() {
     return () => clearInterval(interval);
   }, [tempoBloqueio]);
 
-  // Valores de referência do Educampo (Mockados temporariamente para a simulação funcionar de imediato)
-  // Numa etapa futura, isso pode vir direto de `diagnosticoIA.cenarios`
-  const referencias = {
-    inferior:      { producao: 15.0, preco: 2.50, area: 15, ccs: 400 },
-    intermediario: { producao: 25.0, preco: 2.80, area: 10, ccs: 250 },
-    superior:      { producao: 35.0, preco: 3.20, area: 8,  ccs: 100 },
-  };
-
-  /**
-   * @description Motor de recálculo local de alta frequência.
-   * Disparado instantaneamente (via useMemo) a cada arraste nos sliders para evitar requisições
-   * à rede enquanto projeta variáveis triviais e independentes de IA (ex: Receita Bruta).
-   */
-  const calculos = useMemo(() => {
-    const pDiariaSim = simulacao.vacas_lactacao * simulacao.producao_vaca;
-    const pDiariaRef = simulacao.vacas_lactacao * referencias[cenarioAtivo].producao; // Usando vacas da fazenda como base
-
-    return {
-      producao_diaria: pDiariaSim,
-      producao_diaria_ref: pDiariaRef,
-      
-      receita_bruta: pDiariaSim * simulacao.preco_leite,
-      receita_bruta_ref: pDiariaRef * referencias[cenarioAtivo].preco,
-      
-      prod_area: (pDiariaSim * 365) / simulacao.area_atividade,
-      prod_area_ref: (pDiariaRef * 365) / referencias[cenarioAtivo].area,
-      
-      taxa_lactacao: (simulacao.vacas_lactacao / simulacao.total_vacas) * 100,
-      taxa_lactacao_ref: 83, // Referência fixa da literatura
-    };
-  }, [simulacao, cenarioAtivo]);
-
   /**
    * @description Mescla as edições locais da simulação e solicita à API
    * externa a projeção avançada de custo (Machine Learning) e re-divisão dos quartis.
@@ -200,10 +180,10 @@ export default function SimulacaoPage() {
       total_vacas: simulacao.total_vacas,
       vacas_lactacao: simulacao.vacas_lactacao,
       area_atividade: simulacao.area_atividade,
-      numero_trabalhadores: dadosFazenda.mao_obra_total,
-      custo_concentrado: dadosFazenda.preco_concentrado || 1.81, // Fallback de segurança
+      numero_trabalhadores: simulacao.numero_trabalhadores,
+      custo_concentrado: simulacao.custo_concentrado,
       producao_vaca: simulacao.producao_vaca,
-      preco_recebido: simulacao.preco_leite,
+      preco_recebido: simulacao.preco_recebido,
       ccs: simulacao.ccs
     };
 
@@ -242,6 +222,49 @@ export default function SimulacaoPage() {
     setSimulacao(prev => ({ ...prev, [name]: parseFloat(value) || 0 }));
   };
 
+  // Extrai os limites seguros retornados pela IA, ou provê hardcodes de segurança (fallback)
+  const params = resultadoSimulacao?.parametros_painel || {
+    total_vacas: { min: 10, max: 500, step: 1 },
+    vacas_lactacao: { min: 0, max: 500, step: 1 },
+    producao_vaca: { min: 5, max: 60, step: 0.5 },
+    preco_recebido: { min: 1.0, max: 6.0, step: 0.05 },
+    ccs: { min: 50, max: 1000, step: 10 },
+    area_atividade: { min: 1, max: 1000, step: 0.5 },
+    custo_concentrado: { min: 0.5, max: 6.0, step: 0.05 },
+    numero_trabalhadores: { min: 1, max: 50, step: 1 }
+  };
+
+  /**
+   * @description Função genérica para renderizar as sessões de gráficos.
+   * Alimenta os gráficos comparativos diretamente da resposta do BFF.
+   */
+  const renderMetricCards = (metricas: any[]) => {
+    return metricas.map((item: any) => {
+      const valorSimulado = item.valor_produtor ?? 0;
+
+      const cenarioRef = item.cenarios?.[cenarioAtivo];
+      const valorReferencia = cenarioRef?.valor || 0;
+      const inverter = item.direcao_otimizacao === 'menor_melhor';
+      
+      return (
+        <div key={item.metrica} className="relative h-full">
+          {isSimulando && (
+            <div className="absolute inset-0 z-20 bg-white/60 backdrop-blur-[2px] rounded-xl flex items-center justify-center">
+              <Loader2 className="w-10 h-10 text-primary animate-spin" />
+            </div>
+          )}
+          <BarChartSimulacao 
+            titulo={item.titulo_grafico} 
+            valorSimulado={valorSimulado}
+            valorReferencia={valorReferencia}
+            unidade=""
+            inverterCores={inverter}
+          />
+        </div>
+      );
+    });
+  };
+
   if (!dadosFazenda) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-8">
@@ -278,7 +301,7 @@ export default function SimulacaoPage() {
               </label>
               <input 
                 id="total_vacas" name="total_vacas" type="range" 
-                min="10" max="500" step="1" 
+                min={params.total_vacas?.min || 10} max={params.total_vacas?.max || 500} step={params.total_vacas?.step || 1} 
                 value={simulacao.total_vacas} onChange={handleChange}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 accent-primary"
               />
@@ -291,7 +314,7 @@ export default function SimulacaoPage() {
               </label>
               <input 
                 id="vacas_lactacao" name="vacas_lactacao" type="range" 
-                min="0" max={simulacao.total_vacas} step="1" 
+                min={params.vacas_lactacao?.min || 0} max={simulacao.total_vacas} step={params.vacas_lactacao?.step || 1} 
                 value={simulacao.vacas_lactacao} onChange={handleChange}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 accent-primary"
               />
@@ -304,7 +327,7 @@ export default function SimulacaoPage() {
               </label>
               <input 
                 id="producao_vaca" name="producao_vaca" type="range" 
-                min="5" max="50" step="0.5" 
+                min={params.producao_vaca?.min || 5} max={params.producao_vaca?.max || 60} step={params.producao_vaca?.step || 0.5} 
                 value={simulacao.producao_vaca} onChange={handleChange}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 accent-primary"
               />
@@ -312,13 +335,13 @@ export default function SimulacaoPage() {
 
             {/* Controle: Preço do Leite */}
             <div>
-              <label htmlFor="preco_leite" className="text-sm font-semibold text-gray-700 flex justify-between">
-                Preço do Leite <span className="text-primary">R$ {simulacao.preco_leite.toFixed(2)}</span>
+              <label htmlFor="preco_recebido" className="text-sm font-semibold text-gray-700 flex justify-between">
+                Preço do Leite <span className="text-primary">R$ {simulacao.preco_recebido.toFixed(2)}</span>
               </label>
               <input 
-                id="preco_leite" name="preco_leite" type="range" 
-                min="1.5" max="5.0" step="0.05" 
-                value={simulacao.preco_leite} onChange={handleChange}
+                id="preco_recebido" name="preco_recebido" type="range" 
+                min={params.preco_recebido?.min || 1.5} max={params.preco_recebido?.max || 5.0} step={params.preco_recebido?.step || 0.05} 
+                value={simulacao.preco_recebido} onChange={handleChange}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 accent-primary"
               />
             </div>
@@ -330,8 +353,47 @@ export default function SimulacaoPage() {
               </label>
               <input 
                 id="ccs" name="ccs" type="range" 
-                min="50" max="1000" step="10" 
+                min={params.ccs?.min || 50} max={params.ccs?.max || 1000} step={params.ccs?.step || 10} 
                 value={simulacao.ccs} onChange={handleChange}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 accent-primary"
+              />
+            </div>
+
+            {/* Controle: Área de Atividade */}
+            <div>
+              <label htmlFor="area_atividade" className="text-sm font-semibold text-gray-700 flex justify-between">
+                Área (ha) <span className="text-primary">{simulacao.area_atividade}</span>
+              </label>
+              <input 
+                id="area_atividade" name="area_atividade" type="range" 
+                min={params.area_atividade?.min || 1} max={params.area_atividade?.max || 500} step={params.area_atividade?.step || 0.5} 
+                value={simulacao.area_atividade} onChange={handleChange}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 accent-primary"
+              />
+            </div>
+
+            {/* Controle: Custo do Concentrado */}
+            <div>
+              <label htmlFor="custo_concentrado" className="text-sm font-semibold text-gray-700 flex justify-between">
+                Custo Concentrado <span className="text-primary">R$ {simulacao.custo_concentrado.toFixed(2)}</span>
+              </label>
+              <input 
+                id="custo_concentrado" name="custo_concentrado" type="range" 
+                min={params.custo_concentrado?.min || 0.5} max={params.custo_concentrado?.max || 5.0} step={params.custo_concentrado?.step || 0.05} 
+                value={simulacao.custo_concentrado} onChange={handleChange}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 accent-primary"
+              />
+            </div>
+
+            {/* Controle: Número de Trabalhadores */}
+            <div>
+              <label htmlFor="numero_trabalhadores" className="text-sm font-semibold text-gray-700 flex justify-between">
+                Trabalhadores <span className="text-primary">{simulacao.numero_trabalhadores}</span>
+              </label>
+              <input 
+                id="numero_trabalhadores" name="numero_trabalhadores" type="range" 
+                min={params.numero_trabalhadores?.min || 1} max={params.numero_trabalhadores?.max || 50} step={params.numero_trabalhadores?.step || 1} 
+                value={simulacao.numero_trabalhadores} onChange={handleChange}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 accent-primary"
               />
             </div>
@@ -372,15 +434,9 @@ export default function SimulacaoPage() {
             ))}
           </div>
 
-          {/* 
-            ESTADOS DE RENDERIZAÇÃO:
-            1. isSimulando && !resultado: Primeira carga -> Mostra 5 Skeletons genéricos.
-            2. resultado?.metricas: Dados presentes -> Mostra os gráficos reais (com Overlay de carregamento se estiver recalculando).
-            3. Fallback/Vazio: Caso a API falhe ou os dados ainda não tenham sido pré-carregados.
-          */}
-          {isSimulando && !resultadoSimulacao?.metricas ? (
+          {isSimulando && !resultadoSimulacao?.simulacao ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-in fade-in duration-500">
-              {Array.from({ length: 5 }).map((_, index) => (
+              {Array.from({ length: 9 }).map((_, index) => (
                 <div key={index} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col h-64 items-center justify-center relative overflow-hidden">
                   <div className="absolute inset-0 bg-gray-50 opacity-50"></div>
                   <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
@@ -388,69 +444,28 @@ export default function SimulacaoPage() {
                 </div>
               ))}
             </div>
-          ) : resultadoSimulacao?.metricas ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-in fade-in duration-500">
-              {resultadoSimulacao.metricas.map((item: any) => {
-                
-                // Card Financeiro Especial para Custo Estimado
-                if (item.metrica === 'custo_estimado') {
-                  const dadosCusto = item[cenarioAtivo];
-                  return (
-                    <div key={item.metrica} className="relative h-full">
-                      {/* OVERLAY DE RECARREGAMENTO */}
-                      {isSimulando && (
-                        <div className="absolute inset-0 z-20 bg-[#003e7d]/60 backdrop-blur-[2px] rounded-xl flex items-center justify-center">
-                          <Loader2 className="w-10 h-10 text-white animate-spin" />
-                        </div>
-                      )}
-                      <div className="bg-gradient-to-br from-[#003e7d] to-[#1973d3] p-6 rounded-xl shadow-md text-white flex flex-col justify-center items-center h-64 text-center">
-                        <h3 className="text-lg font-bold mb-2">Insight Financeiro (IA)</h3>
-                        <div className="text-3xl font-black mb-2 text-green-300">
-                          {dadosCusto.margem_lucro_percentual}% <span className="text-sm font-normal text-blue-100">Margem</span>
-                        </div>
-                        <p className="text-blue-50 text-xs leading-relaxed line-clamp-4">
-                          {dadosCusto.texto_margem}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                }
+          ) : resultadoSimulacao?.simulacao ? (
+            <div className="flex flex-col gap-10 animate-in fade-in duration-500">
+              <section>
+                <h2 className="text-lg font-bold text-gray-800 mb-4 border-b border-gray-200 pb-2">1. Métricas de Entrada (Estáticas)</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {renderMetricCards(resultadoSimulacao.simulacao.estaticas)}
+                </div>
+              </section>
 
-                // Gráficos Padrão
-                const nomeFormatado = item.metrica.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
-                const inverter = item.metrica === 'ccs' || item.metrica === 'area_atividade';
-                
-                let valorSimulado = 0;
-                if (item.metrica === 'producao_diaria') valorSimulado = calculos.producao_diaria;
-                else if (item.metrica === 'receita_bruta_diaria') valorSimulado = calculos.receita_bruta;
-                else if (item.metrica === 'producao_area') valorSimulado = calculos.prod_area;
-                else if (item.metrica === 'perc_vacas_lactacao') valorSimulado = calculos.taxa_lactacao;
-                else if (item.metrica === 'preco_recebido') valorSimulado = simulacao.preco_leite;
-                else valorSimulado = (simulacao as any)[item.metrica] || 0;
+              <section>
+                <h2 className="text-lg font-bold text-gray-800 mb-4 border-b border-gray-200 pb-2">2. Simulação Operacional (Cascata)</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {renderMetricCards(resultadoSimulacao.simulacao.operacionais)}
+                </div>
+              </section>
 
-                const ChartComponent = (
-                   <BarChartSimulacao 
-                    key={item.metrica}
-                    titulo={nomeFormatado} 
-                    valorSimulado={valorSimulado}
-                    valorReferencia={item[cenarioAtivo]}
-                    unidade=""
-                    inverterCores={inverter}
-                  />
-                );
-
-                return (
-                  <div key={item.metrica} className="relative h-full">
-                    {/* OVERLAY DE RECARREGAMENTO */}
-                    {isSimulando && (
-                      <div className="absolute inset-0 z-20 bg-white/60 backdrop-blur-[2px] rounded-xl flex items-center justify-center">
-                        <Loader2 className="w-10 h-10 text-primary animate-spin" />
-                      </div>
-                    )}
-                    {ChartComponent}
-                  </div>
-                );
-              })}
+              <section>
+                <h2 className="text-lg font-bold text-gray-800 mb-4 border-b border-gray-200 pb-2">3. Simulação Financeira (Margem)</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {renderMetricCards(resultadoSimulacao.simulacao.financeiras)}
+                </div>
+              </section>
             </div>
           ) : (
              <div className="flex justify-center items-center h-64 text-gray-400">Aguardando dados...</div>

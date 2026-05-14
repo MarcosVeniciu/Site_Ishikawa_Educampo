@@ -8,6 +8,7 @@
  */
 
 import { z } from 'zod';
+import { FAZENDA_LIMITS } from './constants';
 
 /**
  * Enum para os sistemas de produção suportados pela API.
@@ -38,30 +39,30 @@ export const RegiaoEnum = z.enum([
 export const fazendaSchema = z.object({
   nome_fazenda: z.string()
     .min(1, 'O nome da fazenda é obrigatório')
-    .max(100, 'O nome deve ter no máximo 100 caracteres'),
+    .max(FAZENDA_LIMITS.NOME_MAX_LENGTH, `O nome deve ter no máximo ${FAZENDA_LIMITS.NOME_MAX_LENGTH} caracteres`),
   
   sistema_producao: SistemaProducaoEnum,
   
-  total_vacas: z.coerce.number().int().min(0).max(50000),
+  total_vacas: z.coerce.number().int().min(0).max(FAZENDA_LIMITS.VACAS_MAX),
   
-  vacas_lactacao: z.coerce.number().int().min(0).max(50000),
+  vacas_lactacao: z.coerce.number().int().min(0).max(FAZENDA_LIMITS.VACAS_MAX),
   
-  animais_rebanho: z.coerce.number().int().min(0).max(100000),
+  animais_rebanho: z.coerce.number().int().min(0).max(FAZENDA_LIMITS.REBANHO_MAX),
   
-  area_atividade: z.coerce.number().min(0.1, 'A área mínima é 0.1 ha').max(50000),
+  area_atividade: z.coerce.number().min(FAZENDA_LIMITS.AREA_MIN, `A área mínima é ${FAZENDA_LIMITS.AREA_MIN} ha`).max(FAZENDA_LIMITS.AREA_MAX),
   
-  mao_obra_total: z.coerce.number().int().min(1, 'Mínimo de 1 trabalhador').max(1000),
+  mao_obra_total: z.coerce.number().int().min(FAZENDA_LIMITS.MAO_DE_OBRA_MIN, `Mínimo de ${FAZENDA_LIMITS.MAO_DE_OBRA_MIN} trabalhador`).max(FAZENDA_LIMITS.MAO_DE_OBRA_MAX),
   
-  producao_vaca: z.coerce.number().min(0).max(100),
+  producao_vaca: z.coerce.number().min(0).max(FAZENDA_LIMITS.PRODUCAO_VACA_MAX),
   
-  preco_leite: z.coerce.number().min(0).max(15),
+  preco_leite: z.coerce.number().min(0).max(FAZENDA_LIMITS.PRECO_MAX),
   
-  preco_referencia: z.coerce.number().min(0).max(15),
+  preco_referencia: z.coerce.number().min(0).max(FAZENDA_LIMITS.PRECO_MAX),
   
   /** Preço médio do concentrado em R$/kg, essencial para o modelo de ML na Simulação. */
-  preco_concentrado: z.coerce.number().min(0, 'O preço não pode ser negativo').max(100),
+  preco_concentrado: z.coerce.number().min(0, 'O preço não pode ser negativo').max(FAZENDA_LIMITS.PRECO_CONCENTRADO_MAX),
   
-  ccs: z.coerce.number().int().min(0).max(9999),
+  ccs: z.coerce.number().int().min(0).max(FAZENDA_LIMITS.CCS_MAX),
   
   regiao: RegiaoEnum,
 }).superRefine((data, ctx) => {
