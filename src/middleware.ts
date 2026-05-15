@@ -23,11 +23,13 @@ const SECRET_KEY = new TextEncoder().encode(
 export const config = {
   matcher: [
     /*
-     * Protege todas as rotas de negócio, exceto:
-     * - login (página pública)
+     * Intercepta a raiz e o login, além das rotas privadas.
+     * Ficam de fora:
      * - api/auth (rota de autenticação)
      * - arquivos estáticos (public, favicon, etc)
      */
+    '/',
+    '/login',
     '/formulario/:path*',
     '/carregando/:path*',
     '/dashboard/:path*',
