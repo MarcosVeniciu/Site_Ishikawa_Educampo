@@ -424,7 +424,7 @@ git log --oneline
 
 Encerrando a Feature e Iniciando a Próxima
 ```bash
-# Salvar o trabalho final na branch:
+# Salvar o trabalho final na branch: (pode ser feito pelo vs code)
 git add .
 git commit -m "feat: implementa interface de login responsiva e segura com Tailwind v4"
 git push origin feature/seguranca-auth
@@ -437,7 +437,12 @@ git push origin develop
 # Criar a ramificação para a nova fase:
 git checkout -b feature/coleta-dados
 git push -u origin feature/coleta-dados
+```
 
+---
+
+Lançar uma nova Release
+```bash
 # Lançando uma Release (Merge de develop para main)
 git checkout main
 git pull origin main
@@ -448,6 +453,9 @@ git push origin main
 git tag -a v3.0.0 -m "Release v3.0.0"
 git push origin v3.0.0
 ```
+
+---
+
 Criando e encerrando uma Hotfix
 ```bash
 # Criando um Hotfix (Correção Urgente em Produção)
