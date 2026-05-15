@@ -7,7 +7,7 @@
 
 export const SECURITY_CONSTANTS = {
   /** Tempo máximo de validade do token JWT de sessão (ex: '5m' para 5 minutos) */
-  MAX_TOKEN_AGE: '5m',
+  MAX_TOKEN_AGE: '30m',
   /** Nome oficial do cookie de sessão utilizado em toda a aplicação */
   SESSION_COOKIE_NAME: 'educampo_session',
 } as const;

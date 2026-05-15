@@ -170,51 +170,90 @@ O projeto adota uma arquitetura modular focada no ecossistema Next.js (App Route
 ```text
 site_ishikawa_educampo/
 │
+├── public/                                          # Arquivos estáticos e imagens
+│   ├── banner_educampo.png
+│   └── logo_educampo.png
+│
 ├── src/                                             # Código-fonte principal da aplicação
 │   ├── app/                                         # Rotas e páginas do Next.js (App Router)
+│   │   ├── ajustes/                                 # Tela de edição e ajuste de dados.
+│   │   │   └── page.tsx
 │   │   ├── api/                                     # Backend-For-Frontend (BFF) - Rotas de API internas
-│   │   │   ├── auth/route.ts                        # Gerencia o login e injeta o token via Cookie HttpOnly.
-│   │   │   ├── diagnostico/route.ts                 # Proxy seguro: mascara as chaves e chama a API real da IA.
-│   │   │   └── README.md                            # Documentação da camada BFF e segurança de rotas.
-│   │   ├── login/page.tsx                           # Tela de autenticação do produtor.
-│   │   ├── formulario/page.tsx                      # Tela de coleta de dados operacionais da fazenda.
-│   │   ├── carregando/page.tsx                      # Tela de feedback visual e validação de hidratação de dados.
-│   │   ├── diagnostico/page.tsx                     # Painel central unificado: Benchmarking, IA e Diagrama de Ishikawa.
-│   │   ├── simulacao/page.tsx                       # Simulador iterativo de cenários zootécnicos.
-│   │   ├── configuracoes/page.tsx                   # Ajustes de usuário e logout seguro (destruição de sessão).
+│   │   │   ├── auth/                                # Gerencia o login e injeta o token via Cookie HttpOnly.
+│   │   │   ├── diagnostico/                         # Proxy seguro: mascara as chaves e chama a API real da IA.
+│   │   │   └── simulacao/                           # Rota para simulação interativa.
+│   │   ├── carregando/                              # Tela de feedback visual e validação de hidratação de dados.
+│   │   │   └── page.tsx
+│   │   ├── diagnostico/                             # Painel central unificado: Benchmarking, IA e Diagrama de Ishikawa.
+│   │   │   └── page.tsx
+│   │   ├── formulario/                              # Tela de coleta de dados operacionais da fazenda.
+│   │   │   └── page.tsx
+│   │   ├── login/                                   # Tela de autenticação do produtor.
+│   │   │   └── page.tsx
+│   │   ├── simulacao/                               # Simulador iterativo de cenários zootécnicos.
+│   │   │   └── page.tsx
+│   │   ├── globals.css                              # Estilos globais e cores do Tailwind.
 │   │   ├── layout.tsx                               # Layout global, fontes e base visual da aplicação.
+│   │   ├── page.tsx                                 # Página raiz.
 │   │   └── README.md                                # Índice e documentação das páginas de navegação.
 │   ├── components/                                  # Componentes visuais reutilizáveis (UI)
-│   │   ├── ui/                                      # Componentes base: Botões, Inputs, Modais (Tailwind + Lucide).
-│   │   │   └── SplitScreenLayout.tsx                # Componente de layout estrutural que gerencia a responsividade e a identidade visual da marca.
-│   │   ├── ishikawa/                                # Componentes complexos para renderizar a Espinha de Peixe.
-│   │   └── README.md                                # Documentação da biblioteca de componentes visuais.
+│   │   └── ui/                                      # Componentes base e estruturas visuais.
+│   │       ├── Acelerometro.tsx
+│   │       ├── CausaItem.tsx
+│   │       ├── ImpactFactorBar.tsx
+│   │       ├── IshikawaDiagram.tsx
+│   │       ├── Navbar.tsx
+│   │       ├── SplitScreenLayout.tsx                # Componente estrutural de responsividade.
+│   │       ├── TextoComCitacoes.tsx
+│   │       └── README.md
 │   ├── store/                                       # Gerenciamento de estado global no cliente
 │   │   ├── useFazendaStore.ts                       # Zustand: Armazena dados preenchidos e resultados da API.
 │   │   └── README.md                                # Documentação sobre o fluxo do estado global.
 │   ├── lib/                                         # Bibliotecas, utilitários e validações
+│   │   ├── constants.ts                             # Constantes da aplicação.
 │   │   ├── schemas.ts                               # Zod schemas para validação estrita (Input Validation).
 │   │   └── README.md                                # Documentação das lógicas utilitárias.
+│   ├── types/                                       # Tipagens do TypeScript
+│   │   └── diagnostico.ts
 │   ├── middleware.ts                                # Guardião de Rotas (Edge): Valida tokens e protege acessos.
 │   └── README.md                                    # Visão geral da arquitetura do código-fonte (src).
 │
 ├── tests/                                           # Suíte de Testes (A Lei do Projeto)
+│   ├── api/                                         # Testes do BFF
+│   │   ├── bff.spec.ts                              # Simulação de chamadas seguras e tolerância a falhas.
+│   │   └── simulacao.spec.ts
+│   ├── components/                                  # Testes de renderização (React Testing Library).
+│   │   ├── ajustes.spec.tsx
+│   │   ├── diagnostico.spec.tsx
+│   │   ├── formulario.spec.tsx
+│   │   └── simulacao.spec.tsx
+│   ├── infrastructure/
+│   │   └── setup.spec.tsx
+│   ├── lib/
+│   │   └── schemas.spec.ts
 │   ├── security/                                    # Testes de blindagem arquitetural
 │   │   └── auth.spec.ts                             # Garante o Zero-Token-Exposure e uso estrito de Cookies.
-│   ├── store/                                       # Testes do Zustand: Mutação, injeção e limpeza de estado.
-│   ├── components/                                  # Testes de renderização (React Testing Library).
-│   ├── api/                                         # Testes do BFF
-│   │   └── bff.spec.ts                              # Simulação de chamadas seguras e tolerância a falhas.
 │   └── README.md                                    # Documentação da cultura de testes e comandos do Jest.
+│   └── store/                                       # Testes do Zustand: Mutação, injeção e limpeza de estado.
+│       └── useFazendaStore.spec.ts
 │
-├── Dockerfile                                       # Receita de containerização (Multi-stage build, usuário restrito).
-├── docker-compose.yml                               # Orquestração do ambiente web para facilitar o deploy.
 ├── .dockerignore                                    # Otimiza a imagem Docker ignorando artefatos pesados (node_modules).
-├── next.config.js                                   # Configurações do Next.js (Headers de Segurança CSP e HSTS).
-├── tailwind.config.ts                               # Configurações globais do design system (Tailwind v4).
-├── jest.config.js                                   # Configuração do ambiente de testes (JSDOM).
+├── .env                                             # Variáveis de ambiente
+├── .env.example
+├── .gitignore
+├── docker-compose.yml                               # Orquestração do ambiente web para facilitar o deploy.
+├── Dockerfile                                       # Receita de containerização (Multi-stage build, usuário restrito).
+├── GEMINI.md                                        # Diretrizes e Prompts de IA.
+├── INTEGRATION.md                                   # Guia de integração da API.
+├── jest.config.mjs                                  # Configuração do ambiente de testes (JSDOM).
+├── jest.setup.js
+├── next-env.d.ts
+├── next.config.mjs                                  # Configurações do Next.js (Headers de Segurança CSP e HSTS).
+├── package-lock.json
 ├── package.json                                     # Gestão de dependências (Next.js, Zustand, Zod, jose, etc.).
+├── postcss.config.mjs
 └── README.md                                        # O guia mestre do projeto (este arquivo).
+└── tsconfig.json
 ```
 
 ---
@@ -281,22 +320,34 @@ gitGraph
     merge feature/integracao-bff id: "merge: integração bff e api real concluídas"
 
     %% --- Conclusão da Tarefa 6 ---
-    branch feature/diagnostico-hub
-    checkout feature/diagnostico-hub
-    commit id: "docs: planejamento da visualização de benchmarking e ia"
-    commit id: "test: define contrato do diagnostico e benchmarks"
-    commit id: "feat: navbar animada e layout split-screen"
-    commit id: "feat: benchmarks temporários e resumo IA"
+    branch feature/tela-diagnostico
+    checkout feature/tela-diagnostico
+    commit id: "feat: O Novo Motor de Diagnóstico"
     checkout develop
-    merge feature/diagnostico-hub id: "merge: modulo centralizado funcional"
+    merge feature/tela-diagnostico id: "merge: tela de diagnóstico concluída"
 
-    %% --- Início da Tarefa 7 ---
+    %% --- Conclusão da Tarefa 7 ---
     branch feature/simulacao-ajuste
     checkout feature/simulacao-ajuste
-    commit id: "docs: planejamento de simulação e ajustes"
-    commit id: "feat: endpoint de simulacao e ux interativa"
+    commit id: "feat: simulação com ML e interatividade"
+    commit id: "feat: tratamento de limites e outliers"
     checkout develop
     merge feature/simulacao-ajuste id: "merge: modulo de simulacao finalizado"
+
+    %% --- Lançamento da Release ---
+    checkout main
+    merge develop id: "Release para Produção" tag: "V1.0.0"
+
+    %% --- Hotfix (Ajuste de Rota) ---
+    branch hotfix/ajuste-rota
+    checkout hotfix/ajuste-rota
+    commit id: "fix: update .gitignore e middleware"
+
+    %% --- Conclusão do Hotfix ---
+    checkout main
+    merge hotfix/ajuste-rota id: "Merge Hotfix na Main" tag: "V1.0.1"
+    checkout develop
+    merge hotfix/ajuste-rota id: "Merge Hotfix na Develop"
 ```
 
 ---
@@ -315,8 +366,8 @@ A estratégia de implementação adota uma construção incremental em blocos. O
 - [x] **Integração Real (BFF):** Implementar o proxy `api/diagnostico/route.ts` apontando para a API real do Educampo e a **Tela de Carregamento**. Aqui a tela consome o Zustand, envia para o BFF, recebe a resposta real e injeta de volta na *store*. *(Validar com `tests/api/bff.spec.ts`)*.
 - [x] **Consumo de Dados (Dashboard):** Implementar o **Dashboard Central**. Como a *store* já estará populada com dados reais do passo anterior, basta renderizar os blocos de Benchmarking e o Resumo Estratégico da IA.
 - [x] **Renderização Complexa:** Desenvolver a **Tela de Diagnóstico**, criando a lógica visual para montar o Diagrama de Ishikawa iterando sobre os dados já salvos no estado.
+- [x] **Ferramentas de Ajuste:** Finalizar com a **Tela de Simulação de Cenários** e a interface de **Ajuste de Dados**, reaproveitando os componentes já criados para permitir recálculos ágeis.
 #### 🚧 Em Desenvolvimento (WIP: 1)
-- [ ] **Ferramentas de Ajuste:** Finalizar com a **Tela de Simulação de Cenários** e a interface de **Ajuste de Dados**, reaproveitando os componentes já criados para permitir recálculos ágeis.
 
 #### 🎯 A Fazer
 
