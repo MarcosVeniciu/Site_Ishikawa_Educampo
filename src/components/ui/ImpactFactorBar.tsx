@@ -239,18 +239,18 @@ export function ImpactFactorBar({ label, titulo, valor, unidade, minimo, maximo,
         {/* Ponteiro (Valor Atual) */}
         <div 
           className="absolute flex flex-col items-center z-10 transition-all duration-1000 ease-out -translate-x-1/2" 
-          style={{ left: `${percentage}%`, top: '-22px' }}
+          style={{ left: `${percentage}%`, top: '-20px' }}
         >
           {/* CAIXA PRETA (Badge com o valor numérico) */}
-          <span className="bg-slate-900 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded shadow-sm whitespace-nowrap">
+          <span className="bg-slate-900 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-sm shadow-sm whitespace-nowrap">
             {isValorValido ? formatNumber(numValor) : '--'} {displayUnidade && <span className="font-normal text-gray-300 ml-0.5">{displayUnidade}</span>}
           </span>
           
           {/* TRIÂNGULO (Ponta da agulha em CSS puro apontando para baixo) */}
           <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-slate-900 mt-0.5"></div>
           
-          {/* LINHA VERTICAL GUIA (Cruza a régua de cores para apontar os valores abaixo) */}
-          <div className="w-0.5 h-10 bg-slate-900 -mt-0.5"></div>
+          {/* LINHA VERTICAL GUIA (Cruza a régua de cores para apontar os valores abaixo) (h-7 controla a altura dela) */}
+          <div className="w-0.5 h-7 bg-slate-900 -mt-0.5"></div>
         </div>
       </div>
     </div>
