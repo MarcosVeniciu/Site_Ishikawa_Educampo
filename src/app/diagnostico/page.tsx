@@ -281,7 +281,10 @@ export default function DiagnosticoPage() {
           <div className="bg-[#003e7d] text-white p-8 rounded-2xl shadow-lg flex flex-col justify-between">
             <div>
               <div className="flex justify-between items-start mb-6">
-                <h2 className="text-2xl font-bold">Resumo Estratégico</h2>
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                  <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md text-xs font-bold uppercase tracking-wide">IA</span>
+                  Resumo Estratégico
+                </h2>
                 <Activity className="text-[#1973d3]" size={32} />
               </div>
               {/* Mantemos compatibilidade com strings antigas (diagnosticoIA?.resumo) e suportamos o novo objeto */}
@@ -422,7 +425,6 @@ export default function DiagnosticoPage() {
               {/* Linha 2: Análise Estratégica */}
               <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-center">
                 <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-                  <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md text-xs font-bold uppercase tracking-wide">IA</span>
                   Análise Estratégica
                 </h3>
                 <p className="text-gray-700 leading-relaxed text-sm md:text-base">

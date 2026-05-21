@@ -97,6 +97,7 @@ export const CausaItem: React.FC<CausaItemProps> = ({ resumo_pratica, pratica, s
                 <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
                   <AlertCircle size={14} className={colorClass.split(' ')[0]} />
                   Análise da Causa
+                  <span className="bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide">IA</span>
                 </h4>
                 <p className="text-sm text-gray-600 leading-relaxed">{analise}</p>
               </div>
@@ -145,6 +146,7 @@ export const CausaItem: React.FC<CausaItemProps> = ({ resumo_pratica, pratica, s
               <h4 className="text-sm font-bold text-gray-800 flex items-center gap-1.5">
                 <AlertCircle size={14} className={colorClass.split(' ')[0]} />
                 Análise da Causa
+                <span className="bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide">IA</span>
               </h4>
               <button onClick={(e) => { e.stopPropagation(); setMostrarAnalise(false); }} className="text-gray-400 hover:text-red-500 transition-colors">
                 <X size={16} />
