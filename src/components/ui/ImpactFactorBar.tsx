@@ -14,6 +14,7 @@ import { ImpactThresholds } from '../../types/diagnostico';
  * @property {string} [unidade] - Sufixo da unidade para renderização visual da bolha.
  * @property {number} [minimo] - Fundo matemático de escala (Start Point).
  * @property {number} [maximo] - Topo matemático de escala (End Point).
+ * @property {string} [direcao_ideal] - Direção de otimização da métrica (ex: centralizado_melhor).
  * @property {ImpactThresholds} thresholds - Objeto contendo os limites avaliativos para colorir a barra.
  */
 interface ImpactFactorBarProps {
@@ -23,6 +24,7 @@ interface ImpactFactorBarProps {
   unidade?: string;
   minimo?: number;
   maximo?: number;
+  direcao_ideal?: string;
   thresholds: ImpactThresholds;
 }
 
@@ -33,17 +35,35 @@ interface ImpactFactorBarProps {
  * @param {ImpactFactorBarProps} props - Propriedades do fator.
  * @returns {React.JSX.Element} Div renderizada como linha CSS manipulada por estilos dinâmicos em `style=`.
  */
-export function ImpactFactorBar({ label, titulo, valor, unidade, minimo, maximo, thresholds }: ImpactFactorBarProps) {
+export function ImpactFactorBar({ label, titulo, valor, unidade, minimo, maximo, direcao_ideal, thresholds }: ImpactFactorBarProps) {
   // Tenta extrair o valor e unidade das props ou do objeto thresholds
   const rawValor = valor !== undefined ? valor : thresholds?.valor;
-  const numValor = Number(rawValor) || 0;
+  
+  let numValor = 0;
+  let isValorValido = false;
+
+  if (rawValor !== undefined && rawValor !== null && rawValor !== '') {
+    if (typeof rawValor === 'number' && !isNaN(rawValor)) {
+      numValor = rawValor;
+      isValorValido = true;
+    } else {
+      // Fallback para strings numéricas com vírgula ou caracteres extras (ex: "35,00")
+      const cleanStr = String(rawValor).replace(',', '.').replace(/[^\d.-]/g, '');
+      const parsed = Number(cleanStr);
+      if (!isNaN(parsed) && cleanStr !== '') {
+        numValor = parsed;
+        isValorValido = true;
+      }
+    }
+  }
+
   const displayUnidade = unidade || (thresholds as any)?.unidade || '';
 
   const tAny = thresholds as any;
   const bomStr = tAny?.bom || tAny?.bom_alto || tAny?.bom_baixo || '';
   const criticoStr = tAny?.critico || tAny?.critico_alto || tAny?.critico_baixo || '';
   const regularStr = tAny?.regular || '';
-  const direcao = tAny?.direcao_ideal || tAny?.direcao_otimizacao;
+  const direcao = direcao_ideal || tAny?.direcao_ideal || tAny?.direcao_otimizacao;
   const isCentralizado = direcao === 'centralizado_melhor';
 
   const isLowerBetterFallback = bomStr.includes('<') || bomStr.includes('&lt;') || criticoStr.includes('>') || criticoStr.includes('&gt;');
@@ -223,7 +243,7 @@ export function ImpactFactorBar({ label, titulo, valor, unidade, minimo, maximo,
         >
           {/* Tooltip com setinha virada para baixo */}
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-gray-800 text-white text-[11px] font-bold px-2 py-0.5 rounded shadow-sm whitespace-nowrap after:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-[4px] after:border-transparent after:border-t-gray-800">
-            {rawValor !== undefined && rawValor !== null && rawValor !== '' && !isNaN(numValor) ? formatNumber(numValor) : '--'} <span className="text-[9px] font-normal text-gray-300">{displayUnidade}</span>
+            {isValorValido ? formatNumber(numValor) : '--'} <span className="text-[9px] font-normal text-gray-300">{displayUnidade}</span>
           </div>
           
           {/* A Bolha */}

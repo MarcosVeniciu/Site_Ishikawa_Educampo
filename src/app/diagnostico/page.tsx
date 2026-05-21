@@ -20,7 +20,8 @@ import {
   Activity,
   TrendingDown,
   Minus,
-  AlertTriangle
+  AlertTriangle,
+  Info
 } from 'lucide-react';
 import { StatusComparacao, BenchmarkingCardData } from '../../types/diagnostico';
 
@@ -34,6 +35,7 @@ export interface FatorImpacto {
   unidade_medida?: string;
   limite_inferior?: number;
   limite_superior?: number;
+  direcao_ideal?: string;
   regras: {
     [key: string]: string; // Ex: { "bom": "< 200", "critico": "> 500" }
   };
@@ -364,6 +366,7 @@ export default function DiagnosticoPage() {
                     thresholds={processedData.thresholds} 
                     minimo={processedData.thresholds?.limite_inferior}
                     maximo={processedData.thresholds?.limite_superior}
+                    direcao_ideal={processedData.thresholds?.direcao_ideal}
                   />
                 </div>
 
@@ -376,7 +379,23 @@ export default function DiagnosticoPage() {
                       const fatoresKeys = Object.keys(fatores);
                       
                       if (fatoresKeys.length === 0) {
-                        return <p className="text-sm text-gray-500 italic text-center">Nenhum fator de impacto detalhado para este indicador.</p>;
+                        if (activeTab === 'ccs') {
+                          return (
+                            <div className="flex flex-col items-center justify-center text-center space-y-4 px-2 py-4 h-full animate-in fade-in duration-300">
+                              <div className="p-3 bg-blue-50 text-[#1973d3] rounded-full flex-shrink-0 shadow-sm border border-blue-100">
+                                <Info size={28} />
+                              </div>
+                              <p className="text-sm text-gray-600 leading-relaxed">
+                                O <strong>CCS</strong> (Contagem de Células Somáticas) é um indicador direto de sanidade do rebanho e qualidade do leite. Ao contrário de outros indicadores, ele não possui ramificações de impacto, sendo tratado como uma métrica de causa raiz.
+                              </p>
+                            </div>
+                          );
+                        }
+                        return (
+                          <p className="text-sm text-gray-500 italic text-center my-auto">
+                            Nenhum fator de impacto detalhado para este indicador.
+                          </p>
+                        );
                       }
 
                       return Object.entries(fatores).map(([chave, dadosFator]) => {
@@ -386,10 +405,11 @@ export default function DiagnosticoPage() {
                             key={chave} 
                             label={chave} 
                             titulo={fator.titulo}
-                            valor={fator.valor_atual}
-                            unidade={fator.unidade_medida}
-                            minimo={fator.limite_inferior}
-                            maximo={fator.limite_superior}
+                            valor={fator.valor_atual ?? (fator as any).valor}
+                            unidade={fator.unidade_medida ?? (fator as any).unidade}
+                            minimo={fator.limite_inferior ?? (fator as any).minimo}
+                            maximo={fator.limite_superior ?? (fator as any).maximo}
+                            direcao_ideal={fator.direcao_ideal}
                             thresholds={fator.regras as any} 
                           />
                         );

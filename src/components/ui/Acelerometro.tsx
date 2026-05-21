@@ -22,6 +22,7 @@ interface Thresholds {
  * @property {number | string} valor - Valor atual a ser exibido e apontado pela agulha.
  * @property {string} [unidade] - Unidade de medida associada ao valor.
  * @property {string} status - Status do indicador para fallback da cor do marcador.
+ * @property {string} [direcao_ideal] - Direção de otimização (ex: centralizado_melhor).
  * @property {Thresholds} [thresholds] - Limites lógicos para cálculo das zonas percentuais de cor.
  * @property {number} [minimo] - Valor mínimo explícito do gráfico.
  * @property {number} [maximo] - Valor máximo explícito do gráfico.
@@ -30,6 +31,7 @@ interface AcelerometroProps {
   valor: number | string;
   unidade?: string;
   status: string;
+  direcao_ideal?: string;
   thresholds?: Thresholds;
   minimo?: number; 
   maximo?: number; 
@@ -45,6 +47,7 @@ export function Acelerometro({
   valor, 
   unidade, 
   status, 
+  direcao_ideal,
   thresholds,
   minimo,
   maximo 
@@ -53,7 +56,7 @@ export function Acelerometro({
   const bomStr = thresholds?.bom || thresholds?.bom_alto || thresholds?.bom_baixo || '';
   const criticoStr = thresholds?.critico || thresholds?.critico_alto || thresholds?.critico_baixo || '';
   const regularStr = thresholds?.regular || '';
-  const direcao = thresholds?.direcao_ideal || thresholds?.direcao_otimizacao;
+  const direcao = direcao_ideal || thresholds?.direcao_ideal || thresholds?.direcao_otimizacao;
   const isCentralizado = direcao === 'centralizado_melhor';
 
   // Função de extração inteligente de números (suporta formato brasileiro com vírgula ou ponto)
@@ -220,6 +223,10 @@ export function Acelerometro({
           {/* MARCADORES */}
           {has5Zones ? (
             <>
+              <g transform="rotate(-50, 100, 95)">
+                <line x1="100" y1="10" x2="100" y2="30" stroke="#374151" strokeWidth="2.5" />
+                <text x="100" y="5" textAnchor="middle" fontSize="11" fill="#4b5563" fontWeight="800">{formatNumber(b1)}</text>
+              </g>
               <g transform="rotate(-20, 100, 95)">
                 <line x1="100" y1="10" x2="100" y2="30" stroke="#374151" strokeWidth="2.5" />
                 <text x="100" y="5" textAnchor="middle" fontSize="11" fill="#4b5563" fontWeight="800">{formatNumber(b2)}</text>
@@ -227,6 +234,10 @@ export function Acelerometro({
               <g transform="rotate(20, 100, 95)">
                 <line x1="100" y1="10" x2="100" y2="30" stroke="#374151" strokeWidth="2.5" />
                 <text x="100" y="5" textAnchor="middle" fontSize="11" fill="#4b5563" fontWeight="800">{formatNumber(b3)}</text>
+              </g>
+              <g transform="rotate(50, 100, 95)">
+                <line x1="100" y1="10" x2="100" y2="30" stroke="#374151" strokeWidth="2.5" />
+                <text x="100" y="5" textAnchor="middle" fontSize="11" fill="#4b5563" fontWeight="800">{formatNumber(b4)}</text>
               </g>
             </>
           ) : (
