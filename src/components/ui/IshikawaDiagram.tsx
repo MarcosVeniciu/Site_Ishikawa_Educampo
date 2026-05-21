@@ -95,7 +95,7 @@ export const IshikawaDiagram: React.FC<IshikawaProps> = ({ data, impactoPilares 
                   />
                 ))
               ) : (
-                <div className="text-gray-400 text-sm italic px-2 py-1">Nenhuma causa associada</div>
+                <div className="text-gray-400 text-sm italic px-2 py-1">Nenhuma prática a ser recomendada</div>
               )}
             </div>
           </div>
@@ -137,7 +137,7 @@ export const IshikawaDiagram: React.FC<IshikawaProps> = ({ data, impactoPilares 
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500 italic text-center py-8">Nenhuma causa associada a este pilar.</p>
+                <p className="text-gray-500 italic text-center py-8">Nenhuma prática a ser recomendada para este pilar.</p>
               )}
             </div>
             
