@@ -84,17 +84,19 @@ const BarChartSimulacao = ({
   };
 
   return (
-    <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col h-64 relative">
-      {/* Badge Indicador de Diferença Percentual */}
-      <div 
-        className={`absolute top-3 right-3 flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold ${indicatorColor}`}
-        title="Diferença em relação à referência"
-      >
-        <Icon size={12} strokeWidth={2.5} />
-        <span>{prefix}{Math.abs(pct).toFixed(1)}%</span>
+    <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-between h-64">
+      {/* Cabeçalho Flexbox Inteligente */}
+      <div className="flex justify-between items-start gap-4 mb-4">
+        <h3 className="text-sm font-bold text-gray-700 leading-tight">{titulo}</h3>
+        {/* Badge Indicador de Diferença Percentual */}
+        <div 
+          className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${indicatorColor}`}
+          title="Diferença em relação à referência"
+        >
+          <Icon size={12} strokeWidth={2.5} />
+          <span>{prefix}{Math.abs(pct).toFixed(1)}%</span>
+        </div>
       </div>
-
-      <h3 className="text-sm font-bold text-gray-700 text-center mb-4 px-10">{titulo}</h3>
       
       {/* Container das Barras (Cresce de baixo para cima) */}
       <div className="flex-1 flex items-end justify-center gap-6 pb-2">
@@ -455,8 +457,8 @@ export default function SimulacaoPage() {
           </div>
 
           {isSimulando && !resultadoSimulacao?.simulacao ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-in fade-in duration-500">
-              {Array.from({ length: 9 }).map((_, index) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-500">
+              {Array.from({ length: 10 }).map((_, index) => (
                 <div key={index} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col h-64 items-center justify-center relative overflow-hidden">
                   <div className="absolute inset-0 bg-gray-50 opacity-50"></div>
                   <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
@@ -465,27 +467,12 @@ export default function SimulacaoPage() {
               ))}
             </div>
           ) : resultadoSimulacao?.simulacao ? (
-            <div className="flex flex-col gap-10 animate-in fade-in duration-500">
-              <section>
-                <h2 className="text-lg font-bold text-gray-800 mb-4 border-b border-gray-200 pb-2">1. Métricas de Entrada (Estáticas)</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {renderMetricCards(resultadoSimulacao.simulacao.estaticas)}
-                </div>
-              </section>
-
-              <section>
-                <h2 className="text-lg font-bold text-gray-800 mb-4 border-b border-gray-200 pb-2">2. Simulação Operacional (Cascata)</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {renderMetricCards(resultadoSimulacao.simulacao.operacionais)}
-                </div>
-              </section>
-
-              <section>
-                <h2 className="text-lg font-bold text-gray-800 mb-4 border-b border-gray-200 pb-2">3. Simulação Financeira (Margem)</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {renderMetricCards(resultadoSimulacao.simulacao.financeiras)}
-                </div>
-              </section>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-500">
+              {renderMetricCards([
+                ...resultadoSimulacao.simulacao.estaticas,
+                ...resultadoSimulacao.simulacao.operacionais,
+                ...resultadoSimulacao.simulacao.financeiras
+              ])}
             </div>
           ) : (
              <div className="flex justify-center items-center h-64 text-gray-400">Aguardando dados...</div>
