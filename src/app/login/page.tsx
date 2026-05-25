@@ -15,7 +15,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { SplitScreenLayout } from '@/components/ui/SplitScreenLayout';
 
@@ -31,6 +31,14 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  /**
+   * Dispara um "ping" para acordar a API assim que a tela de login monta (evita cold start).
+   * Fire-and-forget: Não travamos a interface e apenas ignoramos falhas em caso de erro de rede.
+   */
+  useEffect(() => {
+    fetch('/api/ping').catch(() => console.debug('Falha no ping de aquecimento ignorada.'));
+  }, []);
 
   /**
    * Processa a submissão do formulário de login.

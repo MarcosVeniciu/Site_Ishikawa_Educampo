@@ -18,25 +18,30 @@ import Image from "next/image";
 export default function CarregandoPage() {
   const router = useRouter();
   const { dadosFazenda, setDiagnosticoIA, setResultadoSimulacao } = useFazendaStore();
-  const [mensagem, setMensagem] = useState("Preparando análise...");
+  const [mensagem, setMensagem] = useState("Verificando conexão");
+  const [dots, setDots] = useState("");
   const processamentoIniciado = useRef(false);
 
+  // Efeito para criar a animação dos "3 pontinhos"
   useEffect(() => {
-    /**
-     * @description Função assíncrona para disparar a análise assim que a tela monta.
-     * Caso não existam dados na store (acesso direto à URL), redireciona para o formulário.
-     */
-    const processarAnalise = async () => {
-      if (!dadosFazenda) {
-        router.push("/formulario");
-        return;
-      }
-      
-      if (processamentoIniciado.current) return;
-      processamentoIniciado.current = true;
+    const interval = setInterval(() => {
+      setDots((prev) => (prev.length >= 3 ? "" : prev + "."));
+    }, 400);
+    return () => clearInterval(interval);
+  }, []);
 
+  useEffect(() => {
+    if (!dadosFazenda) {
+      router.push("/formulario");
+      return;
+    }
+
+    if (processamentoIniciado.current) return;
+    processamentoIniciado.current = true;
+
+    const processarAnalise = async () => {
       try {
-        setMensagem("A Inteligência Artificial está projetando seus cenários...");
+        setMensagem("A Inteligência Artificial está projetando seus cenários");
 
         // Prepara os payloads para as duas requisições
         const payloadSimulacao = {
@@ -77,18 +82,68 @@ export default function CarregandoPage() {
         setDiagnosticoIA(diagData);
         setResultadoSimulacao(simData);
 
-        setMensagem("Análise concluída! Montando seu Diagnóstico...");
+        setMensagem("Análise concluída! Montando seu Diagnóstico");
 
         // Pequeno delay para garantir que o usuário veja a conclusão antes da troca de tela
         setTimeout(() => router.push("/diagnostico"), 1500);
       } catch (error) {
         console.error("Falha no processamento:", error);
-        setMensagem("Ocorreu um erro ao processar os dados. Redirecionando...");
+        setMensagem("Ocorreu um erro ao processar os dados. Redirecionando");
         setTimeout(() => router.push("/formulario"), 3000);
       }
     };
 
-    processarAnalise();
+    /**
+     * @description Interroga o servidor até que ele esteja pronto (Trata Cold Start e Rate Limit).
+     */
+    const verificarSaude = async () => {
+      try {
+        const res = await fetch("/api/health");
+
+        if (res.status === 429) {
+          setMensagem("Muitas requisições. Aguardando liberação");
+          setTimeout(verificarSaude, 5000);
+          return;
+        }
+
+        if (res.status === 403) {
+          setMensagem("Acesso negado: Chave de API inválida");
+          setTimeout(() => router.push("/formulario"), 3000);
+          return;
+        }
+
+        if (res.status === 503) {
+          setMensagem("Serviço indisponível: Falha nos recursos");
+          setTimeout(() => router.push("/formulario"), 3000);
+          return;
+        }
+
+        if (res.ok) {
+          const data = await res.json().catch(() => ({}));
+
+          if (data.status === "warming_up" || data.ml_api === "waking_up") {
+            setMensagem("Simulador de custos inicializando");
+            setTimeout(verificarSaude, 3000);
+            return;
+          }
+
+          if (data.status === "healthy") {
+            processarAnalise();
+            return;
+          }
+        }
+
+        // Fallback: se respondeu 502/504 (Gateway timeout) indicando que a nuvem está subindo.
+        setMensagem("Esperando API acordar");
+        setTimeout(verificarSaude, 3000);
+      } catch (error) {
+        // Erro de rede (API completamente offline ou em reboot profundo)
+        setMensagem("Esperando API acordar");
+        setTimeout(verificarSaude, 3000);
+      }
+    };
+
+    verificarSaude();
   }, [dadosFazenda, router, setDiagnosticoIA, setResultadoSimulacao]);
 
   return (
@@ -111,7 +166,10 @@ export default function CarregandoPage() {
         </div>
 
         <div className="space-y-2">
-          <h2 className="text-xl font-bold text-secondary">{mensagem}</h2>
+          <h2 className="text-xl font-bold text-secondary flex items-center justify-center">
+            <span>{mensagem}</span>
+            <span className="w-6 text-left">{dots}</span>
+          </h2>
           <p className="text-sm text-gray-500">
             Isso pode levar alguns segundos, estamos cruzando seus dados com o benchmarking do setor.
           </p>

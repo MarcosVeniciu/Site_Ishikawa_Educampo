@@ -15,6 +15,9 @@ import { ReactNode } from 'react';
 export const metadata = {
   title: 'Educampo | DX Leite',
   description: 'Diagnóstico inteligente para sua fazenda leiteira.',
+  icons: {
+    icon: '/logo_educampo.png',
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
