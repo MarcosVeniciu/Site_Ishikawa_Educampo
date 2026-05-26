@@ -268,17 +268,85 @@ export default function SimulacaoPage() {
   };
 
   /**
-   * Extrai os limites seguros retornados pela IA, ou provê hardcodes de segurança predefinidos (fallback).
+   * Parâmetros de segurança e limites de UI para o simulador divididos por cenário.
    */
-  const params = resultadoSimulacao?.parametros_painel || {
-    total_vacas: { min: 10, max: 500, step: 1 },
-    vacas_lactacao: { min: 0, max: 500, step: 1 },
-    producao_vaca: { min: 5, max: 60, step: 0.5 },
-    preco_recebido: { min: 1.0, max: 6.0, step: 0.05 },
-    ccs: { min: 50, max: 1000, step: 10 },
-    area_atividade: { min: 1, max: 1000, step: 0.5 },
-    custo_concentrado: { min: 0.5, max: 6.0, step: 0.05 },
-    numero_trabalhadores: { min: 1, max: 50, step: 1 }
+  const defaultParams = {
+    total_vacas: { min: 10, max: 500, step: 1, fronteiras_cenario: null as any },
+    vacas_lactacao: { min: 0, max: 500, step: 1, fronteiras_cenario: null as any },
+    producao_vaca: { min: 5, max: 60, step: 0.5, fronteiras_cenario: null as any },
+    preco_recebido: { min: 1.0, max: 6.0, step: 0.05, fronteiras_cenario: null as any },
+    ccs: { min: 50, max: 1000, step: 10, fronteiras_cenario: null as any },
+    area_atividade: { min: 1, max: 1000, step: 0.5, fronteiras_cenario: null as any },
+    custo_concentrado: { min: 0.5, max: 6.0, step: 0.05, fronteiras_cenario: null as any },
+    numero_trabalhadores: { min: 1, max: 50, step: 1, fronteiras_cenario: null as any }
+  };
+
+  type ParamKey = keyof typeof defaultParams;
+
+  const getParam = (chave: ParamKey) => {
+    const painel = resultadoSimulacao?.parametros_painel;
+    if (painel?.[chave]?.[cenarioAtivo]) {
+      return painel[chave][cenarioAtivo];
+    }
+    return defaultParams[chave];
+  };
+
+  const pTotalVacas = getParam('total_vacas');
+  const pVacasLactacao = getParam('vacas_lactacao');
+  const pProducaoVaca = getParam('producao_vaca');
+  const pPrecoRecebido = getParam('preco_recebido');
+  const pCcs = getParam('ccs');
+  const pAreaAtividade = getParam('area_atividade');
+  const pCustoConcentrado = getParam('custo_concentrado');
+  const pNumeroTrabalhadores = getParam('numero_trabalhadores');
+
+  /**
+   * Renderiza a etiqueta do campo com ícone de alerta caso o valor 
+   * esteja fora da fronteira do cenário atual.
+   */
+  const renderLabel = (chave: ParamKey, titulo: string, valorFormatado: React.ReactNode, isFirstItem: boolean = false) => {
+    const param = getParam(chave);
+    let warning = null;
+    if (param.fronteiras_cenario) {
+      const val = simulacao[chave];
+      if (val < param.fronteiras_cenario.limite_inferior) {
+          warning = `Atenção: Simulação com valores atipicamente baixos para o grupo do cenário ${cenarioAtivo}.`;
+      } else if (val > param.fronteiras_cenario.limite_superior) {
+          warning = `Com este volume, os seus resultados aproximam-se de um cenário superior. Considere mudar o seu cenário base para uma comparação ideal.`;
+      }
+    }
+
+    return (
+      <label htmlFor={chave} className="text-sm font-semibold text-gray-700 flex justify-between items-center">
+        <span className="flex items-center gap-1.5">
+          {titulo}
+          {warning && (
+            <div className="relative flex items-center group cursor-help">
+              <span className="text-yellow-500 text-sm leading-none" aria-label="Alerta">⚠️</span>
+                      <div className={`absolute left-0 sm:left-1/2 sm:-translate-x-1/2 ${isFirstItem ? 'top-full mt-2' : 'bottom-full mb-2'} hidden group-hover:block w-48 p-2 bg-gray-800 text-white text-[10px] font-normal rounded shadow-lg z-50 text-center pointer-events-none`}>
+                {warning}
+                        <div className={`absolute left-4 sm:left-1/2 sm:-translate-x-1/2 border-4 border-transparent ${isFirstItem ? '-top-2 border-b-gray-800' : '-bottom-2 border-t-gray-800'}`}></div>
+              </div>
+            </div>
+          )}
+        </span>
+        <span className="text-primary">{valorFormatado}</span>
+      </label>
+    );
+  };
+
+  /**
+   * @description Determina a cor do slider baseado nas fronteiras do cenário.
+   * Altera a cor de destaque (accent) caso o valor entre nas margens de transbordo (queda ou subida).
+   * @param chave A chave do parâmetro que está sendo avaliado.
+   * @returns A classe do Tailwind correspondente à cor da barra.
+   */
+  const getSliderColorClass = (chave: ParamKey) => {
+    const param = getParam(chave);
+    if (!param.fronteiras_cenario) return 'accent-primary';
+    const val = simulacao[chave];
+    if (val < param.fronteiras_cenario.limite_inferior || val > param.fronteiras_cenario.limite_superior) return 'accent-orange-500';
+    return 'accent-primary';
   };
 
   /**
@@ -352,105 +420,89 @@ export default function SimulacaoPage() {
             
             {/* Controle: Total de Vacas */}
             <div>
-              <label htmlFor="total_vacas" className="text-sm font-semibold text-gray-700 flex justify-between">
-                Total de Vacas <span className="text-primary">{simulacao.total_vacas}</span>
-              </label>
+              {renderLabel('total_vacas', 'Total de Vacas', simulacao.total_vacas, true)}
               <input 
                 id="total_vacas" name="total_vacas" type="range" 
-                min={params.total_vacas?.min || 10} max={params.total_vacas?.max || 500} step={params.total_vacas?.step || 1} 
+                min={pTotalVacas.min} max={pTotalVacas.max} step={pTotalVacas.step} 
                 value={simulacao.total_vacas} onChange={handleChange}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 accent-primary"
+                className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 transition-colors ${getSliderColorClass('total_vacas')}`}
               />
             </div>
 
             {/* Controle: Vacas em Lactação */}
             <div>
-              <label htmlFor="vacas_lactacao" className="text-sm font-semibold text-gray-700 flex justify-between">
-                Vacas em Lactação <span className="text-primary">{simulacao.vacas_lactacao}</span>
-              </label>
+              {renderLabel('vacas_lactacao', 'Vacas em Lactação', simulacao.vacas_lactacao)}
               <input 
                 id="vacas_lactacao" name="vacas_lactacao" type="range" 
-                min={params.vacas_lactacao?.min || 0} max={simulacao.total_vacas} step={params.vacas_lactacao?.step || 1} 
+                min={pVacasLactacao.min} max={simulacao.total_vacas} step={pVacasLactacao.step} 
                 value={simulacao.vacas_lactacao} onChange={handleChange}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 accent-primary"
+                className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 transition-colors ${getSliderColorClass('vacas_lactacao')}`}
               />
             </div>
 
             {/* Controle: Produção por Vaca */}
             <div>
-              <label htmlFor="producao_vaca" className="text-sm font-semibold text-gray-700 flex justify-between">
-                Produção por Vaca <span className="text-primary">{simulacao.producao_vaca} L</span>
-              </label>
+              {renderLabel('producao_vaca', 'Produção por Vaca', `${simulacao.producao_vaca} L`)}
               <input 
                 id="producao_vaca" name="producao_vaca" type="range" 
-                min={params.producao_vaca?.min || 5} max={params.producao_vaca?.max || 60} step={params.producao_vaca?.step || 0.5} 
+                min={pProducaoVaca.min} max={pProducaoVaca.max} step={pProducaoVaca.step} 
                 value={simulacao.producao_vaca} onChange={handleChange}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 accent-primary"
+                className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 transition-colors ${getSliderColorClass('producao_vaca')}`}
               />
             </div>
 
             {/* Controle: Preço do Leite */}
             <div>
-              <label htmlFor="preco_recebido" className="text-sm font-semibold text-gray-700 flex justify-between">
-                Preço do Leite <span className="text-primary">R$ {simulacao.preco_recebido.toFixed(2)}</span>
-              </label>
+              {renderLabel('preco_recebido', 'Preço do Leite', `R$ ${simulacao.preco_recebido.toFixed(2)}`)}
               <input 
                 id="preco_recebido" name="preco_recebido" type="range" 
-                min={params.preco_recebido?.min || 1.5} max={params.preco_recebido?.max || 5.0} step={params.preco_recebido?.step || 0.05} 
+                min={pPrecoRecebido.min} max={pPrecoRecebido.max} step={pPrecoRecebido.step} 
                 value={simulacao.preco_recebido} onChange={handleChange}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 accent-primary"
+                className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 transition-colors ${getSliderColorClass('preco_recebido')}`}
               />
             </div>
 
             {/* Controle: CCS */}
             <div>
-              <label htmlFor="ccs" className="text-sm font-semibold text-gray-700 flex justify-between">
-                CCS (x1000) <span className="text-primary">{simulacao.ccs}</span>
-              </label>
+              {renderLabel('ccs', 'CCS (x1000)', simulacao.ccs)}
               <input 
                 id="ccs" name="ccs" type="range" 
-                min={params.ccs?.min || 50} max={params.ccs?.max || 1000} step={params.ccs?.step || 10} 
+                min={pCcs.min} max={pCcs.max} step={pCcs.step} 
                 value={simulacao.ccs} onChange={handleChange}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 accent-primary"
+                className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 transition-colors ${getSliderColorClass('ccs')}`}
               />
             </div>
 
             {/* Controle: Área de Atividade */}
             <div>
-              <label htmlFor="area_atividade" className="text-sm font-semibold text-gray-700 flex justify-between">
-                Área (ha) <span className="text-primary">{simulacao.area_atividade}</span>
-              </label>
+              {renderLabel('area_atividade', 'Área (ha)', simulacao.area_atividade)}
               <input 
                 id="area_atividade" name="area_atividade" type="range" 
-                min={params.area_atividade?.min || 1} max={params.area_atividade?.max || 500} step={params.area_atividade?.step || 0.5} 
+                min={pAreaAtividade.min} max={pAreaAtividade.max} step={pAreaAtividade.step} 
                 value={simulacao.area_atividade} onChange={handleChange}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 accent-primary"
+                className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 transition-colors ${getSliderColorClass('area_atividade')}`}
               />
             </div>
 
             {/* Controle: Custo do Concentrado */}
             <div>
-              <label htmlFor="custo_concentrado" className="text-sm font-semibold text-gray-700 flex justify-between">
-                Custo Concentrado <span className="text-primary">R$ {simulacao.custo_concentrado.toFixed(2)}</span>
-              </label>
+              {renderLabel('custo_concentrado', 'Custo Concentrado', `R$ ${simulacao.custo_concentrado.toFixed(2)}`)}
               <input 
                 id="custo_concentrado" name="custo_concentrado" type="range" 
-                min={params.custo_concentrado?.min || 0.5} max={params.custo_concentrado?.max || 5.0} step={params.custo_concentrado?.step || 0.05} 
+                min={pCustoConcentrado.min} max={pCustoConcentrado.max} step={pCustoConcentrado.step} 
                 value={simulacao.custo_concentrado} onChange={handleChange}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 accent-primary"
+                className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 transition-colors ${getSliderColorClass('custo_concentrado')}`}
               />
             </div>
 
             {/* Controle: Número de Trabalhadores */}
             <div>
-              <label htmlFor="numero_trabalhadores" className="text-sm font-semibold text-gray-700 flex justify-between">
-                Trabalhadores <span className="text-primary">{simulacao.numero_trabalhadores}</span>
-              </label>
+              {renderLabel('numero_trabalhadores', 'Trabalhadores', simulacao.numero_trabalhadores)}
               <input 
                 id="numero_trabalhadores" name="numero_trabalhadores" type="range" 
-                min={params.numero_trabalhadores?.min || 1} max={params.numero_trabalhadores?.max || 50} step={params.numero_trabalhadores?.step || 1} 
+                min={pNumeroTrabalhadores.min} max={pNumeroTrabalhadores.max} step={pNumeroTrabalhadores.step} 
                 value={simulacao.numero_trabalhadores} onChange={handleChange}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 accent-primary"
+                className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 transition-colors ${getSliderColorClass('numero_trabalhadores')}`}
               />
             </div>
 
