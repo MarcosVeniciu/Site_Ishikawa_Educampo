@@ -56,9 +56,13 @@ describe('BFF Route: POST /api/simulacao', () => {
     });
 
     const payload = {
-      nome_fazenda: 'Fazenda Simulador',
-      producao_vaca: 38.0,
-      custo_concentrado: 2.50
+      dados_originais: {
+        producao_vaca: 38.0
+      },
+      dados_simulados: {
+        producao_vaca: 45.0,
+        custo_concentrado: 2.50
+      }
     };
 
     const req = new NextRequest('http://localhost:3000/api/simulacao', {
@@ -85,7 +89,11 @@ describe('BFF Route: POST /api/simulacao', () => {
    * bloqueando requisições sem o custo do concentrado já na borda da aplicação.
    */
   it('deve retornar erro 400 se custo_concentrado não for fornecido', async () => {
-    const payload = { producao_vaca: 38.0 }; // Faltando o custo_concentrado
+    const payload = { 
+      dados_originais: { producao_vaca: 38.0 },
+      // Faltando o custo_concentrado no bloco simulado
+      dados_simulados: { producao_vaca: 45.0 }
+    }; 
 
     const req = new NextRequest('http://localhost:3000/api/simulacao', {
       method: 'POST',

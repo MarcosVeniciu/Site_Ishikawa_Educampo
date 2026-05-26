@@ -135,43 +135,41 @@ Para rotas protegidas, o seguinte header é mandatório:
 
 #### `POST /api/simulacao`
 
-*   **Propósito:** Rota de alta performance para recálculo de cenários e projeções visuais. Executa cálculos zootécnicos, extrai os quartis (inferior, intermediário/mediana, superior) do benchmarking e aciona uma API de Machine Learning externa para projetar o custo do leite. Ela **não** aciona o serviço de IA Gerativa (OpenRouter/LLM). Ideal para interfaces com "sliders" que permitem ao usuário simular o impacto de mudanças operacionais em tempo real.
+*   **Propósito:** Rota de alta performance para recálculo de cenários e projeções visuais. Evita o *"Moving Goalpost Problem"* fixando a régua de comparação nos dados originais da fazenda, calculando o impacto sobre o novo bloco de dados simulados. Ideal para interfaces com "sliders" em tempo real.
 *   **Autenticação:** Requer `X-API-KEY`.
 *   **Rate Limit:** 60 requisições por minuto (adequado para uso contínuo em interfaces reativas).
 *   **Campos de Entrada (`application/json`):**
-    Além dos dados operacionais padrão, exige o `custo_concentrado` fundamental para as estimativas de custo do modelo de ML.
+    Exige que os dados sejam agrupados logicamente em `dados_originais` (referência base) e `dados_simulados` (contendo as mudanças e `custo_concentrado`).
 
     | Campo | Tipo | Exemplo | Descrição |
     | :--- | :--- | :--- | :--- |
-    | `sistema_producao` | string | `"compost_barn"` | Sistema produtivo. |
-    | `regiao_sebrae` | string | `"triangulo"` | Região geográfica para benchmarking. |
-    | `total_vacas` | integer | `100` | Número total de vacas. |
-    | `vacas_lactacao` | integer | `85` | Número de vacas em lactação. |
-    | `area_atividade` | float | `10.0` | Área em hectares dedicada à atividade. |
-    | `quantidade_funcionarios`| integer | `2` | Número de funcionários. |
-    | `custo_concentrado` | float | `1.81` | Preço pago pelo produtor no kg do concentrado (R$). |
-    | `producao_vaca` | float | `35.0` | Produção média diária por vaca (L/dia). |
-    | `preco_recebido` | float | `3.20` | Preço recebido por litro de leite (R$). |
-    | `ccs` | integer | `150` | Contagem de Células Somáticas. |
+| `dados_originais` | object | `{ "producao_vaca": 25, ... }` | Bloco para ancoragem estatística da faixa do produtor contendo sistema, regiao, vacas lactantes e produção originais. |
+| `dados_simulados` | object | `{ "ccs": 150, ... }` | Bloco contendo as variáveis manipuladas interativamente pelo usuário no front-end. |
 
 *   **Exemplo de Chamada:**
     ```bash
     curl -X 'POST' \
-      'http://localhost:8000/api/simulacao' \
+  'https://api-ishikawa-educampo.onrender.com/api/simulacao' \
       -H 'accept: application/json' \
       -H 'X-API-KEY: <sua_chave>' \
       -H 'Content-Type: application/json' \
       -d '{
-      "area_atividade": 10,
-      "ccs": 150,
-      "quantidade_funcionarios": 2,
-      "custo_concentrado": 1.81,
-      "preco_recebido": 3.2,
-      "producao_vaca": 35,
-      "regiao_sebrae": "triangulo",
-      "sistema_producao": "compost_barn",
-      "total_vacas": 100,
-      "vacas_lactacao": 85
+  "dados_originais": {
+    "producao_vaca": 25,
+    "regiao_sebrae": "triangulo",
+    "sistema_producao": "compost_barn",
+    "vacas_lactacao": 60
+  },
+  "dados_simulados": {
+    "area_atividade": 10,
+    "ccs": 150,
+    "custo_concentrado": 1.81,
+    "numero_trabalhadores": 2,
+    "preco_recebido": 3.2,
+    "producao_vaca": 35,
+    "total_vacas": 100,
+    "vacas_lactacao": 85
+  }
     }'
     ```
 

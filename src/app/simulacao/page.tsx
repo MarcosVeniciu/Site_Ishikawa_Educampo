@@ -11,7 +11,7 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/ui/Navbar';
 import { useFazendaStore } from '@/store/useFazendaStore';
-import { TrendingUp, TrendingDown, Minus, Loader2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Loader2, RotateCcw } from 'lucide-react';
 import Link from 'next/link';
 
 /**
@@ -50,6 +50,7 @@ const BarChartSimulacao = ({
     corBarraSimulada = isMelhor ? 'bg-green-500' : 'bg-red-500';
     corTextoSimulado = isMelhor ? 'text-green-600' : 'text-red-600';
   }
+
 
   /**
    * Cálculos do Indicador Percentual para o canto superior direito do componente.
@@ -164,6 +165,24 @@ export default function SimulacaoPage() {
     custo_concentrado: dadosFazenda?.preco_concentrado || 2.00,
   });
 
+  /**
+   * @description Restaura os valores da simulação para os originais do produtor.
+   */
+  const restaurarValoresOriginais = () => {
+    if (dadosFazenda) {
+      setSimulacao({
+        total_vacas: dadosFazenda.total_vacas || 100,
+        vacas_lactacao: dadosFazenda.vacas_lactacao || 85,
+        producao_vaca: dadosFazenda.producao_vaca || 30.0,
+        preco_recebido: dadosFazenda.preco_leite || 3.00,
+        area_atividade: dadosFazenda.area_atividade || 10.0,
+        ccs: dadosFazenda.ccs || 150,
+        numero_trabalhadores: dadosFazenda.mao_obra_total || 2,
+        custo_concentrado: dadosFazenda.preco_concentrado || 2.00,
+      });
+    }
+  };
+
   const [isSimulando, setIsSimulando] = useState(false);
   const [cenarioAtivo, setCenarioAtivo] = useState<'inferior' | 'intermediario' | 'superior'>('intermediario');
   
@@ -193,16 +212,22 @@ export default function SimulacaoPage() {
     setIsSimulando(true);
 
     const payloadSimulacao = {
-      sistema_producao: dadosFazenda.sistema_producao,
-      regiao_sebrae: dadosFazenda.regiao,
-      total_vacas: simulacao.total_vacas,
-      vacas_lactacao: simulacao.vacas_lactacao,
-      area_atividade: simulacao.area_atividade,
-      numero_trabalhadores: simulacao.numero_trabalhadores,
-      custo_concentrado: simulacao.custo_concentrado,
-      producao_vaca: simulacao.producao_vaca,
-      preco_recebido: simulacao.preco_recebido,
-      ccs: simulacao.ccs
+      dados_originais: {
+        producao_vaca: dadosFazenda.producao_vaca,
+        regiao_sebrae: dadosFazenda.regiao,
+        sistema_producao: dadosFazenda.sistema_producao,
+        vacas_lactacao: dadosFazenda.vacas_lactacao
+      },
+      dados_simulados: {
+        area_atividade: simulacao.area_atividade,
+        ccs: simulacao.ccs,
+        custo_concentrado: simulacao.custo_concentrado,
+        numero_trabalhadores: simulacao.numero_trabalhadores,
+        preco_recebido: simulacao.preco_recebido,
+        producao_vaca: simulacao.producao_vaca,
+        total_vacas: simulacao.total_vacas,
+        vacas_lactacao: simulacao.vacas_lactacao
+      }
     };
 
     try {
@@ -307,11 +332,20 @@ export default function SimulacaoPage() {
         
         {/* PAINEL ESQUERDO: CONTROLES (Inputs & Sliders) */}
         <aside className="w-full lg:w-80 flex-shrink-0 bg-white rounded-2xl shadow-lg border border-gray-100 p-6 flex flex-col h-max sticky top-8">
-          <div className="mb-6">
-            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-primary" /> Variáveis
-            </h2>
-            <p className="text-xs text-gray-500 mt-1">Ajuste os valores para simular.</p>
+          <div className="mb-6 flex justify-between items-start">
+            <div>
+              <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-primary" /> Variáveis
+              </h2>
+              <p className="text-xs text-gray-500 mt-1">Ajuste os valores para simular.</p>
+            </div>
+            <button
+              onClick={restaurarValoresOriginais}
+              className="p-2 text-gray-400 hover:text-primary hover:bg-blue-50 rounded-full transition-colors"
+              title="Restaurar valores originais"
+            >
+              <RotateCcw size={20} />
+            </button>
           </div>
 
           <div className="space-y-6 flex-1 overflow-y-auto pr-2 custom-scrollbar">

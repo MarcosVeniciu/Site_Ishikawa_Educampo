@@ -28,56 +28,70 @@ jest.mock('next/navigation', () => ({
 describe('Dashboard de Simulação (SimulacaoPage)', () => {
   const mockDadosIniciais = {
     nome_fazenda: 'Fazenda Simulador',
+    sistema_producao: 'compost_barn',
+    regiao: 'triangulo',
     total_vacas: 100,
     vacas_lactacao: 85, // Dado importante para a conta
     producao_vaca: 30,  // 30L por vaca
     area_atividade: 10,
     preco_leite: 3.0,
+    preco_concentrado: 2.0,
     ccs: 150,
+    mao_obra_total: 2
   };
 
   const mockNovaRespostaSimulacao = {
-    metricas: [
-      {
-        metrica: "ccs",
-        inferior: 127.75,
-        intermediario: 156.62,
-        superior: 309.18
-      },
-      {
-        metrica: "producao_vaca",
-        inferior: 22.52,
-        intermediario: 24.67,
-        superior: 26.15
-      },
-      {
-        metrica: "producao_diaria",
-        inferior: 2675.54,
-        intermediario: 2896.18,
-        superior: 3862.67
-      },
-      {
-        metrica: "custo_estimado",
-        inferior: {
-          estimativa_produtor: 0,
-          media_estimativa_grupo: 0,
-          margem_lucro_percentual: 100,
-          texto_margem: "Está a vender o leite a R$ 3.20 e o seu custo estimado é de R$ 0.00..."
-        },
-        intermediario: {
-          estimativa_produtor: 0,
-          media_estimativa_grupo: 0,
-          margem_lucro_percentual: 100,
-          texto_margem: "Está a vender o leite a R$ 3.20 e o seu custo estimado é de R$ 0.00..."
-        },
-        superior: {
-          estimativa_produtor: 0,
-          media_estimativa_grupo: 0,
-          margem_lucro_percentual: 100,
-          texto_margem: "Está a vender o leite a R$ 3.20 e o seu custo estimado é de R$ 0.00..."
+    parametros_painel: {
+      total_vacas: { min: 10, max: 500, step: 1 },
+      vacas_lactacao: { min: 0, max: 500, step: 1 },
+      producao_vaca: { min: 5, max: 60, step: 0.5 },
+      preco_recebido: { min: 1.0, max: 6.0, step: 0.05 },
+      ccs: { min: 50, max: 1000, step: 10 },
+      area_atividade: { min: 1, max: 1000, step: 0.5 },
+      custo_concentrado: { min: 0.5, max: 6.0, step: 0.05 },
+      numero_trabalhadores: { min: 1, max: 50, step: 1 }
+    },
+    simulacao: {
+      estaticas: [
+        {
+          metrica: "ccs",
+          titulo_grafico: "Qualidade do Leite (CCS)",
+          direcao_otimizacao: "menor_melhor",
+          valor_produtor: 150,
+          cenarios: {
+            inferior: { valor: 250, diferenca_percentual: -40 },
+            intermediario: { valor: 150, diferenca_percentual: 0 },
+            superior: { valor: 100, diferenca_percentual: 30 }
+          }
         }
-      }
-    ]
+      ],
+      operacionais: [
+        {
+          metrica: "producao_diaria",
+          titulo_grafico: "Produção Total Diária (L/dia)",
+          direcao_otimizacao: "maior_melhor",
+          valor_produtor: 2550,
+          cenarios: {
+            inferior: { valor: 1500, diferenca_percentual: 80 },
+            intermediario: { valor: 2500, diferenca_percentual: 5 },
+            superior: { valor: 3500, diferenca_percentual: -20 }
+          }
+        }
+      ],
+      financeiras: [
+        {
+          metrica: "custo_estimado",
+          titulo_grafico: "Custo Estimado (R$/L)",
+          direcao_otimizacao: "menor_melhor",
+          valor_produtor: 2.00,
+          cenarios: {
+            inferior: { valor: 2.50, diferenca_percentual: -20 },
+            intermediario: { valor: 2.10, diferenca_percentual: 5 },
+            superior: { valor: 1.80, diferenca_percentual: 15 }
+          }
+        }
+      ]
+    }
   };
 
   beforeEach(() => {
@@ -117,7 +131,7 @@ describe('Dashboard de Simulação (SimulacaoPage)', () => {
     expect(screen.getByLabelText(/Produção por Vaca/i)).toHaveValue('30');
   });
 
-  it('Deve recalcular indicadores em tempo real ao mover um slider', () => {
+  it('Deve enviar os dados atualizados para a API ao mover o slider e clicar em analisar', async () => {
     render(<SimulacaoPage />);
     
     // Produção diária inicial: 85 vacas em lactação * 30L = 2550L
@@ -129,9 +143,16 @@ describe('Dashboard de Simulação (SimulacaoPage)', () => {
     // Simula o produtor movendo o slider de 85 para 100 vacas em lactação
     fireEvent.change(inputVacasLactacao, { target: { value: '100' } });
 
-    // Nova produção diária esperada: 100 vacas * 30L = 3000L ("3.000")
-    // O React calcula no frontend sem chamar a API!
-    expect(screen.getAllByText(/3\.000/i).length).toBeGreaterThan(0);
+    const btnAnalisar = screen.getByRole('button', { name: /Analisar Cenário/i });
+    fireEvent.click(btnAnalisar);
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith('/api/simulacao', expect.objectContaining({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: expect.stringContaining('"vacas_lactacao":100') // Verifica se o novo valor está no bloco enviado
+      }));
+    });
   });
 
   it('Deve renderizar os botões de seleção de cenário (Inferior, Intermediário, Superior)', () => {

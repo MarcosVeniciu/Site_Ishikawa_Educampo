@@ -11,5 +11,5 @@ Diferente do `/api/diagnostico` que realiza uma varredura completa e custosa em 
 3. **Alta Frequência e Resiliência:** Projetado para responder na casa dos milissegundos para que a interface de *sliders* não trave o navegador do produtor enquanto projeta as métricas na tela.
 
 ### Contrato de Comunicação
-* **Entrada (POST):** Recebe o objeto da fazenda mesclado com as edições locais efetuadas pelo usuário. Contém obrigatoriamente a propriedade auto-calculada `faixa_producao` e o insumo `preco_concentrado`.
+* **Entrada (POST):** Recebe um *payload* segmentado em dois blocos principais: `dados_originais` (para ancoragem e filtro inalterado do produtor, evitando o *Moving Goalpost Problem*) e `dados_simulados` (com as variáveis manipuladas no front). O insumo `custo_concentrado` é obrigatório no bloco simulado.
 * **Saída:** Retorna as métricas e indicadores de simulação emparelhados com as réguas de mercado (quartil inferior, mediano e superior), incluindo um campo extra de predição do Custo Total gerado pelo algoritmo de ML.

@@ -20,9 +20,10 @@ export async function POST(req: NextRequest) {
     /**
      * 1. Extração e Validação do Payload:
      * Intercepta o corpo da requisição e aplica uma barreira leve garantindo 
-     * que a variável custo_concentrado, vital para a ML, esteja presente.
+     * que a variável custo_concentrado (no bloco simulado), vital para a ML, esteja presente.
      */
-    if (body.custo_concentrado === undefined || body.custo_concentrado === null) {
+    const custoConcentrado = body.dados_simulados?.custo_concentrado;
+    if (custoConcentrado === undefined || custoConcentrado === null) {
       return NextResponse.json(
         { error: 'O campo custo_concentrado é obrigatório para as estimativas de custo.' },
         { status: 400 }

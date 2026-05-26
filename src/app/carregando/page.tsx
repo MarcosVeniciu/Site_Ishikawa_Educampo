@@ -45,16 +45,22 @@ export default function CarregandoPage() {
 
         // Prepara os payloads para as duas requisições
         const payloadSimulacao = {
-          sistema_producao: dadosFazenda.sistema_producao,
-          regiao_sebrae: dadosFazenda.regiao,
-          total_vacas: dadosFazenda.total_vacas,
-          vacas_lactacao: dadosFazenda.vacas_lactacao,
-          area_atividade: dadosFazenda.area_atividade,
-          numero_trabalhadores: dadosFazenda.mao_obra_total,
-          custo_concentrado: dadosFazenda.preco_concentrado || 1.81,
-          producao_vaca: dadosFazenda.producao_vaca,
-          preco_recebido: dadosFazenda.preco_leite,
-          ccs: dadosFazenda.ccs,
+          dados_originais: {
+            producao_vaca: dadosFazenda.producao_vaca,
+            regiao_sebrae: dadosFazenda.regiao,
+            sistema_producao: dadosFazenda.sistema_producao,
+            vacas_lactacao: dadosFazenda.vacas_lactacao
+          },
+          dados_simulados: {
+            area_atividade: dadosFazenda.area_atividade,
+            ccs: dadosFazenda.ccs,
+            custo_concentrado: dadosFazenda.preco_concentrado || 1.81,
+            numero_trabalhadores: dadosFazenda.mao_obra_total,
+            preco_recebido: dadosFazenda.preco_leite,
+            producao_vaca: dadosFazenda.producao_vaca,
+            total_vacas: dadosFazenda.total_vacas,
+            vacas_lactacao: dadosFazenda.vacas_lactacao
+          }
         };
 
         // Dispara as duas requisições em paralelo para otimizar o tempo de espera
