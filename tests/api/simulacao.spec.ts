@@ -34,6 +34,12 @@ global.fetch = jest.fn();
 describe('BFF Route: POST /api/simulacao', () => {
   const originalEnv = process.env;
 
+  beforeAll(() => {
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     process.env = { ...originalEnv };
@@ -42,6 +48,7 @@ describe('BFF Route: POST /api/simulacao', () => {
   });
 
   afterAll(() => {
+    jest.restoreAllMocks();
     process.env = originalEnv;
   });
 

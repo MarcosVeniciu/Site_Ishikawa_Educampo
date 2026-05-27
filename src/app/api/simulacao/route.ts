@@ -1,8 +1,8 @@
 /**
  * @file src/app/api/simulacao/route.ts
- * @description Proxy BFF para o endpoint de Simulação.
- * Recebe os parâmetros ajustados pelo produtor, processa a segurança (esconde o token) 
- * e solicita à API Python o recálculo rápido dos indicadores e estimativa de Machine Learning.
+ * @description Proxy BFF para o endpoint central de Simulação de Gráficos. Recebe o estado ancorado
+ * (`dados_originais` com 10 campos) e os `dados_simulados` manipulados pelo produtor.
+ * Oculta as chaves de API e devolve exclusivamente o bloco `simulacao` com as predições e benchmarking.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -11,7 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
  * @description Método principal para despachar o payload de simulação, validando
  * a presença obrigatória do valor do concentrado antes do consumo de rede externo.
  * @param req Objeto NextRequest contendo as variáveis manipuladas nos sliders.
- * @returns NextResponse com a resposta resolvida da ML ou os detalhes do erro de rede.
+ * @returns NextResponse com a resposta resolvida da ML (bloco `simulacao`) ou detalhes de erro.
  */
 export async function POST(req: NextRequest) {
   console.log('\n[BFF Simulacao] >>> INICIANDO NOVA REQUISIÇÃO DE SIMULAÇÃO <<<');
@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
     /**
      * 5. Sucesso e Retorno:
      * Resolve e extrai o JSON gerado pela inteligência artificial contendo 
-     * as predições e os indicadores recalculados, enviando-os como resposta 200.
+     * exclusivamente as métricas recalculadas (estáticas, operacionais e financeiras).
      */
     console.log('[BFF Simulacao] Lendo o corpo da resposta enviada pela API externa...');
     const data = await apiResponse.json();

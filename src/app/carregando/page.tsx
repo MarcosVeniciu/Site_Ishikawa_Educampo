@@ -46,9 +46,15 @@ export default function CarregandoPage() {
         // Prepara os payloads para as duas requisições
         const payloadSimulacao = {
           dados_originais: {
+            area_atividade: dadosFazenda.area_atividade,
+            ccs: dadosFazenda.ccs,
+            custo_concentrado: dadosFazenda.preco_concentrado || 1.81,
+            numero_trabalhadores: dadosFazenda.mao_obra_total,
+            preco_recebido: dadosFazenda.preco_leite,
             producao_vaca: dadosFazenda.producao_vaca,
             regiao_sebrae: dadosFazenda.regiao,
             sistema_producao: dadosFazenda.sistema_producao,
+            total_vacas: dadosFazenda.total_vacas,
             vacas_lactacao: dadosFazenda.vacas_lactacao
           },
           dados_simulados: {
@@ -63,8 +69,15 @@ export default function CarregandoPage() {
           }
         };
 
-        // Dispara as duas requisições em paralelo para otimizar o tempo de espera
-        const [diagResponse, simResponse] = await Promise.all([
+        // Prepara payload de extração dos limites do slider
+        const payloadParametros = {
+          producao_vaca: dadosFazenda.producao_vaca,
+          sistema_producao: dadosFazenda.sistema_producao,
+          vacas_lactacao: dadosFazenda.vacas_lactacao
+        };
+
+        // Dispara as três requisições em paralelo para otimizar o tempo de espera
+        const [diagResponse, simResponse, paramResponse] = await Promise.all([
           fetch("/api/diagnostico", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -75,18 +88,24 @@ export default function CarregandoPage() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payloadSimulacao),
           }),
+          fetch("/api/parametros-painel", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payloadParametros),
+          }),
         ]);
 
-        if (!diagResponse.ok || !simResponse.ok) {
+        if (!diagResponse.ok || !simResponse.ok || !paramResponse.ok) {
           throw new Error("Erro na comunicação com os servidores de análise.");
         }
 
         const diagData = await diagResponse.json();
         const simData = await simResponse.json();
+        const paramData = await paramResponse.json();
 
-        // Injeta os dois resultados no estado global
+        // Injeta os resultados no estado global, combinando os limites dos sliders com as predições
         setDiagnosticoIA(diagData);
-        setResultadoSimulacao(simData);
+        setResultadoSimulacao({ ...simData, ...paramData });
 
         setMensagem("Análise concluída! Montando seu Diagnóstico");
 

@@ -10,7 +10,6 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    // Usa 127.0.0.1 por padrão em vez de localhost para evitar problemas de roteamento IPv6 no Node.js
     const baseUrl = process.env.API_BASE_URL;
     const apiKey = process.env.API_KEY || process.env.API_TOKEN;
 
