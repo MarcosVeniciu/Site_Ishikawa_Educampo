@@ -42,9 +42,6 @@ export function Navbar() {
 
   return (
     <header className="relative z-50 bg-transparent w-full">
-      {/* CONTAINER DE REFERÊNCIA (Centralizado) 
-          Colocamos 'relative' aqui para que o menu se posicione em relação ao conteúdo centralizado
-      */}
       <div className="max-w-7xl mx-auto px-6 relative">
         
         {/* Barra Superior */}
@@ -60,9 +57,7 @@ export function Navbar() {
             />
           </div>
           
-          {/* Botão Hamburger com Animação Morph (Hamburger -> X) 
-              Z-index [60] para flutuar SEMPRE acima do menu 
-          */}
+          {/* Botão Hamburger */}
           <button
             ref={buttonRef}
             onClick={toggleMenu}
@@ -75,9 +70,7 @@ export function Navbar() {
           </button>
         </div>
 
-        {/* MENU DROPDOWN EXPANDIDO (Painel Flutuante / Overlay)
-            'top-2 right-4' faz o menu sobrepor o cabeçalho, envolvendo o botão X.
-        */}
+        {/* Menu Dropdown Expandido */}
         <div
           ref={menuRef}
           className={`absolute top-2 right-4 w-[28rem] bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden origin-top transition-all duration-500 ease-out z-[55] ${
@@ -87,10 +80,6 @@ export function Navbar() {
           }`}
         >
             
-            {/* FOCO DA MUDANÇA:
-                O Link agora começa no topo da caixa. 
-                'pt-16' garante que o texto "Diagnóstico" não bata no botão "X".
-            */}
             <Link 
               href="/diagnostico" 
               onClick={() => setIsMenuOpen(false)}

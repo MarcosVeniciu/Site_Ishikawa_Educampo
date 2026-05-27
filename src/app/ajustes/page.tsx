@@ -11,7 +11,7 @@ import React, { useState, useEffect } from 'react';
 import { ZodError } from 'zod';
 import { useFazendaStore } from '@/store/useFazendaStore';
 import { fazendaSchema, FazendaFormData } from '@/lib/schemas';
-import { Navbar } from '@/components/ui/Navbar'; // Assumindo que a Navbar existe
+import { Navbar } from '@/components/ui/Navbar';
 import { Info, AlertCircle, CheckCircle, Loader2, X } from 'lucide-react';
 import Link from 'next/link';
 
@@ -183,7 +183,7 @@ export default function AjustesPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
 
-            {/* Bloco 1: Estrutura da Fazenda (Exemplo, adicione os outros baseados no seu page.tsx) */}
+            {/* Bloco 1: Estrutura e Rebanho */}
             <section className="bg-gray-50 p-6 rounded-xl border border-gray-200">
               <h2 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
                 <span className="bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center text-sm">1</span>
@@ -219,11 +219,15 @@ export default function AjustesPage() {
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition bg-white"
                   >
                     <option value="" disabled>Selecione...</option>
-                    <option value="triangulo">Triângulo</option>
-                    <option value="alto_paranaiba">Alto Paranaíba</option>
-                    <option value="noroeste_minas">Noroeste de Minas</option>
-                    <option value="sul">Sul de Minas</option>
-                    <option value="sudoeste">Sudoeste de Minas</option>
+                  <option value="triangulo">Triângulo Mineiro</option>
+                  <option value="rio doce e vale do aco">Rio Doce e Vale do Aço</option>
+                  <option value="noroeste e alto paranaiba">Noroeste e Alto Paranaíba</option>
+                  <option value="centro">Centro</option>
+                  <option value="centro-oeste e sudoeste">Centro-Oeste e Sudoeste</option>
+                  <option value="sul">Sul</option>
+                  <option value="norte">Norte</option>
+                  <option value="zona da mata e vertentes">Zona da Mata e Vertentes</option>
+                  <option value="jequitinhonha e mucuri">Jequitinhonha e Mucuri</option>
                   </select>
                 </div>
                 <div>
@@ -269,7 +273,7 @@ export default function AjustesPage() {
               </div>
             </section>
 
-            {/* Bloco 2: Produção e Qualidade */}
+            {/* Bloco 2: Produção e Mercado */}
             <section className="bg-gray-50 p-6 rounded-xl border border-gray-200">
               <h2 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
                 <span className="bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center text-sm">2</span>

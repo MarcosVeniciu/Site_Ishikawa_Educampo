@@ -135,9 +135,6 @@ export default function DiagnosticoPage() {
    */
   const benchmarks: BenchmarkingCardData[] = diagnosticoIA?.benchmarking || [];
 
-  // ============================================================================
-  // LÓGICA DE DIAGNÓSTICO (Trazida da antiga tela diagnostico/page.tsx)
-  // ============================================================================
   /**
    * @description Pega o nó bruto contendo as análises para o indicador atualmente selecionado (`activeTab`).
    * Tenta acessá-lo aninhado em `.indicadores` e possui fallback direto no nível da raiz de `diagnosticoIA`.
@@ -287,7 +284,6 @@ export default function DiagnosticoPage() {
                 </h2>
                 <Activity className="text-[#1973d3]" size={32} />
               </div>
-              {/* Mantemos compatibilidade com strings antigas (diagnosticoIA?.resumo) e suportamos o novo objeto */}
               {diagnosticoIA?.resumo_geral ? (
                 <TextoComCitacoes 
                   texto={diagnosticoIA.resumo_geral.visao_geral} 
