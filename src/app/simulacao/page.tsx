@@ -192,6 +192,12 @@ export default function SimulacaoPage() {
   const [tempoBloqueio, setTempoBloqueio] = useState(0);
 
   /**
+   * Estados para o controle do ajuste fino em formato texto (Input)
+   */
+  const [paramEditando, setParamEditando] = useState<ParamKey | null>(null);
+  const [valorTemp, setValorTemp] = useState<string>('');
+
+  /**
    * Efeito que diminui o contador automaticamente a cada segundo quando acionado o bloqueio de taxa.
    */
   useEffect(() => {
@@ -278,6 +284,39 @@ export default function SimulacaoPage() {
   };
 
   /**
+   * @description Habilita o modo de edição fina para a variável clicada
+   */
+  const handleEditClick = (chave: ParamKey, valorAtual: number) => {
+    setParamEditando(chave);
+    setValorTemp(valorAtual.toString());
+  };
+
+  /**
+   * @description Consolida a alteração fina no estado local e garante limites
+   */
+  const handleEditBlur = (chave: ParamKey) => {
+    setParamEditando(null);
+    let num = parseFloat(valorTemp);
+    if (!isNaN(num)) {
+      const param = getParam(chave);
+      if (num < param.min) num = param.min;
+      if (num > param.max) num = param.max;
+      setSimulacao(prev => ({ ...prev, [chave]: num }));
+    }
+  };
+
+  /**
+   * @description Controle do teclado para a edição fina (Acessibilidade)
+   */
+  const handleEditKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, chave: ParamKey) => {
+    if (e.key === 'Enter') {
+      handleEditBlur(chave);
+    } else if (e.key === 'Escape') {
+      setParamEditando(null);
+    }
+  };
+
+  /**
    * Parâmetros de segurança e limites de UI para o simulador divididos por cenário.
    */
   const defaultParams = {
@@ -329,12 +368,13 @@ export default function SimulacaoPage() {
   /**
    * Renderiza a etiqueta do campo com ícone de alerta caso o valor 
    * esteja fora da fronteira do cenário atual.
+   * Permite o ajuste fino transformando o valor em um input ao clicar.
    */
-  const renderLabel = (chave: ParamKey, titulo: string, valorFormatado: React.ReactNode, isFirstItem: boolean = false) => {
+  const renderLabel = (chave: ParamKey, titulo: string, formatText: (v: number) => string, isFirstItem: boolean = false) => {
     const param = getParam(chave);
+    const val = simulacao[chave];
     let warning = null;
     if (param.fronteiras_cenario) {
-      const val = simulacao[chave];
       if (val < param.fronteiras_cenario.limite_inferior) {
           warning = `Atenção: Simulação com valores atipicamente baixos para o grupo do cenário ${cenarioAtivo}.`;
       } else if (val > param.fronteiras_cenario.limite_superior) {
@@ -356,7 +396,25 @@ export default function SimulacaoPage() {
             </div>
           )}
         </span>
-        <span className="text-primary">{valorFormatado}</span>
+        {paramEditando === chave ? (
+          <input
+            type="number"
+            autoFocus
+            className="w-20 text-right border-b border-primary outline-none text-primary bg-transparent font-medium"
+            value={valorTemp}
+            onChange={(e) => setValorTemp(e.target.value)}
+            onBlur={() => handleEditBlur(chave)}
+            onKeyDown={(e) => handleEditKeyDown(e, chave)}
+          />
+        ) : (
+          <span 
+            className="text-primary cursor-pointer hover:underline decoration-dashed underline-offset-2"
+            onClick={(e) => { e.preventDefault(); handleEditClick(chave, val); }}
+            title="Clique para realizar um ajuste fino"
+          >
+            {formatText(val)}
+          </span>
+        )}
       </label>
     );
   };
@@ -446,7 +504,7 @@ export default function SimulacaoPage() {
             
             {/* Controle: Total de Vacas */}
             <div>
-              {renderLabel('total_vacas', 'Total de Vacas', simulacao.total_vacas, true)}
+              {renderLabel('total_vacas', 'Total de Vacas', (v) => v.toString(), true)}
               <input 
                 id="total_vacas" name="total_vacas" type="range" 
                 min={pTotalVacas.min} max={pTotalVacas.max} step={pTotalVacas.step} 
@@ -457,7 +515,7 @@ export default function SimulacaoPage() {
 
             {/* Controle: Vacas em Lactação */}
             <div>
-              {renderLabel('vacas_lactacao', 'Vacas em Lactação', simulacao.vacas_lactacao)}
+              {renderLabel('vacas_lactacao', 'Vacas em Lactação', (v) => v.toString())}
               <input 
                 id="vacas_lactacao" name="vacas_lactacao" type="range" 
                 min={pVacasLactacao.min} max={simulacao.total_vacas} step={pVacasLactacao.step} 
@@ -468,7 +526,7 @@ export default function SimulacaoPage() {
 
             {/* Controle: Produção por Vaca */}
             <div>
-              {renderLabel('producao_vaca', 'Produção por Vaca', `${simulacao.producao_vaca} L`)}
+              {renderLabel('producao_vaca', 'Produção por Vaca', (v) => `${v} L`)}
               <input 
                 id="producao_vaca" name="producao_vaca" type="range" 
                 min={pProducaoVaca.min} max={pProducaoVaca.max} step={pProducaoVaca.step} 
@@ -479,7 +537,7 @@ export default function SimulacaoPage() {
 
             {/* Controle: Preço do Leite */}
             <div>
-              {renderLabel('preco_recebido', 'Preço do Leite', `R$ ${simulacao.preco_recebido.toFixed(2)}`)}
+              {renderLabel('preco_recebido', 'Preço do Leite', (v) => `R$ ${v.toFixed(2)}`)}
               <input 
                 id="preco_recebido" name="preco_recebido" type="range" 
                 min={pPrecoRecebido.min} max={pPrecoRecebido.max} step={pPrecoRecebido.step} 
@@ -490,7 +548,7 @@ export default function SimulacaoPage() {
 
             {/* Controle: CCS */}
             <div>
-              {renderLabel('ccs', 'CCS (x1000)', simulacao.ccs)}
+              {renderLabel('ccs', 'CCS (x1000)', (v) => v.toString())}
               <input 
                 id="ccs" name="ccs" type="range" 
                 min={pCcs.min} max={pCcs.max} step={pCcs.step} 
@@ -501,7 +559,7 @@ export default function SimulacaoPage() {
 
             {/* Controle: Área de Atividade */}
             <div>
-              {renderLabel('area_atividade', 'Área (ha)', simulacao.area_atividade)}
+              {renderLabel('area_atividade', 'Área (ha)', (v) => v.toString())}
               <input 
                 id="area_atividade" name="area_atividade" type="range" 
                 min={pAreaAtividade.min} max={pAreaAtividade.max} step={pAreaAtividade.step} 
@@ -512,7 +570,7 @@ export default function SimulacaoPage() {
 
             {/* Controle: Custo do Concentrado */}
             <div>
-              {renderLabel('custo_concentrado', 'Custo Concentrado', `R$ ${simulacao.custo_concentrado.toFixed(2)}`)}
+              {renderLabel('custo_concentrado', 'Custo Concentrado', (v) => `R$ ${v.toFixed(2)}`)}
               <input 
                 id="custo_concentrado" name="custo_concentrado" type="range" 
                 min={pCustoConcentrado.min} max={pCustoConcentrado.max} step={pCustoConcentrado.step} 
@@ -523,7 +581,7 @@ export default function SimulacaoPage() {
 
             {/* Controle: Número de Trabalhadores */}
             <div>
-              {renderLabel('numero_trabalhadores', 'Trabalhadores', simulacao.numero_trabalhadores)}
+              {renderLabel('numero_trabalhadores', 'Trabalhadores', (v) => v.toString())}
               <input 
                 id="numero_trabalhadores" name="numero_trabalhadores" type="range" 
                 min={pNumeroTrabalhadores.min} max={pNumeroTrabalhadores.max} step={pNumeroTrabalhadores.step} 
