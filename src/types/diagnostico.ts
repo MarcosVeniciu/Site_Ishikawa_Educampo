@@ -97,3 +97,31 @@ export interface DiagnosticoIAResponse {
   benchmarking: BenchmarkingCardData[];
   indicadores?: Record<string, IndicadorData>;
 }
+
+/**
+ * Payload de requisição para a rota de simulação (BFF).
+ */
+export interface SimulacaoRequest {
+  dados_originais: {
+    area_atividade: number;
+    ccs: number;
+    custo_concentrado: number;
+    numero_trabalhadores: number;
+    preco_recebido: number;
+    producao_vaca: number;
+    regiao_sebrae: string;
+    sistema_producao: string;
+    total_vacas: number;
+    vacas_lactacao: number;
+  };
+  dados_simulados: {
+    area_atividade: number;
+    ccs: number;
+    custo_concentrado: number;
+    numero_trabalhadores: number;
+    preco_recebido: number;
+    producao_vaca: number;
+    total_vacas: number;
+    vacas_lactacao: number;
+  };
+}

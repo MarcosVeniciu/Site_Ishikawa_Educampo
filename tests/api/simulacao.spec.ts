@@ -57,7 +57,16 @@ describe('BFF Route: POST /api/simulacao', () => {
 
     const payload = {
       dados_originais: {
-        producao_vaca: 38.0
+        area_atividade: 10,
+        ccs: 150,
+        custo_concentrado: 1.81,
+        numero_trabalhadores: 2,
+        preco_recebido: 3.2,
+        producao_vaca: 38.0,
+        regiao_sebrae: "triangulo",
+        sistema_producao: "compost_barn",
+        total_vacas: 100,
+        vacas_lactacao: 60
       },
       dados_simulados: {
         producao_vaca: 45.0,
@@ -90,7 +99,18 @@ describe('BFF Route: POST /api/simulacao', () => {
    */
   it('deve retornar erro 400 se custo_concentrado não for fornecido', async () => {
     const payload = { 
-      dados_originais: { producao_vaca: 38.0 },
+      dados_originais: { 
+        area_atividade: 10,
+        ccs: 150,
+        custo_concentrado: 1.81,
+        numero_trabalhadores: 2,
+        preco_recebido: 3.2,
+        producao_vaca: 38.0,
+        regiao_sebrae: "triangulo",
+        sistema_producao: "compost_barn",
+        total_vacas: 100,
+        vacas_lactacao: 60
+      },
       // Faltando o custo_concentrado no bloco simulado
       dados_simulados: { producao_vaca: 45.0 }
     }; 

@@ -10,16 +10,17 @@ import { useFazendaStore } from '../../src/store/useFazendaStore';
 
 describe('Zustand Store: useFazendaStore', () => {
   const dadosMock = {
-    nomeFazenda: 'Fazenda Leiteira Experimental',
-    sistemaProducao: 'compost barn',
-    totalVacas: 100,
-    vacasLactacao: 85,
-    animaisRebanho: 120,
-    areaAtividade: 10.0,
-    maoObraTotal: 2,
-    producaoVaca: 35.0,
-    precoLeite: 3.20,
-    precoRegional: 2.50,
+    nome_fazenda: 'Fazenda Leiteira Experimental',
+    sistema_producao: 'compost_barn',
+    total_vacas: 100,
+    vacas_lactacao: 85,
+    animais_rebanho: 120,
+    area_atividade: 10.0,
+    mao_obra_total: 2,
+    producao_vaca: 35.0,
+    preco_leite: 3.20,
+    preco_referencia: 2.50,
+    preco_concentrado: 2.30,
     ccs: 150,
     regiao: 'triangulo',
   };
@@ -62,7 +63,7 @@ describe('Zustand Store: useFazendaStore', () => {
     
     const estadoAtual = useFazendaStore.getState();
     expect(estadoAtual.dadosFazenda).toEqual(dadosMock);
-    expect(estadoAtual.dadosFazenda?.nomeFazenda).toBe('Fazenda Leiteira Experimental');
+    expect(estadoAtual.dadosFazenda?.nome_fazenda).toBe('Fazenda Leiteira Experimental');
   });
 
   /**

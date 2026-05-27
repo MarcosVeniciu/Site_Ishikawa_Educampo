@@ -213,9 +213,15 @@ export default function SimulacaoPage() {
 
     const payloadSimulacao = {
       dados_originais: {
+        area_atividade: dadosFazenda.area_atividade,
+        ccs: dadosFazenda.ccs,
+        custo_concentrado: dadosFazenda.preco_concentrado,
+        numero_trabalhadores: dadosFazenda.mao_obra_total, // De-para (Frontend -> Backend)
+        preco_recebido: dadosFazenda.preco_leite, // De-para (Frontend -> Backend)
         producao_vaca: dadosFazenda.producao_vaca,
-        regiao_sebrae: dadosFazenda.regiao,
+        regiao_sebrae: dadosFazenda.regiao, // De-para (Frontend -> Backend)
         sistema_producao: dadosFazenda.sistema_producao,
+        total_vacas: dadosFazenda.total_vacas,
         vacas_lactacao: dadosFazenda.vacas_lactacao
       },
       dados_simulados: {

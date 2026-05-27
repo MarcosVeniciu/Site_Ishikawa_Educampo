@@ -72,7 +72,9 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Comunicação Segura com a API Externa (Render)
-    const apiUrl = `${process.env.API_BASE_URL}/api/diagnostico`;
+    const baseUrl = process.env.API_BASE_URL || 'http://127.0.0.1:8000';
+    const apiKey = process.env.API_KEY || process.env.API_TOKEN || '42';
+    const apiUrl = `${baseUrl}/api/diagnostico`;
     
     let apiResponse: Response;
     try {
@@ -84,8 +86,8 @@ export async function POST(req: NextRequest) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.API_TOKEN}`,
-          'X-API-KEY': process.env.API_TOKEN || ''
+          'Authorization': `Bearer ${apiKey}`,
+          'X-API-KEY': apiKey
         },
         body: JSON.stringify(payloadToSend),
         signal: controller.signal,
@@ -102,7 +104,11 @@ export async function POST(req: NextRequest) {
         );
       }
       // Re-lança outros erros de fetch para serem pegos pelo catch principal
-      throw error;
+      console.error(`[BFF Diagnostico] Falha de rede ao tentar acessar ${apiUrl}:`, error instanceof Error ? error.message : error);
+      return NextResponse.json(
+        { error: 'Falha de comunicação de rede com o motor de Machine Learning.' },
+        { status: 502 }
+      );
     }
 
     // 4. Tratamento de Resiliência e Códigos de Status da API

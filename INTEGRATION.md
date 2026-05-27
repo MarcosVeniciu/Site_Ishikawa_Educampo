@@ -143,7 +143,7 @@ Para rotas protegidas, o seguinte header é mandatório:
 
     | Campo | Tipo | Exemplo | Descrição |
     | :--- | :--- | :--- | :--- |
-| `dados_originais` | object | `{ "producao_vaca": 25, ... }` | Bloco para ancoragem estatística da faixa do produtor contendo sistema, regiao, vacas lactantes e produção originais. |
+| `dados_originais` | object | `{ "producao_vaca": 25, ... }` | Bloco para ancoragem estatística da faixa do produtor contendo os dados operacionais originais completos, além de sistema e região. |
 | `dados_simulados` | object | `{ "ccs": 150, ... }` | Bloco contendo as variáveis manipuladas interativamente pelo usuário no front-end. |
 
 *   **Exemplo de Chamada:**
@@ -155,9 +155,15 @@ Para rotas protegidas, o seguinte header é mandatório:
       -H 'Content-Type: application/json' \
       -d '{
   "dados_originais": {
+    "area_atividade": 10,
+    "ccs": 150,
+    "custo_concentrado": 1.81,
+    "numero_trabalhadores": 2,
+    "preco_recebido": 3.2,
     "producao_vaca": 25,
     "regiao_sebrae": "triangulo",
     "sistema_producao": "compost_barn",
+    "total_vacas": 100,
     "vacas_lactacao": 60
   },
   "dados_simulados": {
