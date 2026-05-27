@@ -15,9 +15,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 import { SECURITY_CONSTANTS, ROUTES } from './lib/constants';
 
-const SECRET_KEY = new TextEncoder().encode(
-  process.env.ENCRYPTION_SECRET_KEY || 'chave_secreta_padrao_para_desenvolvimento_educampo'
-);
+if (!process.env.ENCRYPTION_SECRET_KEY) {
+  throw new Error('ALERTA CRÍTICO: Variável ENCRYPTION_SECRET_KEY ausente no .env');
+}
+const SECRET_KEY = new TextEncoder().encode(process.env.ENCRYPTION_SECRET_KEY);
 
 // Define as rotas que o Middleware irá proteger/interceptar
 export const config = {

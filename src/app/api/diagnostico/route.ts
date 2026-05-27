@@ -72,8 +72,17 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Comunicação Segura com a API Externa (Render)
-    const baseUrl = process.env.API_BASE_URL || 'http://127.0.0.1:8000';
-    const apiKey = process.env.API_KEY || process.env.API_TOKEN || '42';
+    const baseUrl = process.env.API_BASE_URL;
+    const apiKey = process.env.API_KEY || process.env.API_TOKEN;
+
+    if (!baseUrl || !apiKey) {
+      console.error('[BFF Diagnostico] ALERTA CRÍTICO: API_BASE_URL ou API_TOKEN não estão definidas no arquivo de ambiente!');
+      return NextResponse.json(
+        { error: 'Configuração interna do servidor ausente (Variáveis de Ambiente).' },
+        { status: 500 }
+      );
+    }
+
     const apiUrl = `${baseUrl}/api/diagnostico`;
     
     let apiResponse: Response;

@@ -11,8 +11,13 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     // Usa 127.0.0.1 por padrão em vez de localhost para evitar problemas de roteamento IPv6 no Node.js
-    const baseUrl = process.env.API_BASE_URL || 'http://127.0.0.1:8000';
-    const apiKey = process.env.API_KEY || process.env.API_TOKEN || '42';
+    const baseUrl = process.env.API_BASE_URL;
+    const apiKey = process.env.API_KEY || process.env.API_TOKEN;
+
+    if (!baseUrl || !apiKey) {
+      console.error('[Health Check] ALERTA CRÍTICO: Variáveis de ambiente ausentes!');
+      return NextResponse.json({ error: 'Configuração de servidor inválida.' }, { status: 500 });
+    }
 
     // AbortController para evitar requisições presas (timeout após 5 segundos)
     const controller = new AbortController();

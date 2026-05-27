@@ -21,6 +21,13 @@ COPY . .
 # Desativa a telemetria do Next.js durante a construção
 ENV NEXT_TELEMETRY_DISABLED 1
 
+# Fornece variáveis de ambiente fictícias estritamente para que o Next.js 
+# consiga analisar os arquivos e concluir o processo de build das rotas.
+# As credenciais verdadeiras deverão ser passadas em tempo de execução (runner).
+ENV ENCRYPTION_SECRET_KEY="build_dummy_secret_key_educampo"
+ENV ADMIN_USERNAME="build_dummy_user"
+ENV ADMIN_PASSWORD="build_dummy_password"
+
 # Faz o build da aplicação
 RUN npm run build
 

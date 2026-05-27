@@ -42,11 +42,15 @@ export async function POST(req: NextRequest) {
     const baseUrl = process.env.API_BASE_URL; 
     const apiKey = process.env.API_KEY || process.env.API_TOKEN; 
 
-    if (!baseUrl) {
-      console.error('[BFF Simulacao] ALERTA CRÍTICO: API_BASE_URL não está definida no arquivo .env.local!');
+    if (!baseUrl || !apiKey) {
+      console.error('[BFF Simulacao] ALERTA CRÍTICO: API_BASE_URL ou API_TOKEN não estão definidas no arquivo de ambiente!');
+      return NextResponse.json(
+        { error: 'Configuração interna do servidor ausente (Variáveis de Ambiente).' },
+        { status: 500 }
+      );
     }
 
-    const apiUrl = `${baseUrl || 'http://localhost:8000'}/api/simulacao`;
+    const apiUrl = `${baseUrl}/api/simulacao`;
     console.log(`[BFF Simulacao] Preparando chamada para a API Externa em: ${apiUrl}`);
 
     /**
@@ -64,8 +68,8 @@ export async function POST(req: NextRequest) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey || '42'}`,
-          'X-API-KEY': apiKey || '42'
+          'Authorization': `Bearer ${apiKey}`,
+          'X-API-KEY': apiKey
         },
         body: JSON.stringify(body),
         signal: controller.signal
