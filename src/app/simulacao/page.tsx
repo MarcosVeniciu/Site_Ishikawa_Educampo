@@ -205,6 +205,7 @@ export default function SimulacaoPage() {
   /**
    * @description Mescla as edições locais da simulação e solicita à API
    * externa a projeção avançada de custo (Machine Learning) e re-divisão dos quartis.
+   * O resultado é mesclado ao estado global para não sobrescrever e perder os parâmetros do painel (`parametros_painel`).
    */
   const executarSimulacao = async () => {
     if (!dadosFazenda) return;
@@ -253,7 +254,10 @@ export default function SimulacaoPage() {
 
       if (response.ok) {
         const data = await response.json();
-        setResultadoSimulacao(data);
+        setResultadoSimulacao({
+          ...resultadoSimulacao,
+          ...data
+        });
       } else {
         console.error("Falha na simulação");
       }
@@ -289,10 +293,26 @@ export default function SimulacaoPage() {
 
   type ParamKey = keyof typeof defaultParams;
 
+  /**
+   * @description Resgata os parâmetros do painel (min, max, step e limites de cenário)
+   * de forma resiliente, suportando tanto o agrupamento na raiz da métrica quanto a subdivisão aninhada por cenário.
+   */
   const getParam = (chave: ParamKey) => {
     const painel = resultadoSimulacao?.parametros_painel;
-    if (painel?.[chave]?.[cenarioAtivo]) {
-      return painel[chave][cenarioAtivo];
+    
+    if (painel && painel[chave]) {
+      const paramData = painel[chave];
+      
+      if (paramData[cenarioAtivo]) {
+        return paramData[cenarioAtivo];
+      }
+      
+      return {
+        min: paramData.min ?? defaultParams[chave].min,
+        max: paramData.max ?? defaultParams[chave].max,
+        step: paramData.step ?? defaultParams[chave].step,
+        fronteiras_cenario: paramData.fronteiras_cenario?.[cenarioAtivo] ?? paramData.fronteiras_cenario ?? null
+      };
     }
     return defaultParams[chave];
   };
