@@ -81,7 +81,7 @@ describe('Tela de Carregamento (CarregandoPage)', () => {
     render(<CarregandoPage />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Simulador de custos inicializando/i)).toBeInTheDocument();
+      expect(screen.getByText(/Esperando API acordar/i)).toBeInTheDocument();
     });
 
     // Avança o tempo do setTimeout interno (3000ms) para disparar nova requisição de polling

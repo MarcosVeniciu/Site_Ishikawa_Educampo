@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       secure: true, // Forçado true para conformidade estrita com o teste de segurança
       sameSite: 'strict',
       path: '/',
-      maxAge: 60 * 60 * 24 * 365 * 5, // 5 anos em segundos (Para contornar a descincronização do docker)
+      maxAge: 60 * 5, // 5 minutos em segundos
     });
 
     return response;

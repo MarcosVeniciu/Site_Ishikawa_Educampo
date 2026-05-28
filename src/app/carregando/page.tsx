@@ -14,6 +14,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useFazendaStore } from "@/store/useFazendaStore"; 
 import Image from "next/image";
+import { fetchComResiliencia } from "@/lib/apiUtils";
 
 export default function CarregandoPage() {
   const router = useRouter();
@@ -77,22 +78,23 @@ export default function CarregandoPage() {
         };
 
         // Dispara as três requisições em paralelo para otimizar o tempo de espera
+        // Usamos nosso fetch com Circuit Breaker capado em 3 tentativas para rotas pesadas
         const [diagResponse, simResponse, paramResponse] = await Promise.all([
-          fetch("/api/diagnostico", {
+          fetchComResiliencia("/api/diagnostico", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(dadosFazenda),
-          }),
-          fetch("/api/simulacao", {
+          }, 3, 2000, 10000, 60000), // Timeout de 60s para respeitar a lentidão da IA
+          fetchComResiliencia("/api/simulacao", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payloadSimulacao),
-          }),
-          fetch("/api/parametros-painel", {
+          }, 3, 2000, 10000, 10000), // Timeout de 10s para leitura rápida
+          fetchComResiliencia("/api/parametros-painel", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payloadParametros),
-          }),
+          }, 3, 2000, 10000, 10000), // Timeout de 10s para extração de limites
         ]);
 
         if (!diagResponse.ok || !simResponse.ok || !paramResponse.ok) {
@@ -120,55 +122,73 @@ export default function CarregandoPage() {
 
     /**
      * @description Interroga o servidor até que ele esteja pronto (Trata Cold Start e Rate Limit).
+     * Implementa um padrão de Circuit Breaker (Limite de Tentativas) acoplado a um 
+     * Exponential Backoff (Espera Progressiva) para proteger o backend e a experiência do usuário.
+     * 
+     * @param {number} tentativa - O número da tentativa atual (Inicia em 1).
      */
-    const verificarSaude = async () => {
+    const verificarSaude = async (tentativa: number = 1) => {
+      // Constantes arquiteturais de resiliência
+      const MAX_TENTATIVAS = 5;
+      const TEMPO_BASE_MS = 3000;
+      const CAP_TEMPO_MS = 20000;
+
       try {
         const res = await fetch("/api/health");
 
+        // Rate limit: Aguardamos um tempo fixo e não penalizamos o contador de retentativas
         if (res.status === 429) {
           setMensagem("Muitas requisições. Aguardando liberação");
-          setTimeout(verificarSaude, 5000);
+          setTimeout(() => verificarSaude(tentativa), 5000);
           return;
         }
 
-        if (res.status === 403) {
-          setMensagem("Acesso negado: Chave de API inválida");
+        // Erros Críticos (Falhas definitivas onde retentar é inútil)
+        if (res.status === 403 || res.status === 503) {
+          setMensagem(res.status === 403 ? "Acesso negado: Chave de API inválida" : "Serviço indisponível: Falha nos recursos");
           setTimeout(() => router.push("/formulario"), 3000);
           return;
         }
 
-        if (res.status === 503) {
-          setMensagem("Serviço indisponível: Falha nos recursos");
-          setTimeout(() => router.push("/formulario"), 3000);
-          return;
-        }
-
+        // Cenário de comunicação bem-sucedida
         if (res.ok) {
           const data = await res.json().catch(() => ({}));
 
+          // Trata os casos onde o contêiner de ML/API está em processo de boot
           if (data.status === "warming_up" || data.ml_api === "waking_up") {
-            setMensagem("Simulador de custos inicializando");
-            setTimeout(verificarSaude, 3000);
-            return;
+            throw new Error("Warming up"); // Força a cair no catch para aplicar o Backoff
           }
 
+          // Gatilho final: API totalmente pronta. Libera o carregamento em paralelo.
           if (data.status === "healthy") {
             processarAnalise();
             return;
           }
         }
 
-        // Fallback: se respondeu 502/504 (Gateway timeout) indicando que a nuvem está subindo.
-        setMensagem("Esperando API acordar");
-        setTimeout(verificarSaude, 3000);
+        // Fallback: qualquer status não-ok (ex: 502/504) indica que o backend falhou ou está subindo.
+        throw new Error(`API não pronta ou indisponível (Status: ${res.status})`);
       } catch (error) {
-        // Erro de rede (API completamente offline ou em reboot profundo)
+        // O Circuit Breaker atua: Excedeu as 5 tentativas e corta o loop de sondagem.
+        if (tentativa >= MAX_TENTATIVAS) {
+          console.error("[Circuit Breaker] Falha na verificação de saúde após número máximo de tentativas.");
+          setMensagem("Serviço temporariamente indisponível. Tente novamente mais tarde");
+          setTimeout(() => router.push("/formulario"), 4000);
+          return;
+        }
+
+        // Exponential Backoff: Aumenta progressivamente o tempo de espera
+        // Fórmula: min(3000 * 2^(tentativa - 1), 20000)
+        const tempoEspera = Math.min(TEMPO_BASE_MS * Math.pow(2, tentativa - 1), CAP_TEMPO_MS);
+        
         setMensagem("Esperando API acordar");
-        setTimeout(verificarSaude, 3000);
+        
+        // Agenda a próxima tentativa aplicando o delay calculado
+        setTimeout(() => verificarSaude(tentativa + 1), tempoEspera);
       }
     };
 
-    verificarSaude();
+    verificarSaude(1);
   }, [dadosFazenda, router, setDiagnosticoIA, setResultadoSimulacao]);
 
   return (

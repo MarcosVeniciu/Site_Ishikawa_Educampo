@@ -221,6 +221,7 @@ site_ishikawa_educampo/
 │   ├── lib/                                         # Bibliotecas, utilitários e validações
 │   │   ├── constants.ts                             # Constantes da aplicação.
 │   │   ├── schemas.ts                               # Zod schemas para validação estrita (Input Validation).
+│   │   ├── apiUtils.ts                              # Funções globais de resiliência (Circuit Breaker/Backoff).
 │   │   └── README.md                                # Documentação das lógicas utilitárias.
 │   ├── types/                                       # Tipagens do TypeScript
 │   │   ├── diagnostico.ts
