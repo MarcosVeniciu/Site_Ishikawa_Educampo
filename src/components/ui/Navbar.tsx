@@ -57,11 +57,27 @@ export function Navbar() {
             />
           </div>
           
-          {/* Botão Hamburger */}
+          {/* LADO DIREITO (MODO DESKTOP): Links Pill com Ícones */}
+          <div className="hidden md:flex items-center gap-1 lg:gap-4 font-bold text-sm lg:text-base text-gray-600">
+            <Link href="/diagnostico" className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-blue-50 hover:text-[#1973d3] transition-colors">
+              <BarChart2 size={18} />
+              Diagnóstico
+            </Link>
+            <Link href="/simulacao" prefetch={false} className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-amber-50 hover:text-amber-600 transition-colors">
+              <Lightbulb size={18} />
+              Simulador de Cenários
+            </Link>
+            <Link href="/ajustes" className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-slate-100 hover:text-slate-700 transition-colors">
+              <Settings size={18} />
+              Atualizar Dados
+            </Link>
+          </div>
+
+          {/* Botão Hamburger (MODO MOBILE) */}
           <button
             ref={buttonRef}
             onClick={toggleMenu}
-            className="w-11 h-11 flex flex-col items-center justify-center gap-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors relative z-[60]"
+            className="md:hidden w-11 h-11 flex flex-col items-center justify-center gap-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors relative z-[60]"
             aria-label={isMenuOpen ? "Fechar menu" : "Abrir menu"}
           >
             <span className={`block h-0.5 w-6 bg-current rounded-full transition-all duration-300 ease-out ${isMenuOpen ? 'translate-y-2 rotate-45' : ''}`}></span>
@@ -70,10 +86,10 @@ export function Navbar() {
           </button>
         </div>
 
-        {/* Menu Dropdown Expandido */}
+        {/* Menu Dropdown Expandido (MODO MOBILE APENAS) */}
         <div
           ref={menuRef}
-          className={`absolute top-2 right-4 w-[28rem] bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden origin-top transition-all duration-500 ease-out z-[55] ${
+          className={`md:hidden absolute top-2 right-4 w-[28rem] max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden origin-top transition-all duration-500 ease-out z-[55] ${
             isMenuOpen 
               ? 'opacity-100 translate-y-0 visible' 
               : 'opacity-0 -translate-y-12 invisible pointer-events-none'
