@@ -15,6 +15,7 @@ import { X, BookOpen } from 'lucide-react';
  */
 interface Raciocinio {
   id: string | number;
+  fontes?: string[];
   analise_tecnica: string;
 }
 
@@ -35,10 +36,11 @@ interface TextoComCitacoesProps {
  * @returns {React.JSX.Element} Documento HTML dinâmico com eventos em hooks que ativam Modal Flutuante para os botões recriados.
  */
 export const TextoComCitacoes: React.FC<TextoComCitacoesProps> = ({ texto, raciocinios = [] }) => {
-  const [citacaoAtiva, setCitacaoAtiva] = useState<Raciocinio | null>(null);
+  const [citacoesAtivas, setCitacoesAtivas] = useState<Raciocinio[] | null>(null);
+  const [isAccordionOpen, setIsAccordionOpen] = useState(false);
 
-  // Regex para encontrar padrões como [1], [2], [10]
-  const regex = /(\[\d+\])/g;
+  // Regex para encontrar padrões de blocos como [1], [1, 2], [1, 2, 3]
+  const regex = /(\[[\d,\s]+\])/g;
   
   // Quebra a string em um array preservando as marcações
   const partes = texto.split(regex);
@@ -47,23 +49,24 @@ export const TextoComCitacoes: React.FC<TextoComCitacoesProps> = ({ texto, racio
     <>
       <div className="text-lg leading-relaxed text-blue-50">
         {partes.map((parte, index) => {
-          // Verifica se a parte atual é uma marcação (ex: "[1]")
-          const match = parte.match(/\[(\d+)\]/);
+          // Verifica se a parte atual é um bloco de marcação (ex: "[1, 2]")
+          const match = parte.match(/\[([\d,\s]+)\]/);
           
           if (match) {
-            const idCitacao = match[1]; // Extrai apenas o número "1"
-            const raciocinioEncontrado = raciocinios.find(r => String(r.id) === idCitacao);
+            // Extrai os IDs removendo os espaços e busca as fontes relacionadas
+            const ids = match[1].split(',').map(id => id.trim());
+            const raciociniosEncontrados = raciocinios.filter(r => ids.includes(String(r.id)));
 
-            // Se achou o raciocínio correspondente, renderiza como botão interativo
-            if (raciocinioEncontrado) {
+            // Se achou os raciocínios correspondentes, renderiza como botão interativo com ícone
+            if (raciociniosEncontrados.length > 0) {
               return (
                 <button
                   key={index}
-                  onClick={() => setCitacaoAtiva(raciocinioEncontrado)}
-                  className="inline-flex items-center justify-center mx-1 px-2 py-0.5 text-xs font-bold bg-[#1973d3] hover:bg-white text-white hover:text-[#003e7d] rounded cursor-pointer transition-colors shadow-sm align-super"
-                  title="Ver análise técnica"
+                  onClick={() => setCitacoesAtivas(raciociniosEncontrados)}
+                  className="inline-flex items-center justify-center mx-1 px-1.5 py-0.5 text-sm bg-yellow-100/10 hover:bg-yellow-400 text-yellow-200 hover:text-yellow-900 rounded-md cursor-pointer transition-all shadow-sm align-super border border-yellow-200/30"
+                  title="Ver embasamento deste trecho"
                 >
-                  {idCitacao}
+                  💡
                 </button>
               );
             }
@@ -73,28 +76,62 @@ export const TextoComCitacoes: React.FC<TextoComCitacoesProps> = ({ texto, racio
         })}
       </div>
 
-      {/* Modal de Análise Técnica */}
-      {citacaoAtiva && (
+      {/* Accordion Retrátil do Embasamento Técnico */}
+      {raciocinios.length > 0 && (
+        <div className="mt-8 border-t border-[#1973d3]/30 pt-4">
+          <button 
+            onClick={() => setIsAccordionOpen(!isAccordionOpen)}
+            className="flex items-center gap-2 text-sm font-bold text-blue-200 hover:text-white transition-colors w-full outline-none focus-visible:ring-2 focus-visible:ring-[#1973d3] rounded"
+          >
+            <span className={`transition-transform duration-300 ${isAccordionOpen ? 'rotate-180' : ''}`}>▼</span>
+            Ver Embasamento Técnico
+          </button>
+          
+          {isAccordionOpen && (
+            <div className="mt-5 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+              {raciocinios.map((raciocinio, index) => (
+                <div key={raciocinio.id} className={`flex flex-col gap-1.5 ${index > 0 ? 'border-t border-[#1973d3]/20 pt-4' : ''}`}>
+                  <p className="text-sm text-blue-50 leading-relaxed">
+                    {raciocinio.analise_tecnica}
+                  </p>
+                  {raciocinio.fontes && raciocinio.fontes.length > 0 && (
+                    <span className="text-xs text-blue-200/70 italic font-medium">
+                      Baseado em: {raciocinio.fontes.join(', ')}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Modal de Análise Técnica (Agrupada) */}
+      {citacoesAtivas && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden flex flex-col">
             <div className="flex justify-between items-center p-4 border-b border-gray-100 bg-gray-50">
               <h3 className="font-bold text-[#003e7d] flex items-center gap-2">
                 <BookOpen size={18} className="text-[#1973d3]" />
-                Fundamento Técnico (Citação [{citacaoAtiva.id}])
+                Fundamento Técnico
               </h3>
               <button 
-                onClick={() => setCitacaoAtiva(null)}
+                onClick={() => setCitacoesAtivas(null)}
                 className="text-gray-400 hover:text-red-500 transition-colors"
               >
                 <X size={20} />
               </button>
             </div>
             <div className="p-6 text-gray-700 text-sm leading-relaxed max-h-[70vh] overflow-y-auto">
-              {citacaoAtiva.analise_tecnica}
+              {citacoesAtivas.map((citacao, idx) => (
+                <div key={citacao.id} className={idx > 0 ? "mt-4 pt-4 border-t border-gray-100" : ""}>
+                  <p>{citacao.analise_tecnica}</p>
+                </div>
+              ))}
             </div>
             <div className="p-4 bg-gray-50 border-t border-gray-100 text-right">
               <button
-                onClick={() => setCitacaoAtiva(null)}
+                onClick={() => setCitacoesAtivas(null)}
                 className="px-4 py-2 bg-[#1973d3] text-white text-sm font-medium rounded-lg hover:bg-[#003e7d] transition-colors"
               >
                 Fechar

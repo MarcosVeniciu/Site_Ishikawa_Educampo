@@ -54,6 +54,133 @@ const TABS = [
 ];
 
 /**
+ * @description Dicionário visual que atua como tradutor semântico.
+ * Converte a string de "status" crua em estilos e iconografia do Tailwind.
+ * @param {StatusComparacao | string} status String classificada da métrica (ex: positivo, negativo, alerta).
+ * @returns {Object} Objeto contendo propriedades 'bg', 'text', 'border' com as classes utilitárias do Tailwind e 'icon' com elemento JSX.
+ */
+const getStatusUI = (status?: StatusComparacao | string) => {
+  switch (status) {
+    case 'positivo':
+      return {
+        bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200',
+        icon: <TrendingUp size={24} className="text-green-600" />
+      };
+    case 'negativo':
+      return {
+        bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200',
+        icon: <TrendingDown size={24} className="text-red-600" />
+      };
+    case 'alerta':
+    case 'critico':
+      return {
+        bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200',
+        icon: <AlertTriangle size={24} className="text-amber-600" />
+      };
+    case 'neutro':
+    default:
+      return {
+        bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200',
+        icon: <Minus size={24} className="text-gray-600" />
+      };
+  }
+};
+
+/**
+ * @description Função utilitária para formatar os valores numéricos no padrão de localização pt-BR.
+ * @param {any} val Valor bruto recebido da API.
+ * @returns {string} String do valor já formatada.
+ */
+const formatValor = (val: any) => {
+  if (val === undefined || val === null) return '';
+  if (typeof val === 'number') return val.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+  if (!isNaN(Number(val)) && String(val).trim() !== '') return Number(val).toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+  return String(val);
+};
+
+/**
+ * @description Subcomponente para renderizar um card de benchmarking interativo.
+ * Aplica um efeito de "flip" 3D para revelar a análise detalhada e o valor de referência,
+ * reduzindo a carga cognitiva da tela principal e oferecendo os dados sob demanda.
+ */
+const BenchmarkingCard = ({ card }: { card: BenchmarkingCardData }) => {
+  const [isFlipped, setIsFlipped] = useState(false);
+  const isComparativo = card.valor_referencia !== undefined;
+  const ui = getStatusUI(card.status_comparacao);
+
+  return (
+    <button
+      type="button"
+      onClick={() => setIsFlipped(!isFlipped)}
+      className="group relative w-full text-left outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-xl"
+      style={{ perspective: '1000px' }}
+      aria-expanded={isFlipped}
+      aria-label={`Ver detalhes de ${card.titulo}`}
+    >
+      <div 
+        className="relative w-full transition-transform duration-500 ease-out shadow-sm rounded-xl"
+        style={{ 
+          transformStyle: 'preserve-3d', 
+          transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' 
+        }}
+      >
+        {/* Frente do Card (dita a altura mínima do container) */}
+        <div 
+          className="bg-white p-6 rounded-xl border border-gray-100 flex flex-col justify-between w-full min-h-[140px]"
+          style={{ backfaceVisibility: 'hidden' }}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm text-gray-500 font-medium uppercase tracking-wider">{card.titulo}</p>
+            {isComparativo && ui.icon}
+          </div>
+          <div className="mt-auto">
+            <span className="sr-only">{card.valor_produtor} {card.unidade_medida || ''}</span>
+            <div aria-hidden="true" className="flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold text-gray-800">
+                  {formatValor(card.valor_produtor)}
+                </span>
+                {card.unidade_medida && (
+                  <span className="text-sm font-normal text-gray-500">{card.unidade_medida}</span>
+                )}
+              </div>
+              {isComparativo && card.mensagem_curta && (
+                <span className={`shrink-0 inline-block px-3 py-1 rounded-full text-[11px] font-bold border ${ui.bg} ${ui.text} ${ui.border}`}>
+                  {card.mensagem_curta}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Verso do Card */}
+        <div 
+          className="absolute inset-0 bg-white p-6 rounded-xl border-2 border-[#1973d3] flex flex-col justify-center shadow-md"
+          style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+        >
+          <div className="flex items-baseline gap-1.5 mb-3 border-b border-gray-100 pb-2">
+            <span className="text-xl font-bold text-gray-800">
+              {formatValor(card.valor_produtor)}
+            </span>
+            {card.unidade_medida && (
+              <span className="text-xs font-normal text-gray-500">{card.unidade_medida}</span>
+            )}
+          </div>
+          <p className="text-xs text-gray-600 leading-relaxed font-medium">
+            {card.mensagem_detalhada}
+          </p>
+          {isComparativo && (
+            <span className="block mt-3 font-bold text-gray-400 text-[11px] uppercase tracking-wider">
+              Ref: {formatValor(card.valor_referencia)} {card.unidade_medida || ''}
+            </span>
+          )}
+        </div>
+      </div>
+    </button>
+  );
+};
+
+/**
  * @description Tela principal do Hub 360º de Diagnóstico.
  * Consome o Zustand ativamente após hidratação e constrói de forma unificada:
  * 1. O painel de Benchmarking
@@ -94,39 +221,6 @@ export default function DiagnosticoPage() {
       </div>
     );
   }
-
-  /**
-   * @description Dicionário visual que atua como tradutor semântico.
-   * Converte a string de "status" crua em estilos e iconografia do Tailwind.
-   * @param {StatusComparacao | string} status String classificada da métrica (ex: positivo, negativo, alerta).
-   * @returns {Object} Objeto contendo propriedades 'bg', 'text', 'border' com as classes utilitárias do Tailwind e 'icon' com elemento JSX.
-   */
-  const getStatusUI = (status?: StatusComparacao | string) => {
-    switch (status) {
-      case 'positivo':
-        return {
-          bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200',
-          icon: <TrendingUp size={24} className="text-green-600" />
-        };
-      case 'negativo':
-        return {
-          bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200',
-          icon: <TrendingDown size={24} className="text-red-600" />
-        };
-      case 'alerta':
-      case 'critico':
-        return {
-          bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200',
-          icon: <AlertTriangle size={24} className="text-amber-600" />
-        };
-      case 'neutro':
-      default:
-        return {
-          bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200',
-          icon: <Minus size={24} className="text-gray-600" />
-        };
-    }
-  };
 
   /**
    * @description Extração segura do array de benchmarking processado pela IA e armazenado no estado global.
@@ -212,60 +306,9 @@ export default function DiagnosticoPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {benchmarks.length > 0 ? (
-              benchmarks.map((card, index) => {
-                const isComparativo = card.valor_referencia !== undefined;
-                const ui = getStatusUI(card.status_comparacao);
-                
-                /**
-                 * @description Função utilitária para formatar os valores numéricos no padrão de localização pt-BR.
-                 * Executa parsing seguro testando os tipos primitivos e strings antes de executar toLocaleString.
-                 * @param {any} val Valor bruto recebido da API.
-                 * @returns {string} String do valor já formatada.
-                 */
-                const formatValor = (val: any) => {
-                  if (val === undefined || val === null) return '';
-                  if (typeof val === 'number') return val.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
-                  if (!isNaN(Number(val)) && String(val).trim() !== '') return Number(val).toLocaleString('pt-BR', { maximumFractionDigits: 2 });
-                  return String(val);
-                };
-
-                return (
-                  <div key={index} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="text-sm text-gray-500 font-medium uppercase tracking-wider">{card.titulo}</p>
-                        {isComparativo && ui.icon}
-                      </div>
-                      <div className="mt-2">
-                        <span className="sr-only">{card.valor_produtor} {card.unidade_medida || ''}</span>
-                        <div aria-hidden="true" className="flex items-baseline gap-2">
-                          <span className="text-3xl font-bold text-gray-800">
-                            {formatValor(card.valor_produtor)}
-                          </span>
-                          {card.unidade_medida && (
-                            <span className="text-base font-normal text-gray-500">{card.unidade_medida}</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-4 space-y-2">
-                      {isComparativo && card.mensagem_curta && (
-                        <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold border ${ui.bg} ${ui.text} ${ui.border}`}>
-                          {card.mensagem_curta}
-                        </span>
-                      )}
-                      <p className="text-xs text-gray-500 leading-relaxed">
-                        {card.mensagem_detalhada}
-                        {isComparativo && (
-                          <span className="block mt-1 font-medium text-gray-400">
-                            (Ref: {formatValor(card.valor_referencia)} {card.unidade_medida || ''})
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })
+              benchmarks.map((card, index) => (
+                <BenchmarkingCard key={index} card={card} />
+              ))
             ) : (
               <p className="text-gray-500 italic md:col-span-3">Carregando dados de benchmarking...</p>
             )}
