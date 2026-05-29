@@ -8,7 +8,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Navbar } from '@/components/ui/Navbar';
 import { useFazendaStore } from '@/store/useFazendaStore';
 import { TrendingUp, TrendingDown, Minus, Loader2, RotateCcw, ChevronDown } from 'lucide-react';
@@ -177,7 +177,7 @@ export default function SimulacaoPage() {
    */
   const restaurarValoresOriginais = () => {
     if (dadosFazenda) {
-      setSimulacao({
+      const valoresOriginais = {
         total_vacas: dadosFazenda.total_vacas || 100,
         percentual_lactacao: dadosFazenda.percentual_lactacao || 85,
         producao_vaca: dadosFazenda.producao_vaca || 30.0,
@@ -186,7 +186,9 @@ export default function SimulacaoPage() {
         ccs: dadosFazenda.ccs || 150,
         numero_trabalhadores: dadosFazenda.mao_obra_total || 2,
         custo_concentrado: dadosFazenda.preco_concentrado || 2.00,
-      });
+      };
+      setSimulacao(valoresOriginais);
+      executarSimulacao(valoresOriginais);
     }
   };
 
@@ -216,15 +218,26 @@ export default function SimulacaoPage() {
   }, [tempoBloqueio]);
 
   /**
+   * Ref para o AbortController nativo, garantindo que o disparo contínuo de simulações
+   * cancele as requisições antigas "em voo" e não gere condições de corrida nos gráficos.
+   */
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  /**
    * @description Mescla as edições locais da simulação e solicita à API
    * externa a projeção avançada de custo (Machine Learning) e re-divisão dos quartis.
    * O resultado é mesclado ao estado global para não sobrescrever e perder os parâmetros do painel (`parametros_painel`).
    */
-  const executarSimulacao = async () => {
+  const executarSimulacao = async (estadoSimulacao = simulacao) => {
     if (!dadosFazenda) return;
 
-    setIsSimulando(true);
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
+    setIsSimulando(true);
     const payloadSimulacao = {
       dados_originais: {
         area_atividade: dadosFazenda.area_atividade,
@@ -239,14 +252,14 @@ export default function SimulacaoPage() {
         percentual_lactacao: dadosFazenda.percentual_lactacao
       },
       dados_simulados: {
-        area_atividade: simulacao.area_atividade,
-        ccs: simulacao.ccs,
-        custo_concentrado: simulacao.custo_concentrado,
-        numero_trabalhadores: simulacao.numero_trabalhadores,
-        preco_recebido: simulacao.preco_recebido,
-        producao_vaca: simulacao.producao_vaca,
-        total_vacas: simulacao.total_vacas,
-        percentual_lactacao: simulacao.percentual_lactacao
+        area_atividade: estadoSimulacao.area_atividade,
+        ccs: estadoSimulacao.ccs,
+        custo_concentrado: estadoSimulacao.custo_concentrado,
+        numero_trabalhadores: estadoSimulacao.numero_trabalhadores,
+        preco_recebido: estadoSimulacao.preco_recebido,
+        producao_vaca: estadoSimulacao.producao_vaca,
+        total_vacas: estadoSimulacao.total_vacas,
+        percentual_lactacao: estadoSimulacao.percentual_lactacao
       }
     };
 
@@ -255,6 +268,7 @@ export default function SimulacaoPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payloadSimulacao),
+        signal: controller.signal
       });
 
       /**
@@ -275,9 +289,15 @@ export default function SimulacaoPage() {
         console.error("Falha na simulação");
       }
     } catch (error) {
+      if ((error as Error).name === 'AbortError') {
+        console.log('Requisição anterior cancelada devido a nova interação do usuário.');
+        return;
+      }
       console.error("Erro ao simular:", error);
     } finally {
-      setIsSimulando(false);
+      if (abortControllerRef.current === controller) {
+        setIsSimulando(false);
+      }
     }
   };
 
@@ -308,7 +328,11 @@ export default function SimulacaoPage() {
       const param = getParam(chave);
       if (num < param.min) num = param.min;
       if (num > param.max) num = param.max;
-      setSimulacao(prev => ({ ...prev, [chave]: num }));
+      if (num !== simulacao[chave]) {
+        const novoEstado = { ...simulacao, [chave]: num };
+        setSimulacao(novoEstado);
+        executarSimulacao(novoEstado);
+      }
     }
   };
 
@@ -379,10 +403,14 @@ export default function SimulacaoPage() {
   const renderControl = (chave: ParamKey, titulo: string, formatText: (v: number) => string, inverterLogicaWarning: boolean = false) => {
     const param = getParam(chave);
     const val = simulacao[chave];
+    const isDesabilitado = isSimulando || tempoBloqueio > 0;
+
     let warning = null;
     let corSlider = 'accent-primary';
 
-    if (param.fronteiras_cenario) {
+    if (isDesabilitado) {
+      corSlider = 'accent-gray-400 cursor-not-allowed';
+    } else if (param.fronteiras_cenario) {
       if (val < param.fronteiras_cenario.limite_inferior || val > param.fronteiras_cenario.limite_superior) {
         corSlider = 'accent-orange-500';
       }
@@ -440,12 +468,13 @@ export default function SimulacaoPage() {
               onChange={(e) => setValorTemp(e.target.value)}
               onBlur={() => handleEditBlur(chave)}
               onKeyDown={(e) => handleEditKeyDown(e, chave)}
+              disabled={isDesabilitado}
             />
           ) : (
             <span 
-              className="text-primary cursor-pointer hover:underline decoration-dashed underline-offset-2 shrink-0 text-right font-medium"
-              onClick={(e) => { e.preventDefault(); handleEditClick(chave, val); }}
-              title="Clique para realizar um ajuste fino"
+              className={`${isDesabilitado ? 'text-gray-400 cursor-not-allowed' : 'text-primary cursor-pointer hover:underline'} decoration-dashed underline-offset-2 shrink-0 text-right font-medium`}
+              onClick={(e) => { e.preventDefault(); if (!isDesabilitado) handleEditClick(chave, val); }}
+              title={isDesabilitado ? 'Aguarde o cálculo do cenário...' : 'Clique para realizar um ajuste fino'}
             >
               {formatText(val)}
             </span>
@@ -456,6 +485,13 @@ export default function SimulacaoPage() {
           id={chave} name={chave} type="range" 
           min={param.min} max={param.max} step={param.step} 
           value={val} onChange={handleChange}
+          disabled={isDesabilitado}
+          onPointerUp={(e) => { if (!isDesabilitado) executarSimulacao({ ...simulacao, [chave]: parseFloat(e.currentTarget.value) }); }}
+          onKeyUp={(e) => {
+            if (!isDesabilitado && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+              executarSimulacao({ ...simulacao, [chave]: parseFloat(e.currentTarget.value) });
+            }
+          }}
           className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-3 mb-1 transition-colors ${corSlider}`}
         />
 
@@ -601,19 +637,11 @@ export default function SimulacaoPage() {
               </div>
             </div>
 
-            <button 
-              onClick={executarSimulacao}
-              disabled={isSimulando || tempoBloqueio > 0}
-              className={`w-full py-3 mt-4 rounded-xl font-bold text-white transition-all shadow-md ${
-                tempoBloqueio > 0 || isSimulando ? 'bg-gray-400 cursor-not-allowed' : 'bg-primary hover:bg-[#003e7d]'
-              }`}
-            >
-              {tempoBloqueio > 0 
-                ? `Aguarde ${tempoBloqueio}s` 
-                : isSimulando 
-                  ? 'A Calcular...' 
-                  : 'Analisar Cenário (ML)'}
-            </button>
+            {tempoBloqueio > 0 && (
+              <div className="w-full py-3 mt-4 rounded-xl font-bold text-center text-white bg-gray-400 transition-all shadow-sm">
+                Limitar taxa: Aguarde {tempoBloqueio}s
+              </div>
+            )}
           </div>
         </aside>
 

@@ -131,7 +131,7 @@ describe('Dashboard de Simulação (SimulacaoPage)', () => {
     expect(screen.getByLabelText(/Produção por vaca/i)).toHaveValue('30');
   });
 
-  it('Deve enviar os dados atualizados para a API ao mover o slider e clicar em analisar', async () => {
+  it('Deve enviar os dados atualizados para a API automaticamente ao interagir com o controle (onPointerUp)', async () => {
     render(<SimulacaoPage />);
     
     // Produção diária inicial: 85 vacas em lactação * 30L = 2550L
@@ -140,11 +140,10 @@ describe('Dashboard de Simulação (SimulacaoPage)', () => {
 
     const inputVacasLactacao = screen.getByLabelText(/Percentual em Lactação/i);
     
-    // Simula o produtor movendo o slider de 85 para 100% de lactação
+    // Simula o produtor movendo o slider de 85 para 100% de lactação e soltando o clique/toque
     fireEvent.change(inputVacasLactacao, { target: { value: '100' } });
 
-    const btnAnalisar = screen.getByRole('button', { name: /Analisar Cenário/i });
-    fireEvent.click(btnAnalisar);
+    fireEvent.pointerUp(inputVacasLactacao);
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith('/api/simulacao', expect.objectContaining({
@@ -166,7 +165,7 @@ describe('Dashboard de Simulação (SimulacaoPage)', () => {
     expect(btnSuperior).toHaveClass('bg-primary'); 
   });
 
-  it('Deve bloquear o botão e exibir contador de 60s ao receber erro 429 (Rate Limit)', async () => {
+  it('Deve desabilitar os controles e exibir contador de 60s ao receber erro 429 (Rate Limit)', async () => {
     // 1. Forçamos o fetch a devolver o erro 429
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: false,
@@ -176,14 +175,33 @@ describe('Dashboard de Simulação (SimulacaoPage)', () => {
 
     render(<SimulacaoPage />);
 
-    // 2. Simulamos o clique no botão de Análise
-    const btnAnalisar = screen.getByRole('button', { name: /Analisar Cenário/i });
-    fireEvent.click(btnAnalisar);
+    // 2. Simulamos a interação em um controle para disparar a API
+    const inputVacasLactacao = screen.getByLabelText(/Percentual em Lactação/i);
+    fireEvent.pointerUp(inputVacasLactacao);
 
-    // 3. Esperamos que a interface mude para o modo de bloqueio e exiba o contador
+    // 3. Esperamos que a interface desabilite o slider e exiba o contador de rate limit
     await waitFor(() => {
-      expect(btnAnalisar).toBeDisabled();
-      expect(btnAnalisar).toHaveTextContent(/Aguarde 60s/i); 
+      expect(inputVacasLactacao).toBeDisabled();
+      expect(screen.getByText(/Limitar taxa: Aguarde 60s/i)).toBeInTheDocument();
     });
+  });
+
+  it('Deve cancelar requisições anteriores em voo (AbortController) se múltiplas interações ocorrerem rapidamente', async () => {
+    const abortSpy = jest.spyOn(AbortController.prototype, 'abort');
+    render(<SimulacaoPage />);
+
+    const btnRestore = screen.getByTitle(/Restaurar valores originais/i);
+
+    // O botão de restaurar não sofre bloqueio de UI, permitindo simular requisições sobrepostas síncronas.
+    fireEvent.click(btnRestore);
+    fireEvent.click(btnRestore);
+
+    await waitFor(() => {
+      // A segunda interação deve obrigatoriamente ter chamado .abort() na requisição da primeira
+      expect(abortSpy).toHaveBeenCalled();
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+    });
+
+    abortSpy.mockRestore();
   });
 });
