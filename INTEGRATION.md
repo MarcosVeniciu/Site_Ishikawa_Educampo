@@ -29,7 +29,7 @@ Para rotas protegidas, o seguinte header é mandatório:
     | `sistema_producao` | string | `"compost_barn"` | Sistema produtivo (ex: "compost_barn", "confinado", "semi_confinado"). |
     | `regiao_sebrae` | string | `"triangulo"` | Região geográfica para fins de benchmarking. |
     | `total_vacas` | integer | `100` | Número total de vacas (em lactação ou secas). |
-    | `vacas_lactacao` | integer | `85` | Número de vacas atualmente em lactação. |
+    | `percentual_lactacao` | float | `85.0` | Percentual do rebanho de vacas que estão em lactação atualmente (0 a 100). |
     | `total_rebanho` | integer | `120` | Número total de animais na propriedade. |
     | `area_atividade` | float | `10.0` | Área em hectares dedicada à atividade leiteira. |
     | `numero_trabalhadores`| integer | `2` | Número de funcionários diretos na atividade. |
@@ -56,7 +56,7 @@ Para rotas protegidas, o seguinte header é mandatório:
       "sistema_producao": "compost_barn",
       "total_rebanho": 120,
       "total_vacas": 100,
-      "vacas_lactacao": 85
+      "percentual_lactacao": 85.0
     }'
     ```
 
@@ -164,7 +164,7 @@ Para rotas protegidas, o seguinte header é mandatório:
     "regiao_sebrae": "triangulo",
     "sistema_producao": "compost_barn",
     "total_vacas": 100,
-    "vacas_lactacao": 60
+    "percentual_lactacao": 60.0
   },
   "dados_simulados": {
     "area_atividade": 10,
@@ -174,7 +174,7 @@ Para rotas protegidas, o seguinte header é mandatório:
     "preco_recebido": 3.2,
     "producao_vaca": 35,
     "total_vacas": 100,
-    "vacas_lactacao": 85
+    "percentual_lactacao": 85.0
   }
     }'
     ```

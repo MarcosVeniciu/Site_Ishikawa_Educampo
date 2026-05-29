@@ -85,7 +85,7 @@ const BarChartSimulacao = ({
   };
 
   return (
-    <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-between h-64">
+    <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-between h-56">
       {/* Cabeçalho Flexbox Inteligente */}
       <div className="flex justify-between items-start gap-4 mb-4">
         <h3 className="text-sm font-bold text-gray-700 leading-tight">{titulo}</h3>
@@ -102,7 +102,7 @@ const BarChartSimulacao = ({
       {/* Container das Barras (Cresce de baixo para cima) */}
       <div className="flex-1 flex items-end justify-center gap-6 pb-2">
         {/* Barra Simulada (Em Tempo Real) */}
-        <div className="flex flex-col items-center justify-end w-16 group h-full">
+        <div className="flex flex-col items-center justify-end w-14 group h-full">
           <span className={`text-xs font-bold mb-1 ${corTextoSimulado}`}>
             {formatNumber(valorSimulado)}
           </span>
@@ -119,7 +119,7 @@ const BarChartSimulacao = ({
         </div>
 
         {/* Barra de Referência (Educampo) */}
-        <div className="flex flex-col items-center justify-end w-16 group h-full">
+        <div className="flex flex-col items-center justify-end w-14 group h-full">
           <span className="text-xs text-gray-500 mb-1 font-medium">{formatNumber(valorReferencia)}</span>
           <div 
             className="w-full bg-primary rounded-t-sm transition-all duration-500 ease-out relative"
@@ -508,7 +508,7 @@ export default function SimulacaoPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
       
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8">
+      <main className="flex-1 max-w-[95%] w-full mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8">
         
         {/* PAINEL ESQUERDO: CONTROLES (Inputs & Sliders) */}
         <aside className="w-full lg:w-80 flex-shrink-0 bg-white rounded-2xl shadow-lg border border-gray-100 p-6 flex flex-col h-max sticky top-8">
@@ -637,27 +637,32 @@ export default function SimulacaoPage() {
         {/* PAINEL DIREITO: TABS E GRÁFICOS */}
         <section className="flex-1 flex flex-col">
           
-          {/* Topo: Tabs de Cenário Educampo */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-2 flex gap-2 mb-6 w-max mx-auto">
-            {(['inferior', 'intermediario', 'superior'] as const).map(cenario => (
-              <button
-                key={cenario}
-                onClick={() => setCenarioAtivo(cenario)}
-                className={`px-6 py-2 rounded-xl text-sm font-bold capitalize transition-all duration-300 ${
-                  cenarioAtivo === cenario 
-                  ? 'bg-primary text-white shadow-md' 
-                  : 'text-gray-500 hover:bg-gray-100'
-                }`}
-              >
-                {cenario}
-              </button>
-            ))}
+          {/* Topo: Bloco de Controle de Cenário (Card Unificado) */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-6 flex flex-col items-center w-full">
+            <h3 className="text-gray-800 font-bold text-lg text-center">Perfil de desempenho</h3>
+            <p className="text-gray-500 text-sm text-center mb-4">Selecione o perfil de desempenho que deseja alcançar</p>
+            
+            <div className="bg-gray-50 border border-gray-100/50 rounded-2xl p-1.5 flex gap-1">
+              {(['inferior', 'intermediario', 'superior'] as const).map(cenario => (
+                <button
+                  key={cenario}
+                  onClick={() => setCenarioAtivo(cenario)}
+                  className={`px-6 py-2 rounded-xl text-sm font-bold capitalize transition-all duration-300 ${
+                    cenarioAtivo === cenario 
+                    ? 'bg-primary text-white shadow-md' 
+                    : 'text-gray-500 hover:bg-gray-200'
+                  }`}
+                >
+                  {cenario}
+                </button>
+              ))}
+            </div>
           </div>
 
           {isSimulando && !resultadoSimulacao?.simulacao ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-500">
-              {Array.from({ length: 10 }).map((_, index) => (
-                <div key={index} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col h-64 items-center justify-center relative overflow-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6 animate-in fade-in duration-500">
+              {Array.from({ length: 9 }).map((_, index) => (
+                <div key={index} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col h-20 items-center justify-center relative overflow-hidden">
                   <div className="absolute inset-0 bg-gray-50 opacity-50"></div>
                   <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
                   <span className="text-sm font-bold text-gray-400">Projetando cenários...</span>
@@ -665,7 +670,7 @@ export default function SimulacaoPage() {
               ))}
             </div>
           ) : resultadoSimulacao?.simulacao ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-500">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6 animate-in fade-in duration-500">
               {renderMetricCards([
                 ...resultadoSimulacao.simulacao.estaticas,
                 ...resultadoSimulacao.simulacao.operacionais,
@@ -673,7 +678,7 @@ export default function SimulacaoPage() {
               ])}
             </div>
           ) : (
-             <div className="flex justify-center items-center h-64 text-gray-400">Aguardando dados...</div>
+             <div className="flex justify-center items-center h-56 text-gray-400">Aguardando dados...</div>
           )}
         </section>
 

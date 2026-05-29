@@ -59,8 +59,8 @@ export async function POST(req: NextRequest) {
       sistema_producao: validation.data.sistema_producao,
       total_rebanho: validation.data.animais_rebanho,       // Frontend -> Backend
       total_vacas: validation.data.total_vacas,
-      // BFF atuando como inteligência agregadora: calculando número absoluto de vacas em lactação
-      vacas_lactacao: Math.round(validation.data.total_vacas * (validation.data.percentual_lactacao / 100))
+      // BFF repassa o percentual coletado diretamente para a API Python, delegando a responsabilidade do cálculo zootécnico
+      percentual_lactacao: validation.data.percentual_lactacao
     };
 
     // 2.1 Verificação de Feature Flag (Security by Design)
