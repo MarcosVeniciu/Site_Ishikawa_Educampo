@@ -5,7 +5,7 @@
  * 1. Recuperar os dados da fazenda salvos no Zustand.
  * 2. Enviar os dados para as APIs internas (BFF) de Diagnóstico e Simulação em paralelo.
  * 3. Gerenciar o estado de espera visual do usuário com feedback elegante.
- * 4. Salvar os resultados retornados no estado global e redirecionar para a Tela de Diagnóstico.
+ * 4. Salvar os resultados retornados no estado global e redirecionar para a Tela de Seleção.
  */
 
 "use client";
@@ -111,8 +111,8 @@ export default function CarregandoPage() {
 
         setMensagem("Análise concluída! Montando seu Diagnóstico");
 
-        // Pequeno delay para garantir que o usuário veja a conclusão antes da troca de tela
-        setTimeout(() => router.push("/diagnostico"), 1500);
+        // Pequeno delay para garantir que o usuário veja a conclusão antes da troca de tela para a seleção de módulos
+        setTimeout(() => router.push("/selecao"), 1500);
       } catch (error) {
         console.error("Falha no processamento:", error);
         setMensagem("Ocorreu um erro ao processar os dados. Redirecionando");

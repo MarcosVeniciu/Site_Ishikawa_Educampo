@@ -28,6 +28,7 @@ A arquitetura do site foi pensada para acompanhar o produtor desde a entrada dos
 * **Login:** Porta de entrada segura para o usuário acessar o sistema.
 * **Coleta de Dados:** Formulário onde o produtor insere as informações-chave da fazenda (tamanho do rebanho, área, trabalhadores, produção, preço, qualidade do leite, etc.).
 * **Tela de Carregamento:** Feedback visual de espera enquanto o frontend envia os dados para a API analisar as informações e formatar as respostas com Inteligência Artificial.
+* **Tela de Seleção:** Ponto de bifurcação onde o produtor decide o seu caminho pós-carregamento escolhendo interativamente acessar o Diagnóstico ou a Simulação.
 * **Tela de Diagnóstico (Hub Central):** O painel principal de visualização de resultados e coração analítico do site, que apresenta:
     * **Benchmarking:** Comparativo de desempenho da fazenda *versus* a base de dados do Educampo.
     * **Resumo Estratégico (IA):** Visão geral da propriedade.
@@ -187,6 +188,9 @@ site_ishikawa_educampo/
 │   │   │   └── simulacao/                           # Rota para simulação interativa.
 │   │   │   └── README.md
 │   │   ├── carregando/                              # Tela de feedback visual e validação de hidratação de dados.
+│   │   │   └── page.tsx
+│   │   │   └── README.md
+│   │   ├── selecao/                                 # Tela de bifurcação (Split Screen) após o carregamento.
 │   │   │   └── page.tsx
 │   │   │   └── README.md
 │   │   ├── diagnostico/                             # Painel central unificado: Benchmarking, IA e Diagrama de Ishikawa.
@@ -381,6 +385,7 @@ A estratégia de implementação adota uma construção incremental em blocos. O
 - [x] **Consumo de Dados (Dashboard):** Implementar o **Dashboard Central**. Como a *store* já estará populada com dados reais do passo anterior, basta renderizar os blocos de Benchmarking e o Resumo Estratégico da IA.
 - [x] **Renderização Complexa:** Desenvolver a **Tela de Diagnóstico**, criando a lógica visual para montar o Diagrama de Ishikawa iterando sobre os dados já salvos no estado.
 - [x] **Ferramentas de Ajuste:** Finalizar com a **Tela de Simulação de Cenários** e a interface de **Ajuste de Dados**, reaproveitando os componentes já criados para permitir recálculos ágeis.
+- [x] **Tela de Seleção (Bifurcação):** Implementação de tela em *Split Screen* antes dos Dashboards.
 #### 🚧 Em Desenvolvimento (WIP: 1)
 
 #### 🎯 A Fazer

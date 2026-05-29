@@ -12,6 +12,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { SignJWT } from 'jose';
+import { SECURITY_CONSTANTS } from '@/lib/constants';
 
 // Chave secreta para assinatura do JWT (proveniente do .env)
 if (!process.env.ENCRYPTION_SECRET_KEY) {
@@ -46,11 +47,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Credenciais inválidas' }, { status: 401 });
     }
 
-    // Geração do token JWT com validade de 8 horas
+    // Geração do token JWT dinâmico baseado na Single Source of Truth
     const token = await new SignJWT({ user: username })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
-      .setExpirationTime('8h')
+      .setExpirationTime(SECURITY_CONSTANTS.MAX_TOKEN_AGE)
       .sign(SECRET_KEY);
 
     const response = NextResponse.json({ message: 'Login bem-sucedido' }, { status: 200 });
@@ -63,7 +64,7 @@ export async function POST(request: NextRequest) {
       secure: true, // Forçado true para conformidade estrita com o teste de segurança
       sameSite: 'strict',
       path: '/',
-      maxAge: 60 * 5, // 5 minutos em segundos
+      maxAge: SECURITY_CONSTANTS.COOKIE_MAX_AGE,
     });
 
     return response;
