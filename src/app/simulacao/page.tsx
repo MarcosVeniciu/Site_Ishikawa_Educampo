@@ -373,15 +373,20 @@ export default function SimulacaoPage() {
   const pNumeroTrabalhadores = getParam('numero_trabalhadores');
 
   /**
-   * Renderiza a etiqueta do campo com ícone de alerta caso o valor 
-   * esteja fora da fronteira do cenário atual.
-   * Permite o ajuste fino transformando o valor em um input ao clicar.
+   * @description Renderiza o grupo de controle completo (Label, Input Slider e Alertas).
+   * Posiciona a mensagem de alerta abaixo do slider e elimina duplicação de código.
    */
-  const renderLabel = (chave: ParamKey, titulo: string, formatText: (v: number) => string, isFirstItem: boolean = false, inverterLogicaWarning: boolean = false) => {
+  const renderControl = (chave: ParamKey, titulo: string, formatText: (v: number) => string, inverterLogicaWarning: boolean = false) => {
     const param = getParam(chave);
     const val = simulacao[chave];
     let warning = null;
+    let corSlider = 'accent-primary';
+
     if (param.fronteiras_cenario) {
+      if (val < param.fronteiras_cenario.limite_inferior || val > param.fronteiras_cenario.limite_superior) {
+        corSlider = 'accent-orange-500';
+      }
+
       let direcaoMudanca: 'melhora' | 'piora' | null = null;
 
       // Identifica a direção da simulação com base na lógica (direta ou invertida)
@@ -418,55 +423,52 @@ export default function SimulacaoPage() {
     }
 
     return (
-      <label htmlFor={chave} className="text-sm font-semibold text-gray-700 flex justify-between items-start gap-2">
-        <span className="inline-flex flex-wrap items-center gap-1.5 flex-1 leading-tight pr-2">
-          {titulo}
-          {warning && (
-            <div className="relative flex items-center group cursor-help">
-              <span className="text-yellow-500 text-sm leading-none shrink-0" aria-label="Alerta">⚠️</span>
-                      <div className={`absolute left-0 sm:left-1/2 sm:-translate-x-1/2 ${isFirstItem ? 'top-full mt-2' : 'bottom-full mb-2'} hidden group-hover:block w-48 p-2 bg-gray-800 text-white text-[10px] font-normal rounded shadow-lg z-50 text-center pointer-events-none`}>
-                {warning}
-                        <div className={`absolute left-4 sm:left-1/2 sm:-translate-x-1/2 border-4 border-transparent ${isFirstItem ? '-top-2 border-b-gray-800' : '-bottom-2 border-t-gray-800'}`}></div>
-              </div>
-            </div>
-          )}
-        </span>
-        {paramEditando === chave ? (
-          <input
-            type="number"
-            autoFocus
-            className="w-24 text-right border-b border-primary outline-none text-primary bg-transparent font-medium shrink-0"
-            value={valorTemp}
-            onChange={(e) => setValorTemp(e.target.value)}
-            onBlur={() => handleEditBlur(chave)}
-            onKeyDown={(e) => handleEditKeyDown(e, chave)}
-          />
-        ) : (
-          <span 
-            className="text-primary cursor-pointer hover:underline decoration-dashed underline-offset-2 shrink-0 text-right font-medium"
-            onClick={(e) => { e.preventDefault(); handleEditClick(chave, val); }}
-            title="Clique para realizar um ajuste fino"
-          >
-            {formatText(val)}
+      <div>
+        <label htmlFor={chave} className="text-sm font-semibold text-gray-700 flex justify-between items-start gap-2">
+          <span className="inline-flex flex-wrap items-center gap-1.5 flex-1 leading-tight pr-2">
+            {titulo}
+            {warning && (
+              <span className="text-yellow-500 text-sm leading-none shrink-0" aria-label="Alerta" title="Atenção: verifique a mensagem abaixo">⚠️</span>
+            )}
           </span>
+          {paramEditando === chave ? (
+            <input
+              type="number"
+              autoFocus
+              className="w-24 text-right border-b border-primary outline-none text-primary bg-transparent font-medium shrink-0"
+              value={valorTemp}
+              onChange={(e) => setValorTemp(e.target.value)}
+              onBlur={() => handleEditBlur(chave)}
+              onKeyDown={(e) => handleEditKeyDown(e, chave)}
+            />
+          ) : (
+            <span 
+              className="text-primary cursor-pointer hover:underline decoration-dashed underline-offset-2 shrink-0 text-right font-medium"
+              onClick={(e) => { e.preventDefault(); handleEditClick(chave, val); }}
+              title="Clique para realizar um ajuste fino"
+            >
+              {formatText(val)}
+            </span>
+          )}
+        </label>
+        
+        <input 
+          id={chave} name={chave} type="range" 
+          min={param.min} max={param.max} step={param.step} 
+          value={val} onChange={handleChange}
+          className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-3 mb-1 transition-colors ${corSlider}`}
+        />
+
+        {/* Mensagem de alerta reposicionada abaixo do slider */}
+        {warning && (
+          <div className="mt-2 p-2.5 bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs leading-snug rounded-lg shadow-sm">
+            {warning}
+          </div>
         )}
-      </label>
+      </div>
     );
   };
 
-  /**
-   * @description Determina a cor do slider baseado nas fronteiras do cenário.
-   * Altera a cor de destaque (accent) caso o valor entre nas margens de transbordo (queda ou subida).
-   * @param chave A chave do parâmetro que está sendo avaliado.
-   * @returns A classe do Tailwind correspondente à cor da barra.
-   */
-  const getSliderColorClass = (chave: ParamKey) => {
-    const param = getParam(chave);
-    if (!param.fronteiras_cenario) return 'accent-primary';
-    const val = simulacao[chave];
-    if (val < param.fronteiras_cenario.limite_inferior || val > param.fronteiras_cenario.limite_superior) return 'accent-orange-500';
-    return 'accent-primary';
-  };
 
   /**
    * @description Função genérica para renderizar as sessões de gráficos.
@@ -552,37 +554,13 @@ export default function SimulacaoPage() {
                   <div className="p-4 space-y-6">
                     
                     {/* Controle: Quantidade de Vacas */}
-                    <div>
-                      {renderLabel('total_vacas', 'Quantidade de Vacas', (v) => `${v} vacas`, true)}
-                      <input 
-                        id="total_vacas" name="total_vacas" type="range" 
-                        min={pTotalVacas.min} max={pTotalVacas.max} step={pTotalVacas.step} 
-                        value={simulacao.total_vacas} onChange={handleChange}
-                        className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 transition-colors ${getSliderColorClass('total_vacas')}`}
-                      />
-                    </div>
+                    {renderControl('total_vacas', 'Quantidade de Vacas', (v) => `${v} vacas`)}
 
                     {/* Controle: Preço do Leite */}
-                    <div>
-                      {renderLabel('preco_recebido', 'Preço do Leite', (v) => `R$ ${v.toFixed(2)}`)}
-                      <input 
-                        id="preco_recebido" name="preco_recebido" type="range" 
-                        min={pPrecoRecebido.min} max={pPrecoRecebido.max} step={pPrecoRecebido.step} 
-                        value={simulacao.preco_recebido} onChange={handleChange}
-                        className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 transition-colors ${getSliderColorClass('preco_recebido')}`}
-                      />
-                    </div>
+                    {renderControl('preco_recebido', 'Preço do Leite', (v) => `R$ ${v.toFixed(2)}`)}
 
                     {/* Controle: Custo do Concentrado */}
-                    <div>
-                      {renderLabel('custo_concentrado', 'Custo Concentrado', (v) => `R$ ${v.toFixed(2)}`)}
-                      <input 
-                        id="custo_concentrado" name="custo_concentrado" type="range" 
-                        min={pCustoConcentrado.min} max={pCustoConcentrado.max} step={pCustoConcentrado.step} 
-                        value={simulacao.custo_concentrado} onChange={handleChange}
-                        className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 transition-colors ${getSliderColorClass('custo_concentrado')}`}
-                      />
-                    </div>
+                    {renderControl('custo_concentrado', 'Custo Concentrado', (v) => `R$ ${v.toFixed(2)}`)}
 
                   </div>
                 </div>
@@ -604,59 +582,19 @@ export default function SimulacaoPage() {
                   <div className="p-4 space-y-6">
 
                     {/* Controle: Percentual de Lactação */}
-                    <div>
-                      {renderLabel('percentual_lactacao', 'Percentual em Lactação', (v) => `${v} %`, true)}
-                      <input 
-                        id="percentual_lactacao" name="percentual_lactacao" type="range" 
-                        min={pPercentualLactacao.min} max={pPercentualLactacao.max} step={pPercentualLactacao.step} 
-                        value={simulacao.percentual_lactacao} onChange={handleChange}
-                        className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 transition-colors ${getSliderColorClass('percentual_lactacao')}`}
-                      />
-                    </div>
+                    {renderControl('percentual_lactacao', 'Percentual em Lactação', (v) => `${v} %`)}
 
                     {/* Controle: CCS */}
-                    <div>
-                      {renderLabel('ccs', 'CCS', (v) => `${v} x1000 céls/mL`, false, true)}
-                      <input 
-                        id="ccs" name="ccs" type="range" 
-                        min={pCcs.min} max={pCcs.max} step={pCcs.step} 
-                        value={simulacao.ccs} onChange={handleChange}
-                        className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 transition-colors ${getSliderColorClass('ccs')}`}
-                      />
-                    </div>
+                    {renderControl('ccs', 'CCS', (v) => `${v} x1000 céls/mL`, true)}
 
                     {/* Controle: Produção por Vaca */}
-                    <div>
-                      {renderLabel('producao_vaca', 'Produção por vaca', (v) => `${v} L/dia`)}
-                      <input 
-                        id="producao_vaca" name="producao_vaca" type="range" 
-                        min={pProducaoVaca.min} max={pProducaoVaca.max} step={pProducaoVaca.step} 
-                        value={simulacao.producao_vaca} onChange={handleChange}
-                        className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 transition-colors ${getSliderColorClass('producao_vaca')}`}
-                      />
-                    </div>
+                    {renderControl('producao_vaca', 'Produção por vaca', (v) => `${v} L/dia`)}
 
                     {/* Controle: Área de Atividade */}
-                    <div>
-                      {renderLabel('area_atividade', 'Área de atividade', (v) => `${v} hectares`)}
-                      <input 
-                        id="area_atividade" name="area_atividade" type="range" 
-                        min={pAreaAtividade.min} max={pAreaAtividade.max} step={pAreaAtividade.step} 
-                        value={simulacao.area_atividade} onChange={handleChange}
-                        className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 transition-colors ${getSliderColorClass('area_atividade')}`}
-                      />
-                    </div>
+                    {renderControl('area_atividade', 'Área de atividade', (v) => `${v} hectares`)}
 
                     {/* Controle: Número de Trabalhadores */}
-                    <div>
-                      {renderLabel('numero_trabalhadores', 'Total de Trabalhadores', (v) => `${v} pessoas`)}
-                      <input 
-                        id="numero_trabalhadores" name="numero_trabalhadores" type="range" 
-                        min={pNumeroTrabalhadores.min} max={pNumeroTrabalhadores.max} step={pNumeroTrabalhadores.step} 
-                        value={simulacao.numero_trabalhadores} onChange={handleChange}
-                        className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 transition-colors ${getSliderColorClass('numero_trabalhadores')}`}
-                      />
-                    </div>
+                    {renderControl('numero_trabalhadores', 'Total de Trabalhadores', (v) => `${v} pessoas`)}
 
                   </div>
                 </div>
