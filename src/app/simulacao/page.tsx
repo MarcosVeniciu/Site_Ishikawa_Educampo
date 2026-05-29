@@ -35,9 +35,10 @@ const BarChartSimulacao = ({
   /**
    * Encontra o teto para calcular a altura percentual lidando com possíveis valores negativos (ex: margem)
    */
-  const maxVal = Math.max(Math.abs(valorSimulado), Math.abs(valorReferencia), 0.01); 
-  const alturaSimulado = `${(Math.abs(valorSimulado) / maxVal) * 100}%`;
-  const alturaReferencia = `${(Math.abs(valorReferencia) / maxVal) * 100}%`;
+  const maxVal = Math.max(Math.abs(valorSimulado), Math.abs(valorReferencia), 0.01);
+  const tetoGrafico = maxVal * 1.15; // Adiciona 15% de folga no topo para respiro
+  const alturaSimulado = `${(Math.abs(valorSimulado) / tetoGrafico) * 100}%`;
+  const alturaReferencia = `${(Math.abs(valorReferencia) / tetoGrafico) * 100}%`;
 
   /**
    * Lógica de cores: Verde (Melhor), Vermelho (Pior), Cinza (Igual)
@@ -103,16 +104,19 @@ const BarChartSimulacao = ({
       <div className="flex-1 flex items-end justify-center gap-6 pb-2">
         {/* Barra Simulada (Em Tempo Real) */}
         <div className="flex flex-col items-center justify-end w-14 group h-full">
-          <span className={`text-xs font-bold mb-1 ${corTextoSimulado}`}>
-            {formatNumber(valorSimulado)}
-          </span>
-          <div 
-            className={`w-full ${corBarraSimulada} rounded-t-sm transition-all duration-300 ease-out relative shadow-sm`}
-            style={{ height: alturaSimulado }}
-          >
-             {/* Tooltip Hover */}
-             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-gray-800 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap z-10">
-              Valor Simulado
+          {/* Wrapper isolado para garantir que a porcentagem de altura não distorça no Flexbox */}
+          <div className="w-full flex-1 flex flex-col justify-end items-center">
+            <span className={`text-xs font-bold mb-1 transition-all duration-300 ${corTextoSimulado}`}>
+              {formatNumber(valorSimulado)}
+            </span>
+            <div 
+              className={`w-full ${corBarraSimulada} rounded-t-sm transition-all duration-300 ease-out relative shadow-sm`}
+              style={{ height: alturaSimulado }}
+            >
+               {/* Tooltip Hover */}
+               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-gray-800 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap z-10">
+                Valor Simulado
+              </div>
             </div>
           </div>
           <span className="text-[10px] font-bold text-gray-500 mt-2 uppercase tracking-wider">Simulação</span>
@@ -120,14 +124,18 @@ const BarChartSimulacao = ({
 
         {/* Barra de Referência (Educampo) */}
         <div className="flex flex-col items-center justify-end w-14 group h-full">
-          <span className="text-xs text-gray-500 mb-1 font-medium">{formatNumber(valorReferencia)}</span>
-          <div 
-            className="w-full bg-primary rounded-t-sm transition-all duration-500 ease-out relative"
-            style={{ height: alturaReferencia }}
-          >
-            {/* Tooltip Hover */}
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-gray-800 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap z-10">
-              Referência Base
+          <div className="w-full flex-1 flex flex-col justify-end items-center">
+            <span className="text-xs text-gray-500 mb-1 font-medium transition-all duration-500">
+              {formatNumber(valorReferencia)}
+            </span>
+            <div 
+              className="w-full bg-primary rounded-t-sm transition-all duration-500 ease-out relative"
+              style={{ height: alturaReferencia }}
+            >
+              {/* Tooltip Hover */}
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-gray-800 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap z-10">
+                Referência Base
+              </div>
             </div>
           </div>
           <span className="text-[10px] font-bold text-primary mt-2 uppercase tracking-wider">Referência</span>
