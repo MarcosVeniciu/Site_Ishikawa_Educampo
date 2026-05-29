@@ -156,7 +156,7 @@ export default function SimulacaoPage() {
    */
   const [simulacao, setSimulacao] = useState({
     total_vacas: dadosFazenda?.total_vacas || 100,
-    vacas_lactacao: dadosFazenda?.vacas_lactacao || 85,
+    percentual_lactacao: dadosFazenda?.percentual_lactacao || 85,
     producao_vaca: dadosFazenda?.producao_vaca || 30.0,
     preco_recebido: dadosFazenda?.preco_leite || 3.00,
     area_atividade: dadosFazenda?.area_atividade || 10.0,
@@ -172,7 +172,7 @@ export default function SimulacaoPage() {
     if (dadosFazenda) {
       setSimulacao({
         total_vacas: dadosFazenda.total_vacas || 100,
-        vacas_lactacao: dadosFazenda.vacas_lactacao || 85,
+        percentual_lactacao: dadosFazenda.percentual_lactacao || 85,
         producao_vaca: dadosFazenda.producao_vaca || 30.0,
         preco_recebido: dadosFazenda.preco_leite || 3.00,
         area_atividade: dadosFazenda.area_atividade || 10.0,
@@ -229,7 +229,7 @@ export default function SimulacaoPage() {
         regiao_sebrae: dadosFazenda.regiao, // De-para (Frontend -> Backend)
         sistema_producao: dadosFazenda.sistema_producao,
         total_vacas: dadosFazenda.total_vacas,
-        vacas_lactacao: dadosFazenda.vacas_lactacao
+        percentual_lactacao: dadosFazenda.percentual_lactacao
       },
       dados_simulados: {
         area_atividade: simulacao.area_atividade,
@@ -239,7 +239,7 @@ export default function SimulacaoPage() {
         preco_recebido: simulacao.preco_recebido,
         producao_vaca: simulacao.producao_vaca,
         total_vacas: simulacao.total_vacas,
-        vacas_lactacao: simulacao.vacas_lactacao
+        percentual_lactacao: simulacao.percentual_lactacao
       }
     };
 
@@ -321,7 +321,7 @@ export default function SimulacaoPage() {
    */
   const defaultParams = {
     total_vacas: { min: 10, max: 500, step: 1, fronteiras_cenario: null as any },
-    vacas_lactacao: { min: 0, max: 500, step: 1, fronteiras_cenario: null as any },
+    percentual_lactacao: { min: 0, max: 100, step: 0.5, fronteiras_cenario: null as any },
     producao_vaca: { min: 5, max: 60, step: 0.5, fronteiras_cenario: null as any },
     preco_recebido: { min: 1.0, max: 6.0, step: 0.05, fronteiras_cenario: null as any },
     ccs: { min: 50, max: 1000, step: 10, fronteiras_cenario: null as any },
@@ -357,7 +357,7 @@ export default function SimulacaoPage() {
   };
 
   const pTotalVacas = getParam('total_vacas');
-  const pVacasLactacao = getParam('vacas_lactacao');
+  const pPercentualLactacao = getParam('percentual_lactacao');
   const pProducaoVaca = getParam('producao_vaca');
   const pPrecoRecebido = getParam('preco_recebido');
   const pCcs = getParam('ccs');
@@ -370,15 +370,43 @@ export default function SimulacaoPage() {
    * esteja fora da fronteira do cenário atual.
    * Permite o ajuste fino transformando o valor em um input ao clicar.
    */
-  const renderLabel = (chave: ParamKey, titulo: string, formatText: (v: number) => string, isFirstItem: boolean = false) => {
+  const renderLabel = (chave: ParamKey, titulo: string, formatText: (v: number) => string, isFirstItem: boolean = false, inverterLogicaWarning: boolean = false) => {
     const param = getParam(chave);
     const val = simulacao[chave];
     let warning = null;
     if (param.fronteiras_cenario) {
+      let direcaoMudanca: 'melhora' | 'piora' | null = null;
+
+      // Identifica a direção da simulação com base na lógica (direta ou invertida)
       if (val < param.fronteiras_cenario.limite_inferior) {
-          warning = `Atenção: Simulação com valores atipicamente baixos para o grupo do cenário ${cenarioAtivo}.`;
+        direcaoMudanca = inverterLogicaWarning ? 'melhora' : 'piora';
       } else if (val > param.fronteiras_cenario.limite_superior) {
-          warning = `Com este volume, os seus resultados aproximam-se de um cenário superior. Considere mudar o seu cenário base para uma comparação ideal.`;
+        direcaoMudanca = inverterLogicaWarning ? 'piora' : 'melhora';
+      }
+
+      if (direcaoMudanca) {
+        let cenarioAlvo = '';
+        
+        // Máquina de estados simples para descobrir para qual cenário o usuário está indo
+        if (direcaoMudanca === 'melhora') {
+          if (cenarioAtivo === 'inferior') cenarioAlvo = 'intermediário';
+          else if (cenarioAtivo === 'intermediario') cenarioAlvo = 'superior';
+          else cenarioAlvo = 'extremo_superior';
+        } else {
+          if (cenarioAtivo === 'superior') cenarioAlvo = 'intermediário';
+          else if (cenarioAtivo === 'intermediario') cenarioAlvo = 'inferior';
+          else cenarioAlvo = 'extremo_inferior';
+        }
+
+        // Geração da mensagem exata baseada no alvo
+        if (cenarioAlvo === 'extremo_superior') {
+          warning = `Com este valor, os seus resultados ultrapassam o cenário superior da sua região.`;
+        } else if (cenarioAlvo === 'extremo_inferior') {
+          const adj = inverterLogicaWarning ? 'altos' : 'baixos';
+          warning = `Atenção: Simulação com valores atipicamente ${adj}, fora da escala do cenário inferior da sua região.`;
+        } else {
+          warning = `Com este valor, os seus resultados aproximam-se do cenário ${cenarioAlvo}. Considere mudar o seu cenário base para uma comparação ideal.`;
+        }
       }
     }
 
@@ -513,14 +541,14 @@ export default function SimulacaoPage() {
               />
             </div>
 
-            {/* Controle: Vacas em Lactação */}
+            {/* Controle: Percentual de Lactação */}
             <div>
-              {renderLabel('vacas_lactacao', 'Vacas em Lactação', (v) => v.toString())}
+              {renderLabel('percentual_lactacao', 'Perc. em Lactação', (v) => `${v}%`)}
               <input 
-                id="vacas_lactacao" name="vacas_lactacao" type="range" 
-                min={pVacasLactacao.min} max={simulacao.total_vacas} step={pVacasLactacao.step} 
-                value={simulacao.vacas_lactacao} onChange={handleChange}
-                className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 transition-colors ${getSliderColorClass('vacas_lactacao')}`}
+                id="percentual_lactacao" name="percentual_lactacao" type="range" 
+                min={pPercentualLactacao.min} max={pPercentualLactacao.max} step={pPercentualLactacao.step} 
+                value={simulacao.percentual_lactacao} onChange={handleChange}
+                className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2 transition-colors ${getSliderColorClass('percentual_lactacao')}`}
               />
             </div>
 
@@ -548,7 +576,7 @@ export default function SimulacaoPage() {
 
             {/* Controle: CCS */}
             <div>
-              {renderLabel('ccs', 'CCS (x1000)', (v) => v.toString())}
+              {renderLabel('ccs', 'CCS (x1000)', (v) => v.toString(), false, true)}
               <input 
                 id="ccs" name="ccs" type="range" 
                 min={pCcs.min} max={pCcs.max} step={pCcs.step} 

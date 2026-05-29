@@ -56,7 +56,7 @@ export default function CarregandoPage() {
             regiao_sebrae: dadosFazenda.regiao,
             sistema_producao: dadosFazenda.sistema_producao,
             total_vacas: dadosFazenda.total_vacas,
-            vacas_lactacao: dadosFazenda.vacas_lactacao
+            percentual_lactacao: dadosFazenda.percentual_lactacao
           },
           dados_simulados: {
             area_atividade: dadosFazenda.area_atividade,
@@ -66,7 +66,7 @@ export default function CarregandoPage() {
             preco_recebido: dadosFazenda.preco_leite,
             producao_vaca: dadosFazenda.producao_vaca,
             total_vacas: dadosFazenda.total_vacas,
-            vacas_lactacao: dadosFazenda.vacas_lactacao
+            percentual_lactacao: dadosFazenda.percentual_lactacao
           }
         };
 
@@ -74,7 +74,8 @@ export default function CarregandoPage() {
         const payloadParametros = {
           producao_vaca: dadosFazenda.producao_vaca,
           sistema_producao: dadosFazenda.sistema_producao,
-          vacas_lactacao: dadosFazenda.vacas_lactacao
+          percentual_lactacao: dadosFazenda.percentual_lactacao,
+          total_vacas: dadosFazenda.total_vacas
         };
 
         // Dispara as três requisições em paralelo para otimizar o tempo de espera

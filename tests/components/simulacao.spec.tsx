@@ -31,7 +31,7 @@ describe('Dashboard de Simulação (SimulacaoPage)', () => {
     sistema_producao: 'compost_barn',
     regiao: 'triangulo',
     total_vacas: 100,
-    vacas_lactacao: 85, // Dado importante para a conta
+    percentual_lactacao: 85, // Dado importante para a conta
     producao_vaca: 30,  // 30L por vaca
     area_atividade: 10,
     preco_leite: 3.0,
@@ -43,7 +43,7 @@ describe('Dashboard de Simulação (SimulacaoPage)', () => {
   const mockNovaRespostaSimulacao = {
     parametros_painel: {
       total_vacas: { min: 10, max: 500, step: 1 },
-      vacas_lactacao: { min: 0, max: 500, step: 1 },
+      percentual_lactacao: { min: 0, max: 100, step: 0.5 },
       producao_vaca: { min: 5, max: 60, step: 0.5 },
       preco_recebido: { min: 1.0, max: 6.0, step: 0.05 },
       ccs: { min: 50, max: 1000, step: 10 },
@@ -138,9 +138,9 @@ describe('Dashboard de Simulação (SimulacaoPage)', () => {
     // O toLocaleString formata como "2.550"
     expect(screen.getAllByText(/2\.550/i).length).toBeGreaterThan(0);
 
-    const inputVacasLactacao = screen.getByLabelText(/Vacas em Lactação/i);
+    const inputVacasLactacao = screen.getByLabelText(/Perc. em Lactação/i);
     
-    // Simula o produtor movendo o slider de 85 para 100 vacas em lactação
+    // Simula o produtor movendo o slider de 85 para 100% de lactação
     fireEvent.change(inputVacasLactacao, { target: { value: '100' } });
 
     const btnAnalisar = screen.getByRole('button', { name: /Analisar Cenário/i });
@@ -150,7 +150,7 @@ describe('Dashboard de Simulação (SimulacaoPage)', () => {
       expect(global.fetch).toHaveBeenCalledWith('/api/simulacao', expect.objectContaining({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: expect.stringContaining('"vacas_lactacao":100') // Verifica se o novo valor está no bloco enviado
+        body: expect.stringContaining('"percentual_lactacao":100') // Verifica se o novo valor está no bloco enviado
       }));
     });
   });

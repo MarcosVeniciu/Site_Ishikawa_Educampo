@@ -46,7 +46,14 @@ export async function POST(req: NextRequest) {
     
     clearTimeout(timeoutId);
 
-    if (!apiResponse.ok) throw new Error(`Status ${apiResponse.status}`);
+    if (!apiResponse.ok) {
+      if (apiResponse.status === 422 || apiResponse.status === 400) {
+        const errorData = await apiResponse.json().catch(() => null);
+        console.error("\n[BFF Parametros Error] Erro de validação na API Externa:", JSON.stringify(errorData, null, 2));
+        return NextResponse.json({ error: 'Falha na validação', detalhes: errorData }, { status: apiResponse.status });
+      }
+      throw new Error(`Status ${apiResponse.status}`);
+    }
 
     const data = await apiResponse.json();
     return NextResponse.json(data, { status: 200 });

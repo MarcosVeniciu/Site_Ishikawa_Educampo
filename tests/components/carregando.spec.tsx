@@ -39,7 +39,7 @@ describe('Tela de Carregamento (CarregandoPage)', () => {
     regiao: "triangulo",
     sistema_producao: "compost_barn",
     total_vacas: 100,
-    vacas_lactacao: 60
+    percentual_lactacao: 60
   };
 
   beforeEach(() => {
@@ -110,6 +110,6 @@ describe('Tela de Carregamento (CarregandoPage)', () => {
     await act(async () => { 
       jest.advanceTimersByTime(1500); 
     });
-    expect(mockPush).toHaveBeenCalledWith('/diagnostico');
+    expect(mockPush).toHaveBeenCalledWith('/selecao');
   });
 });

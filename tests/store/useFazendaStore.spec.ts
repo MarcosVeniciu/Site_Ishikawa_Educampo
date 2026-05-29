@@ -13,7 +13,7 @@ describe('Zustand Store: useFazendaStore', () => {
     nome_fazenda: 'Fazenda Leiteira Experimental',
     sistema_producao: 'compost_barn',
     total_vacas: 100,
-    vacas_lactacao: 85,
+    percentual_lactacao: 85,
     animais_rebanho: 120,
     area_atividade: 10.0,
     mao_obra_total: 2,

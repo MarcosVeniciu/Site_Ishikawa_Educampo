@@ -239,10 +239,10 @@ export default function AjustesPage() {
                   />
                 </div>
                 <div>
-                  <LabelComDica htmlFor="vacas_lactacao" label="Vacas em Lactação" dica="Apenas os animais produzindo leite ativamente." />
+                  <LabelComDica htmlFor="percentual_lactacao" label="Perc. em Lactação" unidade="%" dica="Percentual do rebanho de vacas que estão em lactação atualmente." />
                   <input
-                    id="vacas_lactacao" name="vacas_lactacao" type="number" required
-                    value={formData.vacas_lactacao || ''} onChange={handleChange}
+                    id="percentual_lactacao" name="percentual_lactacao" type="number" step="0.01" required
+                    value={formData.percentual_lactacao || ''} onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
                   />
                 </div>

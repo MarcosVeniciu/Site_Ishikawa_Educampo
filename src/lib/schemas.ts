@@ -45,7 +45,7 @@ export const fazendaSchema = z.object({
   
   total_vacas: z.coerce.number().int().min(0).max(FAZENDA_LIMITS.VACAS_MAX),
   
-  vacas_lactacao: z.coerce.number().int().min(0).max(FAZENDA_LIMITS.VACAS_MAX),
+  percentual_lactacao: z.coerce.number().min(0).max(100),
   
   animais_rebanho: z.coerce.number().int().min(0).max(FAZENDA_LIMITS.REBANHO_MAX),
   
@@ -66,16 +66,6 @@ export const fazendaSchema = z.object({
   
   regiao: RegiaoEnum,
 }).superRefine((data, ctx) => {
-  /**
-   * Validação Cruzada: Vacas em Lactação não pode ser maior que o Total de Vacas.
-   */
-  if (data.vacas_lactacao > data.total_vacas) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'Vacas em lactação não pode exceder o total de vacas',
-      path: ['vacas_lactacao'],
-    });
-  }
 
   /**
    * Validação Cruzada: Total de Vacas não pode ser maior que o Rebanho Total.

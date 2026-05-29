@@ -71,9 +71,9 @@ describe('Tela de Coleta de Dados (Formulário)', () => {
     // Preenchemos com dados que passam no HTML5 (required), mas falham na malha fina do Zod (Regra Cruzada)
     await user.type(screen.getByLabelText(/Nome da Fazenda/i), 'Fazenda Errada');
     await user.selectOptions(screen.getByLabelText(/Sistema de Produção/i), 'confinado');
-    await user.type(screen.getByLabelText(/Total de Vacas/i), '100');
-    await user.type(screen.getByLabelText(/Vacas em Lactação/i), '150'); // Erro Zod (Lactação > Total)
-    await user.type(screen.getByLabelText(/Total no Rebanho/i), '150');
+    await user.type(screen.getByLabelText(/Total de Vacas/i), '150'); // Inversão para forçar o erro
+    await user.type(screen.getByLabelText(/Perc. em Lactação/i), '85'); 
+    await user.type(screen.getByLabelText(/Total no Rebanho/i), '100'); // Erro Zod (Vacas > Rebanho)
     await user.type(screen.getByLabelText(/Área da Atividade/i), '10');
     await user.type(screen.getByLabelText(/Mão de Obra Total/i), '3');
     await user.type(screen.getByLabelText(/Prod. por Vaca/i), '30');
@@ -88,7 +88,7 @@ describe('Tela de Coleta de Dados (Formulário)', () => {
 
     await waitFor(() => {
       expect(mockSetDadosFazenda).not.toHaveBeenCalled();
-      expect(screen.getByText(/Vacas em lactação não pode exceder/i)).toBeInTheDocument();
+      expect(screen.getByText(/O total de vacas não pode exceder o total do rebanho/i)).toBeInTheDocument();
     });
   });
 
@@ -105,7 +105,7 @@ describe('Tela de Coleta de Dados (Formulário)', () => {
 
     // Preenche Estrutura e Rebanho
     await user.type(screen.getByLabelText(/Total de Vacas/i), '100');
-    await user.type(screen.getByLabelText(/Vacas em Lactação/i), '85');
+    await user.type(screen.getByLabelText(/Perc. em Lactação/i), '85');
     await user.type(screen.getByLabelText(/Total no Rebanho/i), '150');
     await user.type(screen.getByLabelText(/Área da Atividade/i), '200');
     await user.type(screen.getByLabelText(/Mão de Obra Total/i), '3');
@@ -131,7 +131,7 @@ describe('Tela de Coleta de Dados (Formulário)', () => {
         nome_fazenda: 'Fazenda Leiteira Experimental',
         sistema_producao: 'semi_confinado',
         total_vacas: 100,
-        vacas_lactacao: 85,
+        percentual_lactacao: 85,
       }));
 
       // Verifica se o usuário foi redirecionado para a tela de espera da API

@@ -76,7 +76,7 @@ export default function FormularioPage() {
     nome_fazenda: '',
     sistema_producao: '',
     total_vacas: '',
-    vacas_lactacao: '',
+    percentual_lactacao: '',
     animais_rebanho: '',
     area_atividade: '',
     mao_obra_total: '',
@@ -210,10 +210,10 @@ export default function FormularioPage() {
                 value={formData.total_vacas} onChange={handleChange} min={0} max={50000} required 
               />
               <InputComDica 
-                id="vacas_lactacao" name="vacas_lactacao" type="number" 
-                label="Vacas em Lactação" unidade="cab." placeholder="85"
-                dica="Apenas as vacas que estão produzindo leite atualmente."
-                value={formData.vacas_lactacao} onChange={handleChange} min={0} max={50000} required 
+                id="percentual_lactacao" name="percentual_lactacao" type="number" step="0.01" 
+                label="Perc. em Lactação" unidade="%" placeholder="85"
+                dica="Percentual do rebanho de vacas que estão em lactação atualmente."
+                value={formData.percentual_lactacao} onChange={handleChange} min={0} max={100} required 
               />
               <InputComDica 
                 id="animais_rebanho" name="animais_rebanho" type="number" 
@@ -321,16 +321,16 @@ export default function FormularioPage() {
             onClick={() => setFormData({
               nome_fazenda: 'Fazenda Auto Teste',
               sistema_producao: 'compost_barn',
-              total_vacas: '100',
-              vacas_lactacao: '85',
+              total_vacas: '120',
+              percentual_lactacao: '85',
               animais_rebanho: '120',
-              area_atividade: '10.0',
-              mao_obra_total: '2',
-              producao_vaca: '35.0',
-              preco_leite: '3.20',
+              area_atividade: '60.0',
+              mao_obra_total: '4',
+              producao_vaca: '29.6',
+              preco_leite: '2.76',
               preco_referencia: '2.50',
               preco_concentrado: '2.30',
-              ccs: '150',
+              ccs: '167',
               regiao: 'triangulo',
             })}
             className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-600 font-medium py-2 px-4 rounded-md transition-colors"

@@ -73,7 +73,7 @@ describe('BFF Route: POST /api/simulacao', () => {
         regiao_sebrae: "triangulo",
         sistema_producao: "compost_barn",
         total_vacas: 100,
-        vacas_lactacao: 60
+        percentual_lactacao: 60
       },
       dados_simulados: {
         producao_vaca: 45.0,
@@ -116,7 +116,7 @@ describe('BFF Route: POST /api/simulacao', () => {
         regiao_sebrae: "triangulo",
         sistema_producao: "compost_barn",
         total_vacas: 100,
-        vacas_lactacao: 60
+        percentual_lactacao: 60
       },
       // Faltando o custo_concentrado no bloco simulado
       dados_simulados: { producao_vaca: 45.0 }

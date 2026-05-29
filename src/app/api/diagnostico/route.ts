@@ -49,18 +49,18 @@ export async function POST(req: NextRequest) {
     // O Frontend e o Backend possuem nomenclaturas ligeiramente diferentes. 
     // Nosso BFF atua como um tradutor para satisfazer o Pydantic do Python.
     const payloadToSend = {
-      nome_fazenda: validation.data.nome_fazenda,
-      sistema_producao: validation.data.sistema_producao,
-      total_vacas: validation.data.total_vacas,
-      vacas_lactacao: validation.data.vacas_lactacao,
-      total_rebanho: validation.data.animais_rebanho,       // Frontend -> Backend
       area_atividade: validation.data.area_atividade,
+      ccs: validation.data.ccs,
       numero_trabalhadores: validation.data.mao_obra_total, // Frontend -> Backend
-      producao_vaca: validation.data.producao_vaca,
       preco_recebido: validation.data.preco_leite,          // Frontend -> Backend
       preco_referencia: validation.data.preco_referencia,
-      ccs: validation.data.ccs,
-      regiao_sebrae: validation.data.regiao                 // Frontend -> Backend
+      producao_vaca: validation.data.producao_vaca,
+      regiao_sebrae: validation.data.regiao,                // Frontend -> Backend
+      sistema_producao: validation.data.sistema_producao,
+      total_rebanho: validation.data.animais_rebanho,       // Frontend -> Backend
+      total_vacas: validation.data.total_vacas,
+      // BFF atuando como inteligência agregadora: calculando número absoluto de vacas em lactação
+      vacas_lactacao: Math.round(validation.data.total_vacas * (validation.data.percentual_lactacao / 100))
     };
 
     // 2.1 Verificação de Feature Flag (Security by Design)
