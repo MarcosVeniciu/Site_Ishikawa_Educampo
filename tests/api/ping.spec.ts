@@ -5,7 +5,7 @@
  */
 
 import { GET } from '@/app/api/ping/route';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 // Mock da NextResponse
 jest.mock('next/server', () => ({
@@ -21,6 +21,12 @@ global.fetch = jest.fn();
 describe('BFF Route: GET /api/ping', () => {
   const originalEnv = process.env;
 
+  const mockRequest = {
+    headers: {
+      get: jest.fn().mockReturnValue('127.0.0.1')
+    }
+  } as unknown as NextRequest;
+
   beforeEach(() => {
     jest.clearAllMocks();
     process.env = { ...originalEnv };
@@ -33,22 +39,24 @@ describe('BFF Route: GET /api/ping', () => {
 
   it('deve repassar o ping com sucesso para a API externa', async () => {
     (global.fetch as jest.Mock).mockResolvedValueOnce({ ok: true });
-    const response = await GET();
+    const response = await GET(mockRequest);
     const data = await response.json();
     expect(response.status).toBe(200);
     expect(data.message).toBe('Ping repassado à API com sucesso');
-    expect(global.fetch).toHaveBeenCalledWith(`${process.env.API_BASE_URL}/api/ping`, expect.any(Object));
+    expect(global.fetch).toHaveBeenCalledWith(`${process.env.API_BASE_URL}/api/ping`, expect.objectContaining({
+      headers: { 'X-Forwarded-For': '127.0.0.1' }
+    }));
   });
 
   it('deve engolir falhas de rede (timeout) e retornar 200 para não quebrar o frontend', async () => {
     (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Network timeout'));
-    const response = await GET();
+    const response = await GET(mockRequest);
     expect(response.status).toBe(200); // Retorna 200 mesmo com falha no fetch
   });
 
   it('deve retornar 500 se API_BASE_URL não estiver configurada', async () => {
     delete process.env.API_BASE_URL;
-    const response = await GET();
+    const response = await GET(mockRequest);
     expect(response.status).toBe(500);
   });
 });
