@@ -142,7 +142,9 @@ export default function AjustesPage() {
       setFeedback({ type: 'success', message: 'A atualização foi concluída com sucesso!' });
 
     } catch (error: any) {
-      console.error('Erro na submissão:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Erro na submissão:', error);
+      }
 
       let errorMessage = 'Verifique os dados e tente novamente.';
       if (error instanceof ZodError) {

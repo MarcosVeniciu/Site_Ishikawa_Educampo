@@ -454,14 +454,14 @@ Fazer os testes
 clear; npm run test  
 ```
 
+Executar no modo dev para ver os logs
+```bash
+npm run dev
+```
+
 Desliga e liga o compose
 ```bash
 docker-compose down; docker-compose up -d --build
-```
-
-Verificar logs do docker
-```bash
-docker logs ishikawa_api -f
 ```
 
 Listar a arvore de diretorio ignorando alguns diretorios.

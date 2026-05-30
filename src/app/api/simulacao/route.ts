@@ -14,11 +14,13 @@ import { NextRequest, NextResponse } from 'next/server';
  * @returns NextResponse com a resposta resolvida da ML (bloco `simulacao`) ou detalhes de erro.
  */
 export async function POST(req: NextRequest) {
-  console.log('\n[BFF Simulacao] >>> INICIANDO NOVA REQUISIÇÃO DE SIMULAÇÃO <<<');
+  const isDev = process.env.NODE_ENV === 'development';
+
+  if (isDev) console.log('\n[BFF Simulacao] >>> INICIANDO NOVA REQUISIÇÃO DE SIMULAÇÃO <<<');
   try {
-    console.log('[BFF Simulacao] Tentando extrair payload JSON da requisição...');
+    if (isDev) console.log('[BFF Simulacao] Tentando extrair payload JSON da requisição...');
     const body = await req.json();
-    console.log('[BFF Simulacao] Payload JSON extraído com sucesso. Variáveis Simuladas:', JSON.stringify(body.dados_simulados));
+    if (isDev) console.log('[BFF Simulacao] Payload JSON extraído com sucesso. Variáveis Simuladas:', JSON.stringify(body.dados_simulados));
 
     /**
      * 1. Extração e Validação do Payload:
@@ -27,7 +29,9 @@ export async function POST(req: NextRequest) {
      */
     const custoConcentrado = body.dados_simulados?.custo_concentrado;
     if (custoConcentrado === undefined || custoConcentrado === null) {
-      console.warn('[BFF Simulacao] Block: Variável custo_concentrado está ausente no payload.');
+      if (isDev) {
+        console.warn('[BFF Simulacao] Block: Variável custo_concentrado está ausente no payload.');
+      }
       return NextResponse.json(
         { error: 'O campo custo_concentrado é obrigatório para as estimativas de custo.' },
         { status: 400 }
@@ -51,7 +55,7 @@ export async function POST(req: NextRequest) {
     }
 
     const apiUrl = `${baseUrl}/api/simulacao`;
-    console.log(`[BFF Simulacao] Preparando chamada para a API Externa em: ${apiUrl}`);
+    if (isDev) console.log(`[BFF Simulacao] Preparando chamada para a API Externa em: ${apiUrl}`);
 
     /**
      * 3. Despacho da Requisição (Fetch):
@@ -63,7 +67,7 @@ export async function POST(req: NextRequest) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-      console.log('[BFF Simulacao] Disparando fetch para a Inteligência Externa (Python)...');
+      if (isDev) console.log('[BFF Simulacao] Disparando fetch para a Inteligência Externa (Python)...');
       apiResponse = await fetch(apiUrl, {
         method: 'POST',
         headers: {
@@ -75,7 +79,7 @@ export async function POST(req: NextRequest) {
         signal: controller.signal
       });
       clearTimeout(timeoutId);
-      console.log(`[BFF Simulacao] Sucesso na rede. API externa respondeu com Status HTTP: ${apiResponse.status}`);
+      if (isDev) console.log(`[BFF Simulacao] Sucesso na rede. API externa respondeu com Status HTTP: ${apiResponse.status}`);
     } catch (fetchError: any) {
       console.error('[BFF Simulacao] A chamada fetch() interna falhou!');
       if (fetchError.name === 'AbortError') {
@@ -109,9 +113,9 @@ export async function POST(req: NextRequest) {
      * Resolve e extrai o JSON gerado pela inteligência artificial contendo 
      * exclusivamente as métricas recalculadas (estáticas, operacionais e financeiras).
      */
-    console.log('[BFF Simulacao] Lendo o corpo da resposta enviada pela API externa...');
+    if (isDev) console.log('[BFF Simulacao] Lendo o corpo da resposta enviada pela API externa...');
     const data = await apiResponse.json();
-    console.log('[BFF Simulacao] Processamento finalizado com sucesso! Retornando resultados ao front-end.');
+    if (isDev) console.log('[BFF Simulacao] Processamento finalizado com sucesso! Retornando resultados ao front-end.');
     return NextResponse.json(data, { status: 200 });
 
   } catch (error: any) {

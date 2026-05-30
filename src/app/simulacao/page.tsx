@@ -35,12 +35,15 @@ const BarChartSimulacao = ({
   titulo: string, valorSimulado: number, valorReferencia: number, unidade: string, inverterCores?: boolean, diferencaPercentualAPI?: number
 }) => {
   /**
-   * Encontra o teto para calcular a altura percentual lidando com possíveis valores negativos (ex: margem)
+   * Trava Defensiva: Fixa valores negativos em 0 apenas para o cálculo visual da altura da barra.
+   * Garante que anomalias da API (ou margens negativas reais) não quebrem o layout crescendo para cima de forma confusa.
    */
-  const maxVal = Math.max(Math.abs(valorSimulado), Math.abs(valorReferencia), 0.01);
+  const safeSimulado = Math.max(0, valorSimulado);
+  const safeReferencia = Math.max(0, valorReferencia);
+  const maxVal = Math.max(safeSimulado, safeReferencia, 0.01);
   const tetoGrafico = maxVal * 1.15; // Adiciona 15% de folga no topo para respiro
-  const alturaSimulado = `${(Math.abs(valorSimulado) / tetoGrafico) * 100}%`;
-  const alturaReferencia = `${(Math.abs(valorReferencia) / tetoGrafico) * 100}%`;
+  const alturaSimulado = `${(safeSimulado / tetoGrafico) * 100}%`;
+  const alturaReferencia = `${(safeReferencia / tetoGrafico) * 100}%`;
 
   /**
    * Lógica de cores: Verde (Melhor), Vermelho (Pior), Cinza (Igual)
@@ -293,6 +296,18 @@ export default function SimulacaoPage() {
 
       if (response.ok) {
         const data = await response.json();
+        
+        /**
+         * Instrumentação de Logs (Apenas Desenvolvimento)
+         * Inspeciona o payload recebido para facilitar a depuração de valores negativos nas margens,
+         * garantindo que não vaze para o console do navegador em produção.
+         */
+        if (process.env.NODE_ENV === 'development') {
+          console.groupCollapsed('🔍 [Simulador] Resposta da API (BFF)');
+          console.log('Dados Consolidados:', data);
+          console.groupEnd();
+        }
+
         setResultadoSimulacao({
           ...resultadoSimulacao,
           ...data

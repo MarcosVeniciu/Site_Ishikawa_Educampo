@@ -115,7 +115,9 @@ export default function CarregandoPage() {
         // Pequeno delay para garantir que o usuário veja a conclusão antes da troca de tela para a seleção de módulos
         setTimeout(() => router.push("/selecao"), 1500);
       } catch (error) {
-        console.error("Falha no processamento:", error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Falha no processamento:", error);
+        }
         setMensagem("Ocorreu um erro ao processar os dados. Redirecionando");
         setTimeout(() => router.push("/formulario"), 3000);
       }
@@ -172,7 +174,9 @@ export default function CarregandoPage() {
       } catch (error) {
         // O Circuit Breaker atua: Excedeu as 5 tentativas e corta o loop de sondagem.
         if (tentativa >= MAX_TENTATIVAS) {
-          console.error("[Circuit Breaker] Falha na verificação de saúde após número máximo de tentativas.");
+          if (process.env.NODE_ENV === 'development') {
+            console.error("[Circuit Breaker] Falha na verificação de saúde após número máximo de tentativas.");
+          }
           setMensagem("Serviço temporariamente indisponível. Tente novamente mais tarde");
           setTimeout(() => router.push("/formulario"), 4000);
           return;
