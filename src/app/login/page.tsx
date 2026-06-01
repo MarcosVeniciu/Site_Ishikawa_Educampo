@@ -57,9 +57,9 @@ export default function LoginPage() {
   const { setApiHealthy } = useFazendaStore();
 
   // REGRA DE OPERAÇÃO:
-  // Define os caminhos de API para o ping de aquecimento de forma limpa no escopo do componente.
-  const baseApiUrl = process.env.NEXT_PUBLIC_API_URL;
-  const pingUrl = baseApiUrl ? `${baseApiUrl}/api/ping` : '/api/ping';
+  // Define o caminho de API para o ping de aquecimento de forma limpa no escopo do componente.
+  // Utiliza estritamente o servidor Next.js (BFF) para mascarar a API real.
+  const pingUrl = '/api/ping';
 
   /**
    * @description Fluxo centralizado de verificação da API: Ping (acordar) → Health Check (confirmar).

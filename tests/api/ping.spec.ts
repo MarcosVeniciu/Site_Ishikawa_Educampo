@@ -42,16 +42,22 @@ describe('BFF Route: GET /api/ping', () => {
     const response = await GET(mockRequest);
     const data = await response.json();
     expect(response.status).toBe(200);
-    expect(data.message).toBe('Ping repassado à API com sucesso');
+    expect(data.message).toBe('API acordou com sucesso');
     expect(global.fetch).toHaveBeenCalledWith(`${process.env.API_BASE_URL}/api/ping`, expect.objectContaining({
       headers: { 'X-Forwarded-For': '127.0.0.1' }
     }));
   });
 
-  it('deve engolir falhas de rede (timeout) e retornar 200 para não quebrar o frontend', async () => {
+  it('deve retornar o status real se a API externa devolver um erro (ex: 429)', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({ ok: false, status: 429 });
+    const response = await GET(mockRequest);
+    expect(response.status).toBe(429);
+  });
+
+  it('deve retornar 503 se houver falha de rede (container desligado)', async () => {
     (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Network timeout'));
     const response = await GET(mockRequest);
-    expect(response.status).toBe(200); // Retorna 200 mesmo com falha no fetch
+    expect(response.status).toBe(503);
   });
 
   it('deve retornar 500 se API_BASE_URL não estiver configurada', async () => {

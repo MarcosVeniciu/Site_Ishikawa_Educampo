@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 segundos para permitir Cold Start completo
 
-    await fetch(`${baseUrl}/api/ping`, {
+    const response = await fetch(`${baseUrl}/api/ping`, {
       method: 'GET',
       headers: {
         'X-Forwarded-For': forwardedFor
@@ -36,8 +36,22 @@ export async function GET(request: NextRequest) {
     });
 
     clearTimeout(timeoutId);
-    return NextResponse.json({ message: 'Ping repassado à API com sucesso' }, { status: 200 });
+
+    // Se o Python respondeu 200 OK, repassa o sucesso
+    if (response.ok) {
+      return NextResponse.json({ message: 'API acordou com sucesso' }, { status: 200 });
+    } 
+    
+    // Se a API Python ainda não acordou (ou deu 429), repassa o erro!
+    return NextResponse.json(
+      { error: `API Python ainda indisponível (Status: ${response.status})` }, 
+      { status: response.status }
+    );
   } catch (error: any) {
-    return NextResponse.json({ message: 'Ping disparado internamente (Aguardando Wakeup da nuvem)' }, { status: 200 });
+    // Se o container Python estiver totalmente desligado (erro de rede)
+    return NextResponse.json(
+      { error: 'Falha de rede ao contatar a API Python' }, 
+      { status: 503 }
+    );
   }
 }
