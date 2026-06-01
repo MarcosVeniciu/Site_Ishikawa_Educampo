@@ -84,6 +84,7 @@ export async function POST(req: NextRequest) {
     }
 
     const apiUrl = `${baseUrl}/api/diagnostico`;
+    const forwardedFor = req.headers?.get?.('x-forwarded-for') || '';
     
     let apiResponse: Response;
     try {
@@ -96,7 +97,8 @@ export async function POST(req: NextRequest) {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`,
-          'X-API-KEY': apiKey
+          'X-API-KEY': apiKey,
+          'X-Forwarded-For': forwardedFor
         },
         body: JSON.stringify(payloadToSend),
         signal: controller.signal,

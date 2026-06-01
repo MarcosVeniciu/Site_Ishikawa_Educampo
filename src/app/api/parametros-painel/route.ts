@@ -30,6 +30,7 @@ export async function POST(req: NextRequest) {
     }
 
     const apiUrl = `${baseUrl}/api/parametros-painel`;
+    const forwardedFor = req.headers?.get?.('x-forwarded-for') || '';
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
 
@@ -38,7 +39,8 @@ export async function POST(req: NextRequest) {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
-        'X-API-KEY': apiKey
+        'X-API-KEY': apiKey,
+        'X-Forwarded-For': forwardedFor
       },
       body: JSON.stringify(body),
       signal: controller.signal

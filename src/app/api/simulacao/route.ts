@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
     }
 
     const apiUrl = `${baseUrl}/api/simulacao`;
+    const forwardedFor = req.headers?.get?.('x-forwarded-for') || '';
     if (isDev) console.log(`[BFF Simulacao] Preparando chamada para a API Externa em: ${apiUrl}`);
 
     /**
@@ -73,7 +74,8 @@ export async function POST(req: NextRequest) {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`,
-          'X-API-KEY': apiKey
+          'X-API-KEY': apiKey,
+          'X-Forwarded-For': forwardedFor
         },
         body: JSON.stringify(body),
         signal: controller.signal
