@@ -30,46 +30,58 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [apiReady, setApiReady] = useState(false);
+  const [isWarmingUp, setIsWarmingUp] = useState(true);
   const router = useRouter();
 
   /**
    * Dispara um "ping" para acordar a API assim que a tela de login monta (evita cold start).
-   * Fire-and-forget: Não travamos a interface e apenas ignoramos falhas em caso de erro de rede.
-   * Em ambiente de desenvolvimento, realiza a leitura da resposta e exibe logs detalhados
-   * de sucesso ou falha no console do navegador.
+   * Prioriza o fetch direto do cliente para ignorar o limite de timeout do servidor BFF.
+   * Realiza tentativas em loop de 5 segundos até obter sucesso na ativação da nuvem.
    * 
    * @returns {void} Esta função de efeito do React não possui retorno.
    */
   useEffect(() => {
-    // POR QUE ISSO EXISTE (REGRA DE NEGÓCIO):
-    // A API externa pode entrar em modo de hibernação por inatividade. O ping assíncrono na montagem
-    // da tela de login garante que, enquanto o usuário digita suas credenciais, a API seja acordada
-    // antecipadamente. Em desenvolvimento, queremos logs ricos para depurar latência e disponibilidade.
-    fetch('/api/ping')
-      .then(async (response) => {
-        const data = await response.json();
-        // O log só deve ser exibido quando estivermos no ambiente de desenvolvimento local
-        if (process.env.NODE_ENV === 'development') {
-          console.info(
-            '%c[API Ping] Resposta da API:',
-            'color: #10b981; font-weight: bold; background-color: #f0fdf4; padding: 2px 4px; rounded: 4px;',
-            data.message || 'Sem corpo de mensagem.'
-          );
-        }
-      })
-      .catch((error) => {
-        // Em ambiente de desenvolvimento, expõe o erro detalhado no console para depuração rápida
-        if (process.env.NODE_ENV === 'development') {
-          console.error(
-            '%c[API Ping] Erro detalhado detectado:',
-            'color: #ef4444; font-weight: bold; background-color: #fef2f2; padding: 2px 4px; rounded: 4px;',
-            error
-          );
+    // REGRA DE OPERAÇÃO:
+    // A API do Render pode hibernar por inatividade. O ping assíncrono na montagem do Login
+    // garante que ela seja acordada enquanto o usuário digita ou usa as credenciais de teste.
+    // Usamos prioritariamente a chamada direta do cliente para contornar o limite de 10s da Vercel (BFF).
+    const baseApiUrl = process.env.NEXT_PUBLIC_API_URL;
+    const pingUrl = baseApiUrl ? `${baseApiUrl}/api/ping` : '/api/ping';
+
+    setIsWarmingUp(true);
+
+    const checkApi = async () => {
+      try {
+        const response = await fetch(pingUrl, {
+          method: 'GET',
+          cache: 'no-store',
+        });
+        
+        if (response.ok) {
+          setApiReady(true);
+          setIsWarmingUp(false);
+          
+          if (process.env.NODE_ENV === 'development') {
+            console.info(
+              '%c[API Ping] API Principal está acordada e pronta para requisições!',
+              'color: #10b981; font-weight: bold; background-color: #f0fdf4; padding: 2px 4px; border-radius: 4px;'
+            );
+          }
         } else {
-          // Em produção, a falha é silenciosamente engolida em modo de depuração básica
-          console.debug('Falha no ping de aquecimento ignorada.');
+          // Em caso de erro na resposta, reagenda a tentativa para dali a 5 segundos
+          setTimeout(checkApi, 5000);
         }
-      });
+      } catch (error) {
+        // Em caso de erro de rede (máquina subindo), reagenda a tentativa
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('[API Ping] API ainda subindo, tentando novamente em 5s...');
+        }
+        setTimeout(checkApi, 5000);
+      }
+    };
+
+    checkApi();
   }, []);
 
   /**
@@ -149,6 +161,22 @@ export default function LoginPage() {
             />
           </div>
 
+          {isWarmingUp && (
+            <div className="text-xs text-amber-700 bg-amber-50 border border-amber-100 p-3 rounded-lg text-center font-medium animate-pulse">
+              ⏱️ Ativando servidores de teste. Por favor, aguarde de 30 a 60 segundos (hospedagem gratuita por inatividade).
+            </div>
+          )}
+
+          {apiReady && !isLoading && (
+            <div className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 p-2.5 rounded-lg text-center font-medium flex items-center justify-center gap-1.5 animate-in fade-in duration-300">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              Servidores ativos e prontos!
+            </div>
+          )}
+
           {error && (
             <div className="text-sm text-red-600 bg-red-50 border border-red-100 p-3 rounded-lg text-center font-medium animate-in fade-in duration-200">
               {error}
@@ -157,12 +185,16 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || isWarmingUp}
             className={`w-full py-3 px-4 mt-2 rounded-lg font-medium text-white bg-primary hover:bg-primary-light focus:outline-none focus:ring-4 focus:ring-primary/30 transition-all shadow-sm ${
-              isLoading ? 'opacity-75 cursor-not-allowed' : ''
+              (isLoading || isWarmingUp) ? 'opacity-75 cursor-not-allowed' : ''
             }`}
           >
-            {isLoading ? 'Autenticando...' : 'Entrar'}
+            {isWarmingUp 
+              ? 'Aquecendo servidores...' 
+              : isLoading 
+                ? 'Autenticando...' 
+                : 'Entrar'}
           </button>
         </form>
       </div>
