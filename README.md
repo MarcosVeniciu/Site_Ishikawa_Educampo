@@ -183,11 +183,12 @@ site_ishikawa_educampo/
 │   │   ├── api/                                     # Backend-For-Frontend (BFF) - Rotas de API internas
 │   │   │   ├── auth/                                # Gerencia o login e injeta o token via Cookie HttpOnly.
 │   │   │   ├── diagnostico/                         # Proxy seguro: mascara as chaves e chama a API real da IA.
+│   │   │   ├── health/                              # Verificação de saúde da API externa (Health Check via BFF).
 │   │   │   ├── parametros-painel/                   # Rota para consultar os limites dinâmicos dos sliders.
 │   │   │   ├── ping/                                # Rota gatilho para despertar a API externa do Cold Start.
 │   │   │   └── simulacao/                           # Rota para simulação interativa.
 │   │   │   └── README.md
-│   │   ├── carregando/                              # Tela de feedback visual e validação de hidratação de dados.
+│   │   ├── carregando/                              # Tela de processamento paralelo dos dados (Diagnóstico + Simulação + Parâmetros).
 │   │   │   └── page.tsx
 │   │   │   └── README.md
 │   │   ├── selecao/                                 # Tela de bifurcação (Split Screen) após o carregamento.
@@ -241,7 +242,7 @@ site_ishikawa_educampo/
 │   │   └── simulacao.spec.ts
 │   ├── components/                                  # Testes de renderização (React Testing Library).
 │   │   ├── ajustes.spec.tsx
-│   │   ├── carregando.spec.tsx                      # Testes de roteamento condicional e polling de espera da API.
+│   │   ├── carregando.spec.tsx                      # Testes de roteamento condicional e processamento de dados.
 │   │   ├── diagnostico.spec.tsx
 │   │   ├── formulario.spec.tsx
 │   │   └── simulacao.spec.tsx

@@ -20,12 +20,21 @@ interface FazendaState {
   diagnosticoIA: any | null; // TODO: Substituir 'any' pelo tipo correto extraído do Zod (ex: DiagnosticoData)
   /** Dados da simulação inicial retornado pela API de ML. */
   resultadoSimulacao: any | null;
+  /**
+   * Flag de saúde da API externa.
+   * Quando `true`, indica que o fluxo Ping → Health Check foi concluído com sucesso
+   * na tela de login, permitindo que a tela de carregamento pule a verificação de saúde
+   * e vá direto para o processamento dos dados.
+   */
+  apiHealthy: boolean;
   /** Define os dados da fazenda no estado global. */
   setDadosFazenda: (dados: FazendaFormData) => void;
   /** Define os dados do diagnóstico no estado global. */
   setDiagnosticoIA: (diagnosticoIA: any) => void;
   /** Define os dados da simulação no estado global. */
   setResultadoSimulacao: (resultado: any) => void;
+  /** Sinaliza que a API externa foi confirmada como saudável (healthy). */
+  setApiHealthy: (healthy: boolean) => void;
   /** Reseta a store para o estado inicial (limpeza de sessão). */
   limparDados: () => void;
 }
@@ -42,6 +51,7 @@ export const useFazendaStore = create<FazendaState>()(
       dadosFazenda: null,
       diagnosticoIA: null,
       resultadoSimulacao: null,
+      apiHealthy: false,
 
       setDadosFazenda: (dados) => {
         set({ dadosFazenda: dados });
@@ -55,8 +65,12 @@ export const useFazendaStore = create<FazendaState>()(
         set({ resultadoSimulacao: resultado });
       },
 
+      setApiHealthy: (healthy) => {
+        set({ apiHealthy: healthy });
+      },
+
       limparDados: () => {
-        set({ dadosFazenda: null, diagnosticoIA: null, resultadoSimulacao: null });
+        set({ dadosFazenda: null, diagnosticoIA: null, resultadoSimulacao: null, apiHealthy: false });
       },
     }),
     {

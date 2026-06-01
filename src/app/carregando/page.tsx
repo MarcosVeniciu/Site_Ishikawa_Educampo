@@ -6,6 +6,12 @@
  * 2. Enviar os dados para as APIs internas (BFF) de Diagnóstico e Simulação em paralelo.
  * 3. Gerenciar o estado de espera visual do usuário com feedback elegante.
  * 4. Salvar os resultados retornados no estado global e redirecionar para a Tela de Seleção.
+ * 
+ * IMPORTANTE — Arquitetura de Verificação Centralizada:
+ * A verificação de saúde da API (Ping → Health Check) é feita integralmente na tela de Login.
+ * Esta página consome o flag `apiHealthy` do Zustand e pula direto para o processamento.
+ * Se a API adormecer entre o login e esta tela, o `fetchComResiliencia` já possui retry
+ * com Exponential Backoff para erros 502/503/504, servindo como fallback natural.
  */
 
 "use client";
@@ -18,8 +24,8 @@ import { fetchComResiliencia } from "@/lib/apiUtils";
 
 export default function CarregandoPage() {
   const router = useRouter();
-  const { dadosFazenda, setDiagnosticoIA, setResultadoSimulacao } = useFazendaStore();
-  const [mensagem, setMensagem] = useState("Verificando conexão");
+  const { dadosFazenda, setDiagnosticoIA, setResultadoSimulacao, apiHealthy } = useFazendaStore();
+  const [mensagem, setMensagem] = useState("Preparando análise");
   const [dots, setDots] = useState("");
   const processamentoIniciado = useRef(false);
 
@@ -40,8 +46,23 @@ export default function CarregandoPage() {
     if (processamentoIniciado.current) return;
     processamentoIniciado.current = true;
 
+    /**
+     * @description Processa as 3 requisições de análise em paralelo.
+     * 
+     * REGRA DE NEGÓCIO: A verificação de saúde da API foi realizada na tela de Login.
+     * O flag `apiHealthy` do Zustand indica se a API estava saudável naquele momento.
+     * Se a API adormecer entre o login e esta tela (cenário improvável em uso normal),
+     * o `fetchComResiliencia` já faz retry automático com Exponential Backoff para
+     * erros transitórios (502/503/504), servindo como fallback natural.
+     */
     const processarAnalise = async () => {
       try {
+        // Log de depuração: indica se a API foi pré-verificada na tela de login
+        console.info(
+          `%c[Carregando] API pré-verificada no login: ${apiHealthy ? '✅ SIM' : '⚠️ NÃO (fallback via retry)'}`,
+          `color: ${apiHealthy ? '#10b981' : '#f59e0b'}; font-weight: bold; padding: 2px 4px; border-radius: 4px;`
+        );
+
         setMensagem("A Inteligência Artificial está projetando seus cenários");
 
         // Prepara os payloads para as duas requisições
@@ -115,95 +136,17 @@ export default function CarregandoPage() {
         // Pequeno delay para garantir que o usuário veja a conclusão antes da troca de tela para a seleção de módulos
         setTimeout(() => router.push("/selecao"), 1500);
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error("Falha no processamento:", error);
-        }
+        console.error("[Carregando] Falha no processamento:", error);
         setMensagem("Ocorreu um erro ao processar os dados. Redirecionando");
         setTimeout(() => router.push("/formulario"), 3000);
       }
     };
 
-    /**
-     * @description Interroga o servidor até que ele esteja pronto (Trata Cold Start e Rate Limit).
-     * Implementa um padrão de Circuit Breaker (Limite de Tentativas) acoplado a um 
-     * Exponential Backoff (Espera Progressiva) para proteger o backend e a experiência do usuário.
-     * 
-     * @param {number} tentativa - O número da tentativa atual (Inicia em 1).
-     * @returns {Promise<void>} Uma promise vazia que resolve quando o processamento de saúde encerra.
-     */
-    const verificarSaude = async (tentativa: number = 1) => {
-      // Constantes arquiteturais de resiliência
-      const MAX_TENTATIVAS = 5;
-      const TEMPO_BASE_MS = 3000;
-      const CAP_TEMPO_MS = 20000;
-
-      try {
-        const res = await fetch("/api/health");
-
-        // POR QUE TRATAMOS O STATUS 429 ESPECIALMENTE:
-        // A API possui limites estritos de requisições por minuto. Caso recebamos um HTTP 429 (Rate Limited),
-        // em vez de criarmos um loop infinito de 5 segundos que sobrecarrega ainda mais a nuvem, lançamos
-        // um erro dedicado. Isso permite que a chamada caia no fluxo padrão de Exponential Backoff (que estica
-        // o tempo de espera progressivamente) e acione o Circuit Breaker se a situação persistir por 5 tentativas.
-        if (res.status === 429) {
-          throw new Error("Rate limit atingido (HTTP 429)");
-        }
-
-        // Erros Críticos (Falhas definitivas onde retentar é inútil)
-        if (res.status === 403 || res.status === 503) {
-          setMensagem(res.status === 403 ? "Acesso negado: Chave de API inválida" : "Serviço indisponível: Falha nos recursos");
-          setTimeout(() => router.push("/formulario"), 3000);
-          return;
-        }
-
-        // Cenário de comunicação bem-sucedida
-        if (res.ok) {
-          const data = await res.json().catch(() => ({}));
-
-          // Trata os casos onde o contêiner de ML/API está em processo de boot
-          if (data.status === "warming_up" || data.ml_api === "waking_up") {
-            throw new Error("Warming up"); // Força a cair no catch para aplicar o Backoff
-          }
-
-          // Gatilho final: API totalmente pronta. Libera o carregamento em paralelo.
-          if (data.status === "healthy") {
-            processarAnalise();
-            return;
-          }
-        }
-
-        // Fallback: qualquer status não-ok (ex: 502/504) indica que o backend falhou ou está subindo.
-        throw new Error(`API não pronta ou indisponível (Status: ${res.status})`);
-      } catch (error) {
-        // O Circuit Breaker atua: Excedeu as 5 tentativas e corta o loop de sondagem.
-        if (tentativa >= MAX_TENTATIVAS) {
-          if (process.env.NODE_ENV === 'development') {
-            console.error("[Circuit Breaker] Falha na verificação de saúde após número máximo de tentativas.");
-          }
-          setMensagem("Serviço temporariamente indisponível. Tente novamente mais tarde");
-          setTimeout(() => router.push("/formulario"), 4000);
-          return;
-        }
-
-        // Exponential Backoff: Aumenta progressivamente o tempo de espera
-        // Fórmula: min(3000 * 2^(tentativa - 1), 20000)
-        const tempoEspera = Math.min(TEMPO_BASE_MS * Math.pow(2, tentativa - 1), CAP_TEMPO_MS);
-        
-        // REGRA DE NEGÓCIO: Mensagem personalizada de acordo com o tipo de falha
-        // Se for um Rate Limit (429), exibimos feedback de "Muitas requisições" em vez de "Esperando API acordar".
-        if (error instanceof Error && error.message.includes("HTTP 429")) {
-          setMensagem("Muitas requisições. Aguardando liberação");
-        } else {
-          setMensagem("Esperando API acordar");
-        }
-        
-        // Agenda a próxima tentativa aplicando o delay calculado
-        setTimeout(() => verificarSaude(tentativa + 1), tempoEspera);
-      }
-    };
-
-    verificarSaude(1);
-  }, [dadosFazenda, router, setDiagnosticoIA, setResultadoSimulacao]);
+    // FLUXO SIMPLIFICADO: Vai direto para o processamento.
+    // A verificação de saúde já foi feita na tela de Login.
+    // O fetchComResiliencia serve como fallback natural com retry automático.
+    processarAnalise();
+  }, [dadosFazenda, router, setDiagnosticoIA, setResultadoSimulacao, apiHealthy]);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-fundo p-6">

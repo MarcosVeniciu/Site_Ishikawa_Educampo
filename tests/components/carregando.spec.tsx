@@ -1,8 +1,16 @@
 /**
  * @file tests/components/carregando.spec.tsx
  * @description Testes (O Contrato) para a tela de Carregamento.
- * Garante o comportamento de polling (verificação de saúde da API), o disparo das requisições paralelas 
- * e o tratamento do estado visual da tela antes de redirecionar o usuário.
+ * 
+ * ARQUITETURA ATUALIZADA (Verificação Centralizada no Login):
+ * A verificação de saúde da API (Ping → Health Check) agora é feita integralmente na tela de Login.
+ * Esta tela consome o flag `apiHealthy` do Zustand e vai direto para o processamento paralelo
+ * das 3 requisições (Diagnóstico, Simulação, Parâmetros) via `fetchComResiliencia`.
+ * 
+ * Os testes validam:
+ * 1. Redirecionamento quando não há dados no estado global.
+ * 2. Processamento direto com 3 chamadas paralelas (sem health check prévio).
+ * 3. Comportamento de fallback quando as APIs de processamento falham.
  */
 
 import React from 'react';
@@ -21,8 +29,15 @@ jest.mock('../../src/store/useFazendaStore', () => ({
   useFazendaStore: jest.fn(),
 }));
 
-// Mock do Fetch
-global.fetch = jest.fn();
+/**
+ * Mock do fetchComResiliencia.
+ * Como este wrapper já encapsula retry/backoff internamente, mockamos ele diretamente
+ * para testar o comportamento da tela (e não a lógica de retry, que é testada separadamente).
+ */
+const mockFetchComResiliencia = jest.fn();
+jest.mock('../../src/lib/apiUtils', () => ({
+  fetchComResiliencia: (...args: any[]) => mockFetchComResiliencia(...args),
+}));
 
 describe('Tela de Carregamento (CarregandoPage)', () => {
   const mockPush = jest.fn();
@@ -52,6 +67,7 @@ describe('Tela de Carregamento (CarregandoPage)', () => {
       dadosFazenda: mockDadosFazenda,
       setDiagnosticoIA: mockSetDiagnosticoIA,
       setResultadoSimulacao: mockSetResultadoSimulacao,
+      apiHealthy: true, // Flag confirmado no login (cenário padrão)
     }));
   });
 
@@ -64,99 +80,79 @@ describe('Tela de Carregamento (CarregandoPage)', () => {
       dadosFazenda: null,
       setDiagnosticoIA: mockSetDiagnosticoIA,
       setResultadoSimulacao: mockSetResultadoSimulacao,
+      apiHealthy: false,
     }));
 
     render(<CarregandoPage />);
     expect(mockPush).toHaveBeenCalledWith('/formulario');
   });
 
-  it('deve aguardar a API acordar (polling) se o status de saúde for warming_up', async () => {
-    // Primeira chamada: warming_up
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      json: async () => ({ status: 'warming_up' })
-    });
-
-    render(<CarregandoPage />);
-
-    await waitFor(() => {
-      expect(screen.getByText(/Esperando API acordar/i)).toBeInTheDocument();
-    });
-
-    // Avança o tempo do setTimeout interno (3000ms) para disparar nova requisição de polling
-    await act(async () => {
-      jest.advanceTimersByTime(3000);
-    });
-
-    expect(global.fetch).toHaveBeenCalledTimes(2);
-  });
-
-  it('deve processar a análise com chamadas paralelas (Diag, Sim, Param) quando a API estiver saudável', async () => {
-    // 1. healthcheck
-    (global.fetch as jest.Mock).mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ status: 'healthy' }) });
-    // 2, 3, 4. /diagnostico, /simulacao, /parametros-painel
-    (global.fetch as jest.Mock)
+  it('deve ir direto para processarAnalise() sem health check (3 chamadas paralelas)', async () => {
+    // Cenário: A verificação de saúde já foi feita no login (apiHealthy=true).
+    // A tela deve disparar diretamente as 3 requisições de processamento via fetchComResiliencia.
+    mockFetchComResiliencia
       .mockResolvedValueOnce({ ok: true, json: async () => ({ diag: 'ok' }) })
       .mockResolvedValueOnce({ ok: true, json: async () => ({ sim: 'ok' }) })
       .mockResolvedValueOnce({ ok: true, json: async () => ({ param: 'ok' }) });
 
-    render(<CarregandoPage />);
+    await act(async () => {
+      render(<CarregandoPage />);
+    });
 
-    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(4));
+    // Valida que exatamente 3 chamadas ao fetchComResiliencia foram disparadas (sem health check)
+    await waitFor(() => expect(mockFetchComResiliencia).toHaveBeenCalledTimes(3));
+
+    // Valida que os resultados foram injetados no Zustand
     expect(mockSetDiagnosticoIA).toHaveBeenCalledWith({ diag: 'ok' });
     expect(mockSetResultadoSimulacao).toHaveBeenCalledWith({ sim: 'ok', param: 'ok' });
 
+    // Avança o delay de 1500ms antes do redirecionamento para /selecao
     await act(async () => { 
       jest.advanceTimersByTime(1500); 
     });
     expect(mockPush).toHaveBeenCalledWith('/selecao');
   });
 
-  it('deve aplicar backoff e eventual circuit breaker se a API retornar status 429 repetidamente', async () => {
-    // Mocking de 5 chamadas consecutivas retornando status 429
-    (global.fetch as jest.Mock)
-      .mockResolvedValueOnce({ ok: false, status: 429 }) // tentativa 1
-      .mockResolvedValueOnce({ ok: false, status: 429 }) // tentativa 2
-      .mockResolvedValueOnce({ ok: false, status: 429 }) // tentativa 3
-      .mockResolvedValueOnce({ ok: false, status: 429 }) // tentativa 4
-      .mockResolvedValueOnce({ ok: false, status: 429 }); // tentativa 5
+  it('deve exibir mensagem de erro e redirecionar para /formulario quando as APIs de processamento falham', async () => {
+    // Cenário: O fetchComResiliencia esgotou seus retries internos e propagou o erro.
+    mockFetchComResiliencia.mockRejectedValue(new Error('Falha transitória do servidor (Status: 502)'));
 
-    render(<CarregandoPage />);
-
-    // Tentativa 1 (exibe erro de rate limit e aguarda 3000ms)
-    await waitFor(() => {
-      expect(screen.getByText(/Muitas requisições/i)).toBeInTheDocument();
+    await act(async () => {
+      render(<CarregandoPage />);
     });
 
-    // Avança 3s para Tentativa 2 (espera 6000ms)
+    // Aguarda o processamento falhar e exibir a mensagem de erro
+    await waitFor(() => {
+      expect(screen.getByText(/Ocorreu um erro ao processar os dados/i)).toBeInTheDocument();
+    });
+
+    // Avança os 3000ms do redirecionamento de fallback
     await act(async () => {
       jest.advanceTimersByTime(3000);
     });
 
-    // Avança 6s para Tentativa 3 (espera 12000ms)
+    expect(mockPush).toHaveBeenCalledWith('/formulario');
+  });
+
+  it('deve exibir mensagem de erro quando as respostas das APIs retornam ok=false', async () => {
+    // Cenário: As APIs responderam mas com status de erro (ex: 400, 422)
+    // O fetchComResiliencia retornou a response, mas ok=false.
+    mockFetchComResiliencia
+      .mockResolvedValueOnce({ ok: false, status: 400 })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ sim: 'ok' }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ param: 'ok' }) });
+
     await act(async () => {
-      jest.advanceTimersByTime(6000);
+      render(<CarregandoPage />);
     });
 
-    // Avança 12s para Tentativa 4 (espera 20000ms)
-    await act(async () => {
-      jest.advanceTimersByTime(12000);
-    });
-
-    // Avança 20s para Tentativa 5 (Circuit Breaker ativado)
-    await act(async () => {
-      jest.advanceTimersByTime(20000);
-    });
-
-    // Espera a mensagem de erro do Circuit Breaker
+    // O throw "Erro na comunicação com os servidores de análise" é capturado
     await waitFor(() => {
-      expect(screen.getByText(/Serviço temporariamente indisponível/i)).toBeInTheDocument();
+      expect(screen.getByText(/Ocorreu um erro ao processar os dados/i)).toBeInTheDocument();
     });
 
-    // Avança os 4000ms do redirecionamento do Circuit Breaker
     await act(async () => {
-      jest.advanceTimersByTime(4000);
+      jest.advanceTimersByTime(3000);
     });
 
     expect(mockPush).toHaveBeenCalledWith('/formulario');
