@@ -209,13 +209,15 @@ export default function CarregandoPage() {
     <main className="flex min-h-screen flex-col items-center justify-center bg-fundo p-6">
       <div className="w-full max-w-md text-center space-y-8 animate-pulse">
         {/* Logo Educampo para reforço de marca */}
-        <div className="relative h-20 w-48 mx-auto">
+        <div className="relative mx-auto flex justify-center">
           <Image
             src="/logo_educampo.png"
             alt="Logo Educampo"
-            fill
+            width={192}
+            height={80}
             className="object-contain"
             priority
+            style={{ height: 'auto' }}
           />
         </div>
 

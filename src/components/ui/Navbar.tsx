@@ -54,6 +54,7 @@ export function Navbar() {
               height={40}
               className="object-contain"
               priority
+              style={{ height: 'auto' }}
             />
           </div>
           

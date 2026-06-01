@@ -146,6 +146,7 @@ export default function FormularioPage() {
             height={50} 
             className="object-contain"
             priority
+            style={{ height: 'auto' }}
           />
           <h1 className="text-xl font-semibold text-primary">Diagnóstico de Fazenda</h1>
         </div>

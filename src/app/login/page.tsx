@@ -32,23 +32,29 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [apiReady, setApiReady] = useState(false);
   const [isWarmingUp, setIsWarmingUp] = useState(true);
+  
+  /**
+   * @description Estado que armazena a resposta bruta ou formatada da rota de ping.
+   * Usado exclusivamente no ambiente de desenvolvimento para debug.
+   */
+  const [pingResponse, setPingResponse] = useState<string | null>(null);
+  
   const router = useRouter();
+
+  // REGRA DE OPERAÇÃO:
+  // Define os caminhos de API para o ping de aquecimento de forma limpa no escopo do componente.
+  const baseApiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const pingUrl = baseApiUrl ? `${baseApiUrl}/api/ping` : '/api/ping';
 
   /**
    * Dispara um "ping" para acordar a API assim que a tela de login monta (evita cold start).
    * Prioriza o fetch direto do cliente para ignorar o limite de timeout do servidor BFF.
    * Realiza tentativas em loop de 5 segundos até obter sucesso na ativação da nuvem.
+   * No modo desenvolvimento, captura a resposta bruta/JSON para visualização em tempo real.
    * 
    * @returns {void} Esta função de efeito do React não possui retorno.
    */
   useEffect(() => {
-    // REGRA DE OPERAÇÃO:
-    // A API do Render pode hibernar por inatividade. O ping assíncrono na montagem do Login
-    // garante que ela seja acordada enquanto o usuário digita ou usa as credenciais de teste.
-    // Usamos prioritariamente a chamada direta do cliente para contornar o limite de 10s da Vercel (BFF).
-    const baseApiUrl = process.env.NEXT_PUBLIC_API_URL;
-    const pingUrl = baseApiUrl ? `${baseApiUrl}/api/ping` : '/api/ping';
-
     setIsWarmingUp(true);
 
     const checkApi = async () => {
@@ -57,6 +63,25 @@ export default function LoginPage() {
           method: 'GET',
           cache: 'no-store',
         });
+        
+        let responseText = '';
+        try {
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const data = await response.json();
+            responseText = JSON.stringify(data, null, 2);
+          } else {
+            responseText = await response.text();
+          }
+        } catch (e: any) {
+          responseText = `Erro decodificando corpo: ${e.message || e}`;
+        }
+
+        const formattedResponse = `[Status: ${response.status} ${response.statusText}]\n${responseText}`;
+
+        if (process.env.NODE_ENV === 'development') {
+          setPingResponse(formattedResponse);
+        }
         
         if (response.ok) {
           setApiReady(true);
@@ -72,9 +97,10 @@ export default function LoginPage() {
           // Em caso de erro na resposta, reagenda a tentativa para dali a 5 segundos
           setTimeout(checkApi, 5000);
         }
-      } catch (error) {
-        // Em caso de erro de rede (máquina subindo), reagenda a tentativa
+      } catch (error: any) {
+        const errMessage = `[Erro de Rede]\n${error?.message || error}`;
         if (process.env.NODE_ENV === 'development') {
+          setPingResponse(errMessage);
           console.warn('[API Ping] API ainda subindo, tentando novamente em 5s...');
         }
         setTimeout(checkApi, 5000);
@@ -82,7 +108,7 @@ export default function LoginPage() {
     };
 
     checkApi();
-  }, []);
+  }, [pingUrl]);
 
   /**
    * Processa a submissão do formulário de login.
@@ -208,6 +234,26 @@ export default function LoginPage() {
           Preencher com credenciais de teste
         </button>
         <p className="text-xs text-gray-400">Ambiente restrito a consultores autorizados.</p>
+
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-6 p-4 bg-slate-900 border border-slate-800 rounded-xl text-left font-mono text-xs text-emerald-400 shadow-md transition-all duration-300">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
+              <span className="text-slate-400 font-sans font-semibold flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>
+                API Debugger (Modo Dev)
+              </span>
+              <span className="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-500 font-sans">
+                pingUrl: {pingUrl}
+              </span>
+            </div>
+            <div>
+              <div className="text-slate-400 font-semibold mb-1 font-sans">Resposta da Rota Ping:</div>
+              <pre className="bg-slate-950 p-2.5 rounded border border-slate-800 overflow-x-auto text-[11px] leading-relaxed max-h-40 whitespace-pre-wrap break-all">
+                {pingResponse || 'Aguardando resposta da rota ping...'}
+              </pre>
+            </div>
+          </div>
+        )}
       </div>
     </SplitScreenLayout>
   );

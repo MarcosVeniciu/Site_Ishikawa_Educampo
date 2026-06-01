@@ -35,7 +35,8 @@ export function SplitScreenLayout({ title, subtitle, children }: SplitScreenLayo
             <Image 
               src="/logo_educampo.png" 
               alt="Educampo Logo" 
-              fill 
+              width={40} 
+              height={40} 
               className="object-contain" 
               priority 
             />
@@ -71,11 +72,12 @@ export function SplitScreenLayout({ title, subtitle, children }: SplitScreenLayo
           
           <div className="text-center mb-10">
             {/* Logo visível apenas no Mobile */}
-            <div className="relative mx-auto mb-8 h-20 w-20 lg:hidden">
+            <div className="relative mx-auto mb-8 h-20 w-20 lg:hidden flex items-center justify-center">
                <Image 
                  src="/logo_educampo.png" 
                  alt="Educampo Logo" 
-                 fill 
+                 width={80} 
+                 height={80} 
                  className="object-contain" 
                  priority 
                />
