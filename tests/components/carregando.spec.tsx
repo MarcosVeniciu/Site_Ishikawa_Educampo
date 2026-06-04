@@ -57,9 +57,16 @@ describe('Tela de Carregamento (CarregandoPage)', () => {
     percentual_lactacao: 60
   };
 
+  let consoleInfoSpy: jest.SpyInstance;
+  let consoleErrorSpy: jest.SpyInstance;
+
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+
+    // Suprime logs no console durante os testes
+    consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
     (useRouter as jest.Mock).mockReturnValue({ push: mockPush });
     
@@ -73,6 +80,8 @@ describe('Tela de Carregamento (CarregandoPage)', () => {
 
   afterEach(() => {
     jest.useRealTimers();
+    consoleInfoSpy.mockRestore();
+    consoleErrorSpy.mockRestore();
   });
 
   it('deve redirecionar para /formulario caso não haja dadosFazenda no estado global', () => {

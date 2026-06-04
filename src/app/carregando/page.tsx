@@ -160,7 +160,7 @@ export default function CarregandoPage() {
             height={80}
             className="object-contain"
             priority
-            style={{ height: 'auto' }}
+            style={{ width: '192px', height: 'auto' }}
           />
         </div>
 
