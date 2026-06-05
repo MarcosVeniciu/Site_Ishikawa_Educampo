@@ -61,8 +61,8 @@ As principais camadas de defesa da plataforma incluem:
 * **Proteção contra XSS:** A aplicação nunca armazena tokens JWT em `localStorage` ou `sessionStorage`. O token é gerenciado exclusivamente via cabecalho HTTP (`Set-Cookie`), impossibilitando que scripts maliciosos injetados no navegador o leiam.
 * **Cookies Blindados:** Os cookies de sessão utilizam as flags `HttpOnly` (inacessível via JavaScript), `SameSite=Strict` (previne falsificação de requisições/CSRF) e `Secure` (trafega apenas em conexões HTTPS criptografadas).
 
-### 2. Middleware Guardião e Proxying de API (Ocultação)
-* **Proteção de Rotas em Tempo Real e Expiração (TTL):** Um *Middleware* nativo (Edge Runtime) monitora todas as tentativas de acesso às rotas privadas. Sem um cookie válido e verificado criptograficamente (usando bibliotecas modernas como a `jose`), o usuário é redirecionado instantaneamente para a tela de login. Adicionalmente, **a sessão possui um tempo de validade estrito de 5 minutos**, deslogando o usuário automaticamente para mitigar o risco de sequestro de sessão inativa.
+### 2. Proxy Guardião e Proxying de API (Ocultação)
+* **Proteção de Rotas em Tempo Real e Expiração (TTL):** Um *Proxy* nativo (Edge Runtime) monitora todas as tentativas de acesso às rotas privadas. Sem um cookie válido e verificado criptograficamente (usando bibliotecas modernas como a `jose`), o usuário é redirecionado instantaneamente para a tela de login. Adicionalmente, **a sessão possui um tempo de validade estrito de 5 minutos**, deslogando o usuário automaticamente para mitigar o risco de sequestro de sessão inativa.
 * **Ocultação de Chaves (Proxy):** O frontend não se comunica diretamente com a API de Inteligência Artificial. Toda chamada passa por uma rota interna no servidor Next.js, garantindo que API Keys, endereços IP e a estrutura do banco não fiquem expostos na rede do usuário.
 
 ### 3. Prevenção contra Vazamento de Estado
@@ -112,7 +112,7 @@ Os 4 pilares da nossa cultura de testes são:
 
 Nossa blindagem é garantida através do **Jest, React Testing Library e JSDOM**, com suítes estrategicamente divididas para cobrir as áreas vitais do sistema:
 
-* **Segurança e Proteção de Sessão (`tests/security/auth.spec.ts` e afins):** Verificação rigorosa do padrão *Zero-Token-Exposure*. Os testes reprovam a aplicação caso exista qualquer tentativa de injetar o JWT no `localStorage` ou `sessionStorage`, além de validar o comportamento do Middleware no bloqueio de rotas privadas e no gerenciamento de cookies (`HttpOnly`).
+* **Segurança e Proteção de Sessão (`tests/security/auth.spec.ts` e afins):** Verificação rigorosa do padrão *Zero-Token-Exposure*. Os testes reprovam a aplicação caso exista qualquer tentativa de injetar o JWT no `localStorage` ou `sessionStorage`, além de validar o comportamento do Proxy no bloqueio de rotas privadas e no gerenciamento de cookies (`HttpOnly`).
 * **Gerenciamento de Estado e Regras de Interface (`tests/store/` e `tests/components/`):** Validação do preenchimento do formulário de dados da fazenda e garantia de que o `Zustand` armazene, limpe e hidrate as informações corretamente, especialmente em falhas de rede (tela de carregamento) para evitar estados corrompidos.
 * **Integração com API BFF (`tests/api/bff.spec.ts`):** Mocking (simulação) das chamadas para a nossa API intermediária (Backend-For-Frontend), testando o tratamento das respostas em JSON e a renderização correta do Resumo Geral da IA, comparativos do Educampo e do Diagrama de Ishikawa.
 
@@ -141,7 +141,7 @@ O ecossistema do **Site Ishikawa Educampo** foi cuidadosamente desenhado para ga
   * **Lucide React:** Biblioteca de iconografia limpa e consistente para aprimorar a experiência visual (UX) do produtor.
 * **Segurança & Validação:**
   * **Zod:** Validação rigorosa de *schemas* e *payloads* (dados do formulário) antes de enviá-los à API, prevenindo injeções e erros de tipagem.
-  * **jose:** Utilizada no Edge Runtime (Middleware) para a verificação e validação criptográfica dos tokens JWT.
+  * **jose:** Utilizada no Edge Runtime (Proxy) para a verificação e validação criptográfica dos tokens JWT.
 * **Testes (A Nossa "Lei"):**
   * **Jest, React Testing Library e JSDOM:** O trio responsável por garantir nossa cultura de *Test-Driven Security*, assegurando que a interface renderize corretamente e que chaves/tokens jamais vazem para o cliente.
 * **Infraestrutura & Containerização:**
@@ -231,7 +231,7 @@ site_ishikawa_educampo/
 │   ├── types/                                       # Tipagens do TypeScript
 │   │   ├── diagnostico.ts
 │   │   └── README.md
-│   ├── middleware.ts                                # Guardião de Rotas (Edge): Valida tokens e protege acessos.
+│   ├── proxy.ts                                     # Guardião de Rotas (Edge): Valida tokens e protege acessos.
 │   └── README.md                                    # Visão geral da arquitetura do código-fonte (src).
 │
 ├── tests/                                           # Suíte de Testes (A Lei do Projeto)

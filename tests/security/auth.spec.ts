@@ -1,7 +1,7 @@
 /**
  * @file tests/security/auth.spec.ts
  * @description Suíte de testes de segurança que define o contrato da Barreira de Segurança (Auth).
- * Garante o padrão Zero-Token-Exposure e o bloqueio de rotas privadas via Middleware.
+ * Garante o padrão Zero-Token-Exposure e o bloqueio de rotas privadas via Proxy.
  *
  * COMO ESTE CÓDIGO FUNCIONA:
  * 1. Simulação de Ambiente (JSDOM): Utilizamos os objetos globais `window.localStorage` e 
@@ -9,7 +9,7 @@
  * frontend tente armazenar o token JWT no navegador.
  * 2. Mocking de Resposta HTTP: Simulamos a estrutura de cabeçalhos de resposta para verificar
  * se a rota de autenticação injeta o cookie com as flags `HttpOnly`, `Secure` e `SameSite=Strict`.
- * 3. Validação de Interceptação: Testamos o fluxo abstrato do Middleware, garantindo que
+ * 3. Validação de Interceptação: Testamos o fluxo abstrato do Proxy, garantindo que
  * requisições sem o cookie gerem um redirecionamento forçado para `/login`.
  */
 
@@ -118,12 +118,12 @@ describe('🔒 Barreira de Segurança e Autenticação', () => {
     });
   });
 
-  describe('Middleware Guardião (Proteção de Rotas Privadas)', () => {
+  describe('Proxy Guardião (Proteção de Rotas Privadas)', () => {
     it('DEVE redirecionar para a tela de /login se o cookie de sessão não existir', () => {
       // Simula uma tentativa de acessar o diagnóstico sem estar logado
       const request = new NextRequest('http://localhost:3000/diagnostico');
       
-      // Simula a lógica básica que o Middleware deverá ter
+      // Simula a lógica básica que o Proxy deverá ter
       const hasSession = request.cookies.has('educampo_session');
       let response;
       
