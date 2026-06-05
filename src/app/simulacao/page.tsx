@@ -13,6 +13,7 @@ import { Navbar } from '@/components/ui/Navbar';
 import { useFazendaStore } from '@/store/useFazendaStore';
 import { TrendingUp, TrendingDown, Minus, Loader2, RotateCcw, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
+import { formatSidebarNumber } from '@/lib/formatters';
 
 /**
  * @description Renderiza um gráfico de barra comparativo puro, sem dependências.
@@ -252,29 +253,38 @@ export default function SimulacaoPage() {
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
+    // Função para sanitizar os dados antes de enviar à API
+    // - Garante que não sejam enviados NaN ou menores que o mínimo permitido.
+    // - Garante que campos que exigem inteiros sejam arredondados.
+    const sanitizar = (valor: any, min: number, isInt: boolean = false) => {
+      let num = parseFloat(valor);
+      if (isNaN(num) || num < min) num = min;
+      return isInt ? Math.round(num) : num;
+    };
+
     setIsSimulando(true);
     const payloadSimulacao = {
       dados_originais: {
-        area_atividade: dadosFazenda.area_atividade,
-        ccs: dadosFazenda.ccs,
-        custo_concentrado: dadosFazenda.preco_concentrado,
-        numero_trabalhadores: dadosFazenda.mao_obra_total, // De-para (Frontend -> Backend)
-        preco_recebido: dadosFazenda.preco_leite, // De-para (Frontend -> Backend)
-        producao_vaca: dadosFazenda.producao_vaca,
-        regiao_sebrae: dadosFazenda.regiao, // De-para (Frontend -> Backend)
-        sistema_producao: dadosFazenda.sistema_producao,
-        total_vacas: dadosFazenda.total_vacas,
-        percentual_lactacao: dadosFazenda.percentual_lactacao
+        area_atividade: sanitizar(dadosFazenda.area_atividade, 0.1),
+        ccs: sanitizar(dadosFazenda.ccs, 0.1),
+        custo_concentrado: sanitizar(dadosFazenda.preco_concentrado, 0.01),
+        numero_trabalhadores: sanitizar(dadosFazenda.mao_obra_total, 1, true), // Força Inteiro
+        preco_recebido: sanitizar(dadosFazenda.preco_leite, 0.01),
+        producao_vaca: sanitizar(dadosFazenda.producao_vaca, 0.1),
+        regiao_sebrae: dadosFazenda.regiao || 'desconhecida',
+        sistema_producao: dadosFazenda.sistema_producao || 'desconhecido',
+        total_vacas: sanitizar(dadosFazenda.total_vacas, 1, true), // Força Inteiro
+        percentual_lactacao: sanitizar(dadosFazenda.percentual_lactacao, 0)
       },
       dados_simulados: {
-        area_atividade: estadoSimulacao.area_atividade,
-        ccs: estadoSimulacao.ccs,
-        custo_concentrado: estadoSimulacao.custo_concentrado,
-        numero_trabalhadores: estadoSimulacao.numero_trabalhadores,
-        preco_recebido: estadoSimulacao.preco_recebido,
-        producao_vaca: estadoSimulacao.producao_vaca,
-        total_vacas: estadoSimulacao.total_vacas,
-        percentual_lactacao: estadoSimulacao.percentual_lactacao
+        area_atividade: sanitizar(estadoSimulacao.area_atividade, 0.1),
+        ccs: sanitizar(estadoSimulacao.ccs, 0.1),
+        custo_concentrado: sanitizar(estadoSimulacao.custo_concentrado, 0.01),
+        numero_trabalhadores: sanitizar(estadoSimulacao.numero_trabalhadores, 1, true), // Força Inteiro
+        preco_recebido: sanitizar(estadoSimulacao.preco_recebido, 0.01),
+        producao_vaca: sanitizar(estadoSimulacao.producao_vaca, 0.1),
+        total_vacas: sanitizar(estadoSimulacao.total_vacas, 1, true), // Força Inteiro
+        percentual_lactacao: sanitizar(estadoSimulacao.percentual_lactacao, 0)
       }
     };
 
@@ -619,13 +629,13 @@ export default function SimulacaoPage() {
                   <div className="p-4 space-y-6">
                     
                     {/* Controle: Quantidade de Vacas */}
-                    {renderControl('total_vacas', 'Quantidade de Vacas', (v) => `${v} vacas`)}
+                    {renderControl('total_vacas', 'Quantidade de Vacas', (v) => `${formatSidebarNumber(v)} vacas`)}
 
                     {/* Controle: Preço do Leite */}
-                    {renderControl('preco_recebido', 'Preço do Leite', (v) => `R$ ${v.toFixed(2)}`)}
+                    {renderControl('preco_recebido', 'Preço do Leite', (v) => `R$ ${formatSidebarNumber(v, 2, 2)}`)}
 
                     {/* Controle: Custo do Concentrado */}
-                    {renderControl('custo_concentrado', 'Custo Concentrado', (v) => `R$ ${v.toFixed(2)}`)}
+                    {renderControl('custo_concentrado', 'Custo Concentrado', (v) => `R$ ${formatSidebarNumber(v, 2, 2)}`)}
 
                   </div>
                 </div>
@@ -647,19 +657,19 @@ export default function SimulacaoPage() {
                   <div className="p-4 space-y-6">
 
                     {/* Controle: Percentual de Lactação */}
-                    {renderControl('percentual_lactacao', 'Percentual em Lactação', (v) => `${v} %`)}
+                    {renderControl('percentual_lactacao', 'Percentual em Lactação', (v) => `${formatSidebarNumber(v)} %`)}
 
                     {/* Controle: CCS */}
-                    {renderControl('ccs', 'CCS', (v) => `${v} x1000 céls/mL`, true)}
+                    {renderControl('ccs', 'CCS', (v) => `${formatSidebarNumber(v)} x1000 céls/mL`, true)}
 
                     {/* Controle: Produção por Vaca */}
-                    {renderControl('producao_vaca', 'Produção por vaca', (v) => `${v} L/dia`)}
+                    {renderControl('producao_vaca', 'Produção por vaca', (v) => `${formatSidebarNumber(v)} L/dia`)}
 
                     {/* Controle: Área de Atividade */}
-                    {renderControl('area_atividade', 'Área de atividade', (v) => `${v} hectares`)}
+                    {renderControl('area_atividade', 'Área de atividade', (v) => `${formatSidebarNumber(v)} hectares`)}
 
                     {/* Controle: Número de Trabalhadores */}
-                    {renderControl('numero_trabalhadores', 'Total de Trabalhadores', (v) => `${v} pessoas`)}
+                    {renderControl('numero_trabalhadores', 'Total de Trabalhadores', (v) => `${formatSidebarNumber(v)} pessoas`)}
 
                   </div>
                 </div>

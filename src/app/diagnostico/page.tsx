@@ -16,6 +16,7 @@ import { IshikawaDiagram } from '@/components/ui/IshikawaDiagram';
 import { Acelerometro } from '@/components/ui/Acelerometro';
 import { ImpactFactorBar } from '@/components/ui/ImpactFactorBar';
 import { TextoComCitacoes } from '@/components/ui/TextoComCitacoes';
+import { formatValor } from '@/lib/formatters';
 import { 
   TrendingUp, 
   Activity,
@@ -88,17 +89,7 @@ const getStatusUI = (status?: StatusComparacao | string) => {
   }
 };
 
-/**
- * @description Função utilitária para formatar os valores numéricos no padrão de localização pt-BR.
- * @param {any} val Valor bruto recebido da API.
- * @returns {string} String do valor já formatada.
- */
-const formatValor = (val: any) => {
-  if (val === undefined || val === null) return '';
-  if (typeof val === 'number') return val.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
-  if (!isNaN(Number(val)) && String(val).trim() !== '') return Number(val).toLocaleString('pt-BR', { maximumFractionDigits: 2 });
-  return String(val);
-};
+
 
 /**
  * @description Subcomponente para renderizar um card de benchmarking interativo.
