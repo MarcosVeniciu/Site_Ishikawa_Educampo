@@ -54,7 +54,7 @@ export default function LoginPage() {
       });
 
       if (response.ok) {
-        router.push('/formulario');
+        window.location.href = '/formulario';
       } else {
         const data = await response.json();
         setError(data.error || 'Falha na autenticação.');
