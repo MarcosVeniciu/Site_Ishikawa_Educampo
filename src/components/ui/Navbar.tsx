@@ -8,7 +8,9 @@
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { BarChart2, Lightbulb, Settings } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { BarChart2, Lightbulb, Settings, LogOut } from 'lucide-react';
+import { useFazendaStore } from '../../store/useFazendaStore';
 
 /**
  * @description Inicia refs do DOM (menuRef, buttonRef) para verificar coordenadas no handler global `handleClickOutside`.
@@ -20,6 +22,18 @@ export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const router = useRouter();
+  const limparDados = useFazendaStore((state) => state.limparDados);
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (e) {
+      console.error('Erro ao realizar o logout', e);
+    }
+    limparDados();
+    router.push('/login');
+  };
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -72,6 +86,10 @@ export function Navbar() {
               <Settings size={18} />
               Atualizar Dados
             </Link>
+            <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-red-50 hover:text-red-600 transition-colors">
+              <LogOut size={18} />
+              Sair
+            </button>
           </div>
 
           {/* Botão Hamburger (MODO MOBILE) */}
@@ -143,7 +161,7 @@ export function Navbar() {
               <Link 
                 href="/ajustes" 
                 onClick={() => setIsMenuOpen(false)}
-                className="block p-6 hover:bg-white transition-colors group"
+                className="block p-6 hover:bg-white transition-colors border-b border-gray-100 group"
               >
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center gap-3">
@@ -159,6 +177,29 @@ export function Navbar() {
                   </p>
                 </div>
               </Link>
+
+              {/* Linha Inteira: Sair */}
+              <button 
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  handleLogout();
+                }}
+                className="col-span-2 block p-6 hover:bg-red-50 transition-colors text-left group"
+              >
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-red-100 text-red-600 rounded-lg group-hover:bg-red-600 group-hover:text-white transition-colors">
+                      <LogOut size={20} />
+                    </div>
+                    <h3 className="text-base font-bold text-gray-900 group-hover:text-red-600 transition-colors">
+                      Sair
+                    </h3>
+                  </div>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    Encerrar a sessão e voltar para a tela de login.
+                  </p>
+                </div>
+              </button>
 
             </div>
           </div>
