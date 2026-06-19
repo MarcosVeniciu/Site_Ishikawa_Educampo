@@ -10,9 +10,9 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { task_id: string } }
+  { params }: { params: Promise<{ task_id: string }> }
 ) {
-  const { task_id } = params;
+  const { task_id } = await params;
 
   if (!task_id) {
     return NextResponse.json({ error: 'task_id não fornecido' }, { status: 400 });
