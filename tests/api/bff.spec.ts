@@ -79,32 +79,24 @@ describe('BFF Proxy API - POST /api/diagnostico', () => {
   };
 
   /**
-   * Mock da resposta de sucesso esperada da API em Python.
+   * Mock da resposta de sucesso assíncrona esperada da API em Python (POST).
    */
-  const mockApiResponse = {
-    resumo_geral: {
-      visao_global: "Fazenda com bom potencial, mas requer ajustes.",
-      prioridades: ["Reduzir CCS", "Aumentar produção por vaca"],
-      proximos_passos: "Revisar rotina de ordenha."
-    },
-    diagrama_ishikawa: {
-      ccs: {
-        mao_de_obra: ["Falta de treinamento na ordenha"]
-      }
-    }
+  const mockApiPostResponse = {
+    task_id: "fake-task-1234",
+    status: "processing"
   };
 
-  it('deve repassar o payload para a API real e retornar os dados estruturados com status 200', async () => {
+  it('deve repassar o payload para a API real e retornar 202 Accepted com task_id', async () => {
     /**
-     * @description Verifica o "Caminho Feliz". A requisição chega, é validada,
-     * encaminhada para a API externa e a resposta é repassada intacta para o cliente.
+     * @description Verifica o "Caminho Feliz" no novo padrão Long Polling. 
+     * A requisição chega, é validada, encaminhada para a API externa (fila)
+     * e o task_id é devolvido ao cliente.
      */
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      headers: {
-        get: jest.fn().mockImplementation((key) => key === 'X-IA-Total-Tokens' ? '1250' : null)
-      },
-      json: async () => mockApiResponse,
+      status: 202,
+      headers: { get: jest.fn() },
+      json: async () => mockApiPostResponse,
     });
 
     const req = new NextRequest('http://localhost:3000/api/diagnostico', {
@@ -115,7 +107,7 @@ describe('BFF Proxy API - POST /api/diagnostico', () => {
     const response = await POST(req);
     const data = await response.json();
 
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(202);
     expect(global.fetch).toHaveBeenCalledWith(
       `${process.env.API_BASE_URL}/api/diagnostico`,
       expect.objectContaining({
@@ -127,8 +119,8 @@ describe('BFF Proxy API - POST /api/diagnostico', () => {
         })
       })
     );
-    expect(data).toHaveProperty('resumo_geral');
-    expect(data).toHaveProperty('diagrama_ishikawa');
+    expect(data).toHaveProperty('task_id', 'fake-task-1234');
+    expect(data).toHaveProperty('status', 'processing');
   });
 
   it('deve simular o desvio de fluxo quando ENABLE_PAYLOAD_ENCRYPTION estiver ativo', async () => {
@@ -140,8 +132,9 @@ describe('BFF Proxy API - POST /api/diagnostico', () => {
 
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
+      status: 202,
       headers: { get: jest.fn() },
-      json: async () => mockApiResponse,
+      json: async () => mockApiPostResponse,
     });
 
     const req = new NextRequest('http://localhost:3000/api/diagnostico', {
@@ -152,8 +145,7 @@ describe('BFF Proxy API - POST /api/diagnostico', () => {
     const response = await POST(req);
     
     // O teste garante que o código passou com sucesso mesmo com a flag ativa.
-    // Futuramente, podemos testar se o `body` enviado no fetch foi efetivamente criptografado.
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(202);
     expect(global.fetch).toHaveBeenCalled();
   });
 

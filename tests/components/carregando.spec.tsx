@@ -96,20 +96,30 @@ describe('Tela de Carregamento (CarregandoPage)', () => {
     expect(mockPush).toHaveBeenCalledWith('/formulario');
   });
 
-  it('deve ir direto para processarAnalise() sem health check (3 chamadas paralelas)', async () => {
-    // Cenário: A verificação de saúde já foi feita no login (apiHealthy=true).
-    // A tela deve disparar diretamente as 3 requisições de processamento via fetchComResiliencia.
-    mockFetchComResiliencia
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ diag: 'ok' }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ sim: 'ok' }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ param: 'ok' }) });
-
-    await act(async () => {
-      render(<CarregandoPage />);
+  it('deve ir direto para processarAnalise() e suportar o polling de diagnóstico', async () => {
+    mockFetchComResiliencia.mockImplementation(async (url: string) => {
+      if (url === "/api/diagnostico") return { ok: true, json: async () => ({ task_id: "fake-123" }) };
+      if (url.includes("/status/")) return { ok: true, json: async () => ({ status: "completed", result: { diag: "ok" } }) };
+      if (url === "/api/simulacao") return { ok: true, json: async () => ({ sim: "ok" }) };
+      if (url === "/api/parametros-painel") return { ok: true, json: async () => ({ param: "ok" }) };
+      return { ok: true };
     });
 
-    // Valida que exatamente 3 chamadas ao fetchComResiliencia foram disparadas (sem health check)
-    await waitFor(() => expect(mockFetchComResiliencia).toHaveBeenCalledTimes(3));
+    render(<CarregandoPage />);
+
+    // Força o event loop a esvaziar a fila de microtasks das primeiras chamadas
+    await act(async () => {
+      for (let i = 0; i < 5; i++) await Promise.resolve();
+    });
+
+    // Agora o setTimeout de 3s já foi chamado. Avançamos o tempo para resolvê-lo.
+    await act(async () => {
+      jest.advanceTimersByTime(3500);
+      for (let i = 0; i < 5; i++) await Promise.resolve();
+    });
+
+    // Valida que 4 chamadas foram feitas (POST diag, GET status, POST sim, POST param)
+    await waitFor(() => expect(mockFetchComResiliencia).toHaveBeenCalledTimes(4));
 
     // Valida que os resultados foram injetados no Zustand
     expect(mockSetDiagnosticoIA).toHaveBeenCalledWith({ diag: 'ok' });
@@ -145,17 +155,16 @@ describe('Tela de Carregamento (CarregandoPage)', () => {
 
   it('deve exibir mensagem de erro quando as respostas das APIs retornam ok=false', async () => {
     // Cenário: As APIs responderam mas com status de erro (ex: 400, 422)
-    // O fetchComResiliencia retornou a response, mas ok=false.
-    mockFetchComResiliencia
-      .mockResolvedValueOnce({ ok: false, status: 400 })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ sim: 'ok' }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ param: 'ok' }) });
-
-    await act(async () => {
-      render(<CarregandoPage />);
+    mockFetchComResiliencia.mockImplementation(async (url: string) => {
+      if (url === "/api/diagnostico") return { ok: false, status: 400 };
+      if (url === "/api/simulacao") return { ok: true, json: async () => ({ sim: "ok" }) };
+      if (url === "/api/parametros-painel") return { ok: true, json: async () => ({ param: "ok" }) };
+      return { ok: true };
     });
 
-    // O throw "Erro na comunicação com os servidores de análise" é capturado
+    render(<CarregandoPage />);
+
+    // O throw "Falha ao iniciar o processamento do diagnóstico" é capturado
     await waitFor(() => {
       expect(screen.getByText(/Ocorreu um erro ao processar os dados/i)).toBeInTheDocument();
     });

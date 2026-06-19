@@ -99,14 +99,56 @@ export default function CarregandoPage() {
           total_vacas: dadosFazenda.total_vacas
         };
 
-        // Dispara as três requisições em paralelo para otimizar o tempo de espera
-        // Usamos nosso fetch com Circuit Breaker capado em 3 tentativas para rotas pesadas
-        const [diagResponse, simResponse, paramResponse] = await Promise.all([
-          fetchComResiliencia("/api/diagnostico", {
+        // Função auxiliar para orquestrar o Long Polling do diagnóstico
+        const fetchDiagnosticoPolling = async () => {
+          // 1. Dispara o gatilho inicial
+          const initResponse = await fetchComResiliencia("/api/diagnostico", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(dadosFazenda),
-          }, 3, 2000, 10000, 60000), // Timeout de 60s para respeitar a lentidão da IA
+          }, 3, 2000, 10000, 15000); // Timeout rápido, pois o backend apenas enfileira
+          
+          if (!initResponse.ok) throw new Error("Falha ao iniciar o processamento do diagnóstico.");
+          
+          const initData = await initResponse.json();
+          const taskId = initData.task_id;
+          
+          if (!taskId) {
+             throw new Error("A API não retornou um task_id válido para acompanhamento.");
+          }
+          
+          const maxTempoPolling = 180000; // 3 minutos acordados
+          const tempoInicio = Date.now();
+          
+          // 2. Loop de polling (Checagem Iterativa)
+          while (true) {
+            if (Date.now() - tempoInicio > maxTempoPolling) {
+              throw new Error("Tempo limite de processamento da IA (3 minutos) excedido.");
+            }
+            
+            // Aguarda 3 segundos entre checagens para não sobrecarregar a rede
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
+            const statusResponse = await fetchComResiliencia(`/api/diagnostico/status/${taskId}`, {
+              method: "GET"
+            }, 3, 2000, 10000, 10000); // 10s de timeout para checagem
+            
+            if (!statusResponse.ok) throw new Error("Falha ao consultar status do processamento.");
+            
+            const statusData = await statusResponse.json();
+            
+            if (statusData.status === "completed") {
+              return statusData; // Retorna o objeto { status, result, ia_metrics }
+            } else if (statusData.status === "failed") {
+              throw new Error("O motor de Inteligência Artificial falhou ao processar o diagnóstico.");
+            }
+            // Caso seja "processing", o loop continua naturalmente
+          }
+        };
+
+        // Dispara as requisições em paralelo. O diagnóstico agora roda no fluxo assíncrono interno (Long Polling).
+        const [diagDataCompleto, simResponse, paramResponse] = await Promise.all([
+          fetchDiagnosticoPolling(),
           fetchComResiliencia("/api/simulacao", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -119,16 +161,16 @@ export default function CarregandoPage() {
           }, 3, 2000, 10000, 10000), // Timeout de 10s para extração de limites
         ]);
 
-        if (!diagResponse.ok || !simResponse.ok || !paramResponse.ok) {
-          throw new Error("Erro na comunicação com os servidores de análise.");
+        if (!simResponse.ok || !paramResponse.ok) {
+          throw new Error("Erro na comunicação com os servidores de simulação.");
         }
 
-        const diagData = await diagResponse.json();
         const simData = await simResponse.json();
         const paramData = await paramResponse.json();
 
-        // Injeta os resultados no estado global, combinando os limites dos sliders com as predições
-        setDiagnosticoIA(diagData);
+        // Injeta os resultados no estado global.
+        // O diagnóstico real agora está em diagDataCompleto.result
+        setDiagnosticoIA(diagDataCompleto.result);
         setResultadoSimulacao({ ...simData, ...paramData });
 
         setMensagem("Análise concluída! Montando seu Diagnóstico");
