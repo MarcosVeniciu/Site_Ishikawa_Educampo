@@ -12,7 +12,6 @@ services:
       - .env
     environment:
       - NODE_ENV=production # Ative ela na versão de produção.
-      - API_BASE_URL=http://host.docker.internal:8000
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
