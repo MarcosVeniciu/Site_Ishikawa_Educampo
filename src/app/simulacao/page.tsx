@@ -635,7 +635,7 @@ export default function SimulacaoPage() {
                     {renderControl('preco_recebido', 'Preço do Leite', (v) => `R$ ${formatSidebarNumber(v, 2, 2)}`)}
 
                     {/* Controle: Custo do Concentrado */}
-                    {renderControl('custo_concentrado', 'Custo Concentrado', (v) => `R$ ${formatSidebarNumber(v, 2, 2)}`)}
+                    {renderControl('custo_concentrado', 'Preço Concentrado', (v) => `R$ ${formatSidebarNumber(v, 2, 2)}`)}
 
                   </div>
                 </div>
