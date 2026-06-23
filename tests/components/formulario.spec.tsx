@@ -30,6 +30,13 @@ jest.mock('@/store/useFazendaStore', () => ({
   useFazendaStore: jest.fn(),
 }));
 
+// Mock global do fetch para evitar crashes nos componentes que o chamam no mount
+global.fetch = jest.fn().mockResolvedValue({
+  ok: true,
+  json: async () => ([]),
+});
+
+
 describe('Tela de Coleta de Dados (Formulário)', () => {
   const mockPush = jest.fn();
   const mockSetDadosFazenda = jest.fn();
@@ -37,6 +44,9 @@ describe('Tela de Coleta de Dados (Formulário)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     
+    // Desabilita a feature de mock data nos testes legados para evitar warnings de act(...)
+    process.env.NEXT_PUBLIC_ENABLE_TEST_FARMS = 'false';
+
     // Configura o mock do router para escutar redirecionamentos
     (useRouter as jest.Mock).mockReturnValue({
       push: mockPush,
@@ -136,6 +146,81 @@ describe('Tela de Coleta de Dados (Formulário)', () => {
 
       // Verifica se o usuário foi redirecionado para a tela de espera da API
       expect(mockPush).toHaveBeenCalledWith('/carregando');
+    });
+  });
+
+  describe('Seção de Fazendas de Teste (Mock Data)', () => {
+    const originalEnv = process.env;
+
+    beforeEach(() => {
+      jest.resetModules();
+      process.env = { ...originalEnv };
+      global.fetch = jest.fn();
+    });
+
+    afterAll(() => {
+      process.env = originalEnv;
+    });
+
+    it('não deve exibir a seção de Fazendas de Teste se a variável de ambiente estiver desativada', () => {
+      process.env.NEXT_PUBLIC_ENABLE_TEST_FARMS = 'false';
+      render(<FormularioPage />);
+      expect(screen.queryByText(/Fazendas de Teste/i)).not.toBeInTheDocument();
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it('deve exibir a seção, carregar a lista e preencher os dados ao selecionar uma fazenda de teste', async () => {
+      process.env.NEXT_PUBLIC_ENABLE_TEST_FARMS = 'true';
+      
+      const mockFarmsList = [
+        { nome: 'Fazenda Recanto', sistema_producao: 'compost_barn' },
+      ];
+      const mockFarmData = {
+        nome_fazenda: 'Fazenda Recanto',
+        sistema_producao: 'compost_barn',
+        total_vacas: '200',
+        percentual_lactacao: '85',
+        animais_rebanho: '250',
+        area_atividade: '50',
+        mao_obra_total: '4',
+        producao_vaca: '35',
+        preco_leite: '3.10',
+        preco_referencia: '3.00',
+        preco_concentrado: '2.50',
+        ccs: '200',
+        regiao: 'sul'
+      };
+
+      // O primeiro fetch na montagem da tela busca a lista de fazendas
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockFarmsList,
+      });
+
+      const user = userEvent.setup();
+      render(<FormularioPage />);
+
+      // Verifica se o título da seção apareceu e a lista foi buscada
+      expect(await screen.findByText(/Fazendas de Teste/i)).toBeInTheDocument();
+      expect(global.fetch).toHaveBeenCalledWith('/api/test-data');
+
+      // O segundo fetch ocorre ao selecionar a fazenda no dropdown
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockFarmData,
+      });
+
+      const selectFazenda = await screen.findByLabelText(/Selecionar Fazenda de Teste/i);
+      await user.selectOptions(selectFazenda, 'Fazenda Recanto');
+
+      // Verifica se o fetch de detalhes foi chamado com o nome correto
+      expect(global.fetch).toHaveBeenCalledWith('/api/test-data?nome=Fazenda%20Recanto');
+
+      // Verifica se os campos do formulário foram preenchidos corretamente (usamos waitFor para garantir a atualização de estado)
+      await waitFor(() => {
+        expect(screen.getByLabelText(/Nome da Fazenda/i)).toHaveValue('Fazenda Recanto');
+        expect(screen.getByLabelText(/Total de Vacas/i)).toHaveValue(200);
+      });
     });
   });
 });
