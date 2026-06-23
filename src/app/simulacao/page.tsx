@@ -575,13 +575,6 @@ function getSliderAlertState(val: number, param: any, cenarioAtivo: string, inve
         {/* Legenda Dinâmica e Detalhada (Sempre Visível) */}
         <div className="flex justify-between text-[10px] text-slate-400 mt-2 px-0.5 select-none font-medium">
           <span>Min: {formatText(param.min)}</span>
-          {param.fronteiras_cenario ? (
-            <span className={`${corFaixaLabel} font-semibold px-1.5 py-0.5 rounded transition-all duration-200`}>
-              Faixa Recomendada ({formatText(param.fronteiras_cenario.limite_inferior)} - {formatText(param.fronteiras_cenario.limite_superior)})
-            </span>
-          ) : (
-            <span>Faixa Livre</span>
-          )}
           <span>Max: {formatText(param.max)}</span>
         </div>
       </div>
@@ -641,7 +634,7 @@ function getSliderAlertState(val: number, param: any, cenarioAtivo: string, inve
       <main className="flex-1 max-w-[95%] w-full mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8">
         
         {/* PAINEL ESQUERDO: CONTROLES (Inputs & Sliders) */}
-        <aside className="w-full lg:w-80 flex-shrink-0 bg-white rounded-2xl shadow-lg border border-gray-100 p-6 flex flex-col h-max sticky top-8">
+        <aside className="w-full lg:w-96 flex-shrink-0 bg-white rounded-2xl shadow-lg border border-gray-100 p-6 flex flex-col h-max sticky top-8">
           <div className="mb-6 flex justify-between items-start">
             <div>
               <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
@@ -706,7 +699,7 @@ function getSliderAlertState(val: number, param: any, cenarioAtivo: string, inve
                     {renderControl('percentual_lactacao', 'Percentual em Lactação', (v) => `${formatSidebarNumber(v)} %`)}
 
                     {/* Controle: CCS */}
-                    {renderControl('ccs', 'CCS', (v) => `${formatSidebarNumber(v)} x1000 céls/mL`, true)}
+                    {renderControl('ccs', 'CCS', (v) => `${formatSidebarNumber(v)} mil céls/mL`, true)}
 
                     {/* Controle: Produção por Vaca */}
                     {renderControl('producao_vaca', 'Produção por vaca', (v) => `${formatSidebarNumber(v)} L/dia`)}
