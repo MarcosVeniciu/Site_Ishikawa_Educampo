@@ -39,7 +39,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Fix (Segurança): Extrai o IP do cliente para repassar ao Rate Limiter do Backend
-    const clientIp = request.headers.get('x-forwarded-for') || request.ip || '127.0.0.1';
+    // Nota: 'request.ip' foi removido no Next.js 15+, usamos apenas o header 'x-forwarded-for'
+    const clientIp = request.headers.get('x-forwarded-for') || '127.0.0.1';
 
     // Se 'nome' for fornecido, busca os dados da fazenda específica. 
     // Caso contrário, busca a lista completa.
