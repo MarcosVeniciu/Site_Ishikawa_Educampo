@@ -26,14 +26,14 @@ import { TooltipContextual } from '@/components/ui/TooltipContextual';
  * @param inverterCores Se verdadeiro, barras menores ganham cores positivas (ex: CCS).
  * @param diferencaPercentualAPI Opcional. A diferença percentual calculada com precisão pela inteligência no backend.
  */
-const BarChartSimulacao = ({ 
-  titulo, 
-  valorSimulado, 
-  valorReferencia, 
-  unidade, 
+const BarChartSimulacao = ({
+  titulo,
+  valorSimulado,
+  valorReferencia,
+  unidade,
   inverterCores = false,
   diferencaPercentualAPI
-}: { 
+}: {
   titulo: string, valorSimulado: number, valorReferencia: number, unidade: string, inverterCores?: boolean, diferencaPercentualAPI?: number
 }) => {
   /**
@@ -64,10 +64,10 @@ const BarChartSimulacao = ({
    * Cálculos do Indicador Percentual para o canto superior direito do componente.
    */
   const diff = valorSimulado - valorReferencia;
-  const pct = diferencaPercentualAPI !== undefined 
-    ? diferencaPercentualAPI 
+  const pct = diferencaPercentualAPI !== undefined
+    ? diferencaPercentualAPI
     : (Math.abs(valorReferencia) > 0 ? (diff / Math.abs(valorReferencia)) * 100 : 0);
-  
+
   let indicatorColor = 'text-gray-500 bg-gray-100';
   let prefix = '';
   let Icon = Minus;
@@ -100,7 +100,7 @@ const BarChartSimulacao = ({
       <div className="flex justify-between items-start gap-4 mb-4">
         <h3 className="text-sm font-bold text-gray-700 leading-tight">{titulo}</h3>
         {/* Badge Indicador de Diferença Percentual */}
-        <div 
+        <div
           className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${indicatorColor}`}
           title="Diferença em relação à referência"
         >
@@ -108,7 +108,7 @@ const BarChartSimulacao = ({
           <span>{prefix}{Math.abs(pct).toFixed(1)}%</span>
         </div>
       </div>
-      
+
       {/* Container das Barras (Cresce de baixo para cima) */}
       <div className="flex-1 flex items-end justify-center gap-6 pb-2">
         {/* Barra Simulada (Em Tempo Real) */}
@@ -118,12 +118,12 @@ const BarChartSimulacao = ({
             <span className={`text-xs font-bold mb-1 transition-all duration-300 ${corTextoSimulado}`}>
               {formatNumber(valorSimulado)}
             </span>
-            <div 
+            <div
               className={`w-full ${corBarraSimulada} rounded-t-sm transition-all duration-300 ease-out relative shadow-sm`}
               style={{ height: alturaSimulado }}
             >
-               {/* Tooltip Hover */}
-               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-gray-800 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap z-10">
+              {/* Tooltip Hover */}
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-gray-800 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap z-10">
                 Valor Simulado
               </div>
             </div>
@@ -137,7 +137,7 @@ const BarChartSimulacao = ({
             <span className="text-xs text-gray-500 mb-1 font-medium transition-all duration-500">
               {formatNumber(valorReferencia)}
             </span>
-            <div 
+            <div
               className="w-full bg-primary rounded-t-sm transition-all duration-500 ease-out relative"
               style={{ height: alturaReferencia }}
             >
@@ -150,7 +150,7 @@ const BarChartSimulacao = ({
           <span className="text-[10px] font-bold text-primary mt-2 uppercase tracking-wider">Referência</span>
         </div>
       </div>
-      
+
       {unidade && (
         <div className="text-center mt-2 pt-2 border-t border-gray-50">
           <span className="text-xs text-gray-500">{unidade}</span>
@@ -167,7 +167,7 @@ const BarChartSimulacao = ({
  */
 export default function SimulacaoPage() {
   const { dadosFazenda, resultadoSimulacao, setResultadoSimulacao } = useFazendaStore();
-  
+
   /**
    * Estados para os acordeões dos grupos de variáveis.
    * Mercado inicia expandido, Ajustes Técnicos inicia fechado por padrão.
@@ -211,7 +211,7 @@ export default function SimulacaoPage() {
 
   const [isSimulando, setIsSimulando] = useState(false);
   const [cenarioAtivo, setCenarioAtivo] = useState<'inferior' | 'intermediario' | 'superior'>('intermediario');
-  
+
   /**
    * Estado para a barreira do Rate Limiting que impede cliques em massa no botão de simulação.
    */
@@ -307,7 +307,7 @@ export default function SimulacaoPage() {
 
       if (response.ok) {
         const data = await response.json();
-        
+
         /**
          * Instrumentação de Logs (Apenas Desenvolvimento)
          * Inspeciona o payload recebido para facilitar a depuração de valores negativos nas margens,
@@ -407,14 +407,14 @@ export default function SimulacaoPage() {
    */
   const getParam = (chave: ParamKey) => {
     const painel = resultadoSimulacao?.parametros_painel;
-    
+
     if (painel && painel[chave]) {
       const paramData = painel[chave];
-      
+
       if (paramData[cenarioAtivo]) {
         return paramData[cenarioAtivo];
       }
-      
+
       return {
         min: paramData.min ?? defaultParams[chave].min,
         max: paramData.max ?? defaultParams[chave].max,
@@ -434,64 +434,64 @@ export default function SimulacaoPage() {
   const pCustoConcentrado = getParam('custo_concentrado');
   const pNumeroTrabalhadores = getParam('numero_trabalhadores');
 
-/**
- * @description Helper puro que calcula o estado visual (cores e avisos) de um slider de simulação,
- * isolando a lógica da máquina de estados do componente React para aplicar o Single Responsibility.
- */
-function getSliderAlertState(val: number, param: any, cenarioAtivo: string, inverterLogicaWarning: boolean, formatText: (v: number) => string) {
-  let warning: React.ReactNode = null;
-  let corSlider = 'accent-primary';
-  let corCaixa = 'border-slate-200 bg-white';
-  let corFaixaLabel = 'text-emerald-600 bg-emerald-50';
+  /**
+   * @description Helper puro que calcula o estado visual (cores e avisos) de um slider de simulação,
+   * isolando a lógica da máquina de estados do componente React para aplicar o Single Responsibility.
+   */
+  function getSliderAlertState(val: number, param: any, cenarioAtivo: string, inverterLogicaWarning: boolean, formatText: (v: number) => string) {
+    let warning: React.ReactNode = null;
+    let corSlider = 'accent-primary';
+    let corCaixa = 'border-slate-200 bg-white';
+    let corFaixaLabel = 'text-emerald-600 bg-emerald-50';
 
-  if (!param.fronteiras_cenario) {
+    if (!param.fronteiras_cenario) {
+      return { warning, corSlider, corCaixa, corFaixaLabel };
+    }
+
+    if (val < param.fronteiras_cenario.limite_inferior || val > param.fronteiras_cenario.limite_superior) {
+      corSlider = 'accent-amber-500';
+      corCaixa = 'border-amber-300 bg-amber-50/10';
+      corFaixaLabel = 'text-amber-600 bg-amber-50';
+    }
+
+    let direcaoMudanca: 'melhora' | 'piora' | null = null;
+    if (val < param.fronteiras_cenario.limite_inferior) {
+      direcaoMudanca = inverterLogicaWarning ? 'melhora' : 'piora';
+    } else if (val > param.fronteiras_cenario.limite_superior) {
+      direcaoMudanca = inverterLogicaWarning ? 'piora' : 'melhora';
+    }
+
+    if (direcaoMudanca) {
+      let cenarioAlvo = '';
+      let sugestaoBase = '';
+
+      if (direcaoMudanca === 'melhora') {
+        if (cenarioAtivo === 'inferior') { cenarioAlvo = 'intermediário'; sugestaoBase = 'Intermediário'; }
+        else if (cenarioAtivo === 'intermediario') { cenarioAlvo = 'superior'; sugestaoBase = 'Superior'; }
+        else { cenarioAlvo = 'extremo_superior'; sugestaoBase = 'Máximo'; }
+      } else {
+        if (cenarioAtivo === 'superior') { cenarioAlvo = 'intermediário'; sugestaoBase = 'Intermediário'; }
+        else if (cenarioAtivo === 'intermediario') { cenarioAlvo = 'inferior'; sugestaoBase = 'Inferior'; }
+        else { cenarioAlvo = 'extremo_inferior'; sugestaoBase = 'Mínimo'; }
+      }
+
+      if (cenarioAlvo === 'extremo_superior') {
+        warning = `Com este valor, os seus resultados ultrapassam o cenário superior da sua região.`;
+      } else if (cenarioAlvo === 'extremo_inferior') {
+        const adj = inverterLogicaWarning ? 'altos' : 'baixos';
+        warning = `Atenção: Simulação com valores atipicamente ${adj}, fora da escala do cenário inferior da sua região.`;
+      } else {
+        warning = (
+          <span>
+            <strong>{formatText(val)}</strong> está {direcaoMudanca === 'piora' ? 'abaixo' : 'acima'} do recomendado para este cenário.<br /><br />
+            <span className="text-amber-400 font-semibold">💡 Sugestão:</span> Tente mudar para o <strong>Cenário {sugestaoBase}</strong> para alinhar a simulação.
+          </span>
+        );
+      }
+    }
+
     return { warning, corSlider, corCaixa, corFaixaLabel };
   }
-
-  if (val < param.fronteiras_cenario.limite_inferior || val > param.fronteiras_cenario.limite_superior) {
-    corSlider = 'accent-amber-500';
-    corCaixa = 'border-amber-300 bg-amber-50/10';
-    corFaixaLabel = 'text-amber-600 bg-amber-50';
-  }
-
-  let direcaoMudanca: 'melhora' | 'piora' | null = null;
-  if (val < param.fronteiras_cenario.limite_inferior) {
-    direcaoMudanca = inverterLogicaWarning ? 'melhora' : 'piora';
-  } else if (val > param.fronteiras_cenario.limite_superior) {
-    direcaoMudanca = inverterLogicaWarning ? 'piora' : 'melhora';
-  }
-
-  if (direcaoMudanca) {
-    let cenarioAlvo = '';
-    let sugestaoBase = '';
-    
-    if (direcaoMudanca === 'melhora') {
-      if (cenarioAtivo === 'inferior') { cenarioAlvo = 'intermediário'; sugestaoBase = 'Intermediário'; }
-      else if (cenarioAtivo === 'intermediario') { cenarioAlvo = 'superior'; sugestaoBase = 'Superior'; }
-      else { cenarioAlvo = 'extremo_superior'; sugestaoBase = 'Máximo'; }
-    } else {
-      if (cenarioAtivo === 'superior') { cenarioAlvo = 'intermediário'; sugestaoBase = 'Intermediário'; }
-      else if (cenarioAtivo === 'intermediario') { cenarioAlvo = 'inferior'; sugestaoBase = 'Inferior'; }
-      else { cenarioAlvo = 'extremo_inferior'; sugestaoBase = 'Mínimo'; }
-    }
-
-    if (cenarioAlvo === 'extremo_superior') {
-      warning = `Com este valor, os seus resultados ultrapassam o cenário superior da sua região.`;
-    } else if (cenarioAlvo === 'extremo_inferior') {
-      const adj = inverterLogicaWarning ? 'altos' : 'baixos';
-      warning = `Atenção: Simulação com valores atipicamente ${adj}, fora da escala do cenário inferior da sua região.`;
-    } else {
-      warning = (
-        <span>
-          <strong>{formatText(val)}</strong> está {direcaoMudanca === 'piora' ? 'abaixo' : 'acima'} do recomendado para este cenário.<br /><br />
-          <span className="text-amber-400 font-semibold">💡 Sugestão:</span> Tente mudar para o <strong>Cenário {sugestaoBase}</strong> para alinhar a simulação.
-        </span>
-      );
-    }
-  }
-
-  return { warning, corSlider, corCaixa, corFaixaLabel };
-}
 
   /**
    * @description Renderiza o grupo de controle completo (Label, Input Slider e Alertas).
@@ -519,14 +519,14 @@ function getSliderAlertState(val: number, param: any, cenarioAtivo: string, inve
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
               </span>
             )}
-            
+
             <span className="leading-tight">{titulo}</span>
-            
+
             {/* Indicador 2: Lâmpada de Sugestão/Insight com Tooltip */}
             {warning && !isDesabilitado && (
               <TooltipContextual content={warning}>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="p-1 bg-amber-50 hover:bg-amber-100 rounded text-amber-600 border border-amber-200/50 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-amber-400 shrink-0"
                   aria-label="Ver sugestão do sistema"
                 >
@@ -547,7 +547,7 @@ function getSliderAlertState(val: number, param: any, cenarioAtivo: string, inve
               disabled={isDesabilitado}
             />
           ) : (
-            <span 
+            <span
               className={`${isDesabilitado ? 'text-gray-400 cursor-not-allowed bg-gray-100 border-gray-200' : 'text-slate-800 cursor-pointer bg-slate-100 border-slate-200'} px-2 py-1 rounded-lg border shrink-0 text-right font-mono font-bold text-sm`}
               onClick={(e) => { e.preventDefault(); if (!isDesabilitado) handleEditClick(chave, val); }}
               title={isDesabilitado ? 'Aguarde o cálculo do cenário...' : 'Clique para realizar um ajuste fino'}
@@ -556,10 +556,10 @@ function getSliderAlertState(val: number, param: any, cenarioAtivo: string, inve
             </span>
           )}
         </label>
-        
-        <input 
-          id={chave} name={chave} type="range" 
-          min={param.min} max={param.max} step={param.step} 
+
+        <input
+          id={chave} name={chave} type="range"
+          min={param.min} max={param.max} step={param.step}
           value={val} onChange={handleChange}
           disabled={isDesabilitado}
           onPointerUp={(e) => { if (!isDesabilitado) executarSimulacao({ ...simulacao, [chave]: parseFloat(e.currentTarget.value) }); }}
@@ -589,12 +589,12 @@ function getSliderAlertState(val: number, param: any, cenarioAtivo: string, inve
   const renderMetricCards = (metricas: any[]) => {
     return metricas.map((item: any) => {
       const cenarioRef = item.cenarios?.[cenarioAtivo];
-      
+
       const valorSimulado = cenarioRef?.valor_produtor ?? 0;
       const valorReferencia = cenarioRef?.valor_referencia ?? 0;
       const diferencaPercentual = cenarioRef?.diferenca_percentual;
       const inverter = item.direcao_otimizacao === 'menor_melhor';
-      
+
       return (
         <div key={item.metrica} className="relative h-full">
           {isSimulando && (
@@ -602,13 +602,13 @@ function getSliderAlertState(val: number, param: any, cenarioAtivo: string, inve
               <Loader2 className="w-10 h-10 text-primary animate-spin" />
             </div>
           )}
-          <BarChartSimulacao 
-            titulo={item.titulo_grafico} 
+          <BarChartSimulacao
+            titulo={item.titulo_grafico}
             valorSimulado={valorSimulado}
             valorReferencia={valorReferencia}
             unidade=""
             inverterCores={inverter}
-                diferencaPercentualAPI={diferencaPercentual}
+            diferencaPercentualAPI={diferencaPercentual}
           />
         </div>
       );
@@ -630,12 +630,12 @@ function getSliderAlertState(val: number, param: any, cenarioAtivo: string, inve
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
-      
+
       <main className="flex-1 max-w-[95%] w-full mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8">
-        
+
         {/* PAINEL ESQUERDO: CONTROLES (Inputs & Sliders) */}
         {/* Fix: h-[calc(100vh-6rem)] trava a altura do painel para habilitar o scroll interno do flex-1 */}
-        <aside className="w-full lg:w-96 flex-shrink-0 bg-white rounded-2xl shadow-lg border border-gray-100 p-6 flex flex-col h-[90vh] sticky top-8">
+        <aside className="w-full lg:w-96 flex-shrink-0 bg-white rounded-2xl shadow-lg border border-gray-100 p-6 flex flex-col h-[85vh] sticky top-8">
           <div className="mb-6 flex justify-between items-start">
             <div>
               <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
@@ -653,7 +653,7 @@ function getSliderAlertState(val: number, param: any, cenarioAtivo: string, inve
           </div>
 
           <div className="space-y-4 flex-1 overflow-y-auto pr-2 custom-scrollbar pb-4">
-            
+
             {/* GRUPO 1: Mercado & Escala */}
             <div className="border border-gray-100 rounded-xl overflow-hidden bg-white shadow-sm">
               <button
@@ -667,7 +667,7 @@ function getSliderAlertState(val: number, param: any, cenarioAtivo: string, inve
               <div className={`grid transition-all duration-300 ease-in-out ${isMercadoOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                 <div className="overflow-hidden">
                   <div className="p-4 space-y-6">
-                    
+
                     {/* Controle: Quantidade de Vacas */}
                     {renderControl('total_vacas', 'Quantidade de Vacas', (v) => `${formatSidebarNumber(v)} vacas`)}
 
@@ -726,22 +726,21 @@ function getSliderAlertState(val: number, param: any, cenarioAtivo: string, inve
 
         {/* PAINEL DIREITO: TABS E GRÁFICOS */}
         <section className="flex-1 flex flex-col">
-          
+
           {/* Topo: Bloco de Controle de Cenário (Card Unificado) */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-6 flex flex-col items-center w-full">
             <h3 className="text-gray-800 font-bold text-lg text-center">Perfil de desempenho</h3>
             <p className="text-gray-500 text-sm text-center mb-4">Selecione o perfil de desempenho que deseja alcançar</p>
-            
+
             <div className="bg-gray-50 border border-gray-100/50 rounded-2xl p-1.5 flex gap-1">
               {(['inferior', 'intermediario', 'superior'] as const).map(cenario => (
                 <button
                   key={cenario}
                   onClick={() => setCenarioAtivo(cenario)}
-                  className={`px-6 py-2 rounded-xl text-sm font-bold capitalize transition-all duration-300 ${
-                    cenarioAtivo === cenario 
-                    ? 'bg-primary text-white shadow-md' 
+                  className={`px-6 py-2 rounded-xl text-sm font-bold capitalize transition-all duration-300 ${cenarioAtivo === cenario
+                    ? 'bg-primary text-white shadow-md'
                     : 'text-gray-500 hover:bg-gray-200'
-                  }`}
+                    }`}
                 >
                   {cenario}
                 </button>
@@ -768,7 +767,7 @@ function getSliderAlertState(val: number, param: any, cenarioAtivo: string, inve
               ])}
             </div>
           ) : (
-             <div className="flex justify-center items-center h-56 text-gray-400">Aguardando dados...</div>
+            <div className="flex justify-center items-center h-56 text-gray-400">Aguardando dados...</div>
           )}
         </section>
 

@@ -9,7 +9,7 @@ jest.mock('@/components/ui/Navbar', () => ({
 
 jest.mock('@/store/useFazendaStore', () => ({
   useFazendaStore: () => ({
-    dadosFazenda: { 
+    dadosFazenda: {
       total_vacas: 100,
       percentual_lactacao: 85,
       producao_vaca: 30.0,
@@ -26,13 +26,13 @@ jest.mock('@/store/useFazendaStore', () => ({
 
 describe('SimulacaoPage - Layout Contract', () => {
   // 1. Happy Path: Layout Estrutural Principal
-  it('deve renderizar o sidebar com a classe de altura fixa baseada em porcentagem da viewport (90vh)', () => {
+  it('deve renderizar o sidebar com a classe de altura fixa baseada em porcentagem da viewport (85vh)', () => {
     render(<SimulacaoPage />);
-    
+
     const sidebar = screen.getByRole('complementary');
-    
+
     // Asserções do contrato visual
-    expect(sidebar).toHaveClass('h-[90vh]');
+    expect(sidebar).toHaveClass('h-[85vh]');
     expect(sidebar).not.toHaveClass('h-[calc(100vh-6rem)]');
     expect(sidebar).not.toHaveClass('h-max');
   });
@@ -49,24 +49,24 @@ describe('SimulacaoPage - Layout Contract', () => {
     console.log(`\n=== PERFORMANCE REPORT: render_simulacao ===`);
     console.log(`| N (Items) | Time (ms) |`);
     console.log(`|-----------|-----------|`);
-    
+
     // Testamos diferentes escalas (limitadas no JSDOM para evitar timeout)
-    const scales = [10, 50, 100]; 
-    
+    const scales = [10, 50, 100];
+
     for (const n of scales) {
       const start = performance.now();
-      
+
       for (let i = 0; i < n; i++) {
         const { unmount } = render(<SimulacaoPage />);
         unmount();
       }
-      
+
       const end = performance.now();
       const time = (end - start).toFixed(2);
       console.log(`| ${n.toString().padEnd(9)} | ${time.padEnd(9)} |`);
     }
     console.log(`============================================\n`);
-    
+
     // Assert genérico para garantir que o teste seja finalizado com sucesso
     expect(true).toBe(true);
   });
