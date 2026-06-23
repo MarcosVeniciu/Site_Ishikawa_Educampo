@@ -243,6 +243,9 @@ site_ishikawa_educampo/
 │   └── README.md                                    # Visão geral da arquitetura do código-fonte (src).
 │
 ├── tests/                                           # Suíte de Testes (A Lei do Projeto)
+│   ├── app/                                         # Testes estruturais colados à hierarquia do App Router
+│   │   └── simulacao/
+│   │       └── page.test.tsx                        # Contratos de layout e UI da tela de simulação
 │   ├── api/                                         # Testes do BFF
 │   │   ├── bff.spec.ts                              # Simulação de chamadas seguras e tolerância a falhas.
 │   │   ├── parametros-painel.spec.ts                # Validação da extração de limites para os sliders.
