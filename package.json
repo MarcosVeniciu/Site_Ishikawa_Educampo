@@ -11,6 +11,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@radix-ui/react-tooltip": "^1.2.10",
     "jose": "^6.2.3",
     "lucide-react": "^1.14.0",
     "next": "^16.2.4",
@@ -20,6 +21,7 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.4",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
@@ -31,13 +33,14 @@
     "eslint-config-next": "^16.2.4",
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^30.3.0",
-    "postcss": "^8.4.38",
-    "@tailwindcss/postcss": "^4.2.4",
+    "postcss": "^8.5.1",
     "tailwindcss": "^4.2.4",
     "typescript": "^6.0.3"
   },
   "overrides": {
     "glob": "^13.0.6",
-    "jsdom": "29.1.1"
+    "jsdom": "29.1.1",
+    "js-yaml": "^4.1.2",
+    "postcss": "^8.5.1"
   }
 }
