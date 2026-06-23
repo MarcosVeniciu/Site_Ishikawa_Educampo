@@ -12,7 +12,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useFazendaStore } from '@/store/useFazendaStore';
@@ -89,6 +89,52 @@ export default function FormularioPage() {
   });
 
   const [erros, setErros] = useState<string[]>([]);
+  
+  const [testFarms, setTestFarms] = useState<any[]>([]);
+  const [isLoadingTestData, setIsLoadingTestData] = useState(false);
+  const enableTestFarms = process.env.NEXT_PUBLIC_ENABLE_TEST_FARMS === 'true';
+
+  /**
+   * @description Busca a lista de fazendas de teste ao montar o componente (se habilitado).
+   * Contexto de Domínio: Facilita testes de UX/UI sem preenchimento manual massivo.
+   */
+  useEffect(() => {
+    if (enableTestFarms) {
+      const fetchTestFarms = async () => {
+        try {
+          const res = await fetch('/api/test-data');
+          if (res.ok) {
+            const data = await res.json();
+            setTestFarms(data);
+          }
+        } catch (error) {
+          console.error('Erro ao buscar fazendas de teste:', error);
+        }
+      };
+      fetchTestFarms();
+    }
+  }, [enableTestFarms]);
+
+  /**
+   * @description Lida com a seleção de uma fazenda de teste, buscando dados e populando o formulário.
+   */
+  const handleTestFarmChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const nome = e.target.value;
+    if (!nome) return;
+
+    setIsLoadingTestData(true);
+    try {
+      const res = await fetch(`/api/test-data?nome=${encodeURIComponent(nome)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setFormData((prev) => ({ ...prev, ...data }));
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados da fazenda:', error);
+    } finally {
+      setIsLoadingTestData(false);
+    }
+  };
 
   /**
    * @description Captura e atualiza o estado local conforme a interação com os campos de entrada (inputs e selects).
@@ -167,7 +213,44 @@ export default function FormularioPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-8 relative">
+          
+          {/* Bloqueador visual durante o carregamento de dados */}
+          {isLoadingTestData && (
+            <div className="absolute inset-0 bg-white/50 z-50 flex items-center justify-center rounded-xl">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+            </div>
+          )}
+
+          {/* Seção Dinâmica de Fazendas de Teste (Somente DEV) */}
+          {enableTestFarms && (
+            <section className="bg-blue-50 p-8 rounded-xl shadow-sm border border-blue-100">
+              <h2 className="text-xl font-bold text-blue-800 mb-4 flex items-center gap-2">
+                <span className="text-2xl">🧪</span> Fazendas de Teste (Ambiente de Desenvolvimento)
+              </h2>
+              <div className="flex flex-col gap-1 w-full md:w-1/2">
+                <LabelComDica
+                  htmlFor="test_farm_select"
+                  label="Selecionar Fazenda de Teste"
+                  dica="Escolha um perfil predefinido para preencher automaticamente os campos do formulário."
+                />
+                <select
+                  id="test_farm_select"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
+                  onChange={handleTestFarmChange}
+                  disabled={isLoadingTestData}
+                  defaultValue=""
+                >
+                  <option value="" disabled>Selecione uma fazenda...</option>
+                  {testFarms.map((farm, idx) => (
+                    <option key={idx} value={farm.nome}>
+                      {farm.nome} ({farm.sistema_producao})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </section>
+          )}
 
           {/* Quadrante 1: Informações Gerais */}
           <section className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
@@ -314,32 +397,6 @@ export default function FormularioPage() {
             </button>
           </div>
         </form>
-
-        {/* --- INÍCIO: PREENCHIMENTO AUTOMÁTICO PARA TESTES (REMOVER EM PRODUÇÃO - basta excluir esse bloco) --- */}
-        <div className="mt-12 flex justify-center border-t border-gray-200 pt-6">
-          <button
-            type="button"
-            onClick={() => setFormData({
-              nome_fazenda: 'Fazenda Auto Teste',
-              sistema_producao: 'compost_barn',
-              total_vacas: '100',
-              percentual_lactacao: '85',
-              animais_rebanho: '120',
-              area_atividade: '10.0',
-              mao_obra_total: '2',
-              producao_vaca: '35.0',
-              preco_leite: '3.20',
-              preco_referencia: '2.50',
-              preco_concentrado: '2.30',
-              ccs: '150',
-              regiao: 'triangulo',
-            })}
-            className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-600 font-medium py-2 px-4 rounded-md transition-colors"
-          >
-            🧪 Preenchimento Automático (DEV)
-          </button>
-        </div>
-        {/* --- FIM: PREENCHIMENTO AUTOMÁTICO --- */}
       </main>
     </div>
   );
