@@ -11,9 +11,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Navbar } from '@/components/ui/Navbar';
 import { useFazendaStore } from '@/store/useFazendaStore';
-import { TrendingUp, TrendingDown, Minus, Loader2, RotateCcw, ChevronDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Loader2, RotateCcw, ChevronDown, Lightbulb } from 'lucide-react';
 import Link from 'next/link';
 import { formatSidebarNumber } from '@/lib/formatters';
+import { TooltipContextual } from '@/components/ui/TooltipContextual';
 
 /**
  * @description Renderiza um gráfico de barra comparativo puro, sem dependências.
@@ -433,6 +434,65 @@ export default function SimulacaoPage() {
   const pCustoConcentrado = getParam('custo_concentrado');
   const pNumeroTrabalhadores = getParam('numero_trabalhadores');
 
+/**
+ * @description Helper puro que calcula o estado visual (cores e avisos) de um slider de simulação,
+ * isolando a lógica da máquina de estados do componente React para aplicar o Single Responsibility.
+ */
+function getSliderAlertState(val: number, param: any, cenarioAtivo: string, inverterLogicaWarning: boolean, formatText: (v: number) => string) {
+  let warning: React.ReactNode = null;
+  let corSlider = 'accent-primary';
+  let corCaixa = 'border-slate-200 bg-white';
+  let corFaixaLabel = 'text-emerald-600 bg-emerald-50';
+
+  if (!param.fronteiras_cenario) {
+    return { warning, corSlider, corCaixa, corFaixaLabel };
+  }
+
+  if (val < param.fronteiras_cenario.limite_inferior || val > param.fronteiras_cenario.limite_superior) {
+    corSlider = 'accent-amber-500';
+    corCaixa = 'border-amber-300 bg-amber-50/10';
+    corFaixaLabel = 'text-amber-600 bg-amber-50';
+  }
+
+  let direcaoMudanca: 'melhora' | 'piora' | null = null;
+  if (val < param.fronteiras_cenario.limite_inferior) {
+    direcaoMudanca = inverterLogicaWarning ? 'melhora' : 'piora';
+  } else if (val > param.fronteiras_cenario.limite_superior) {
+    direcaoMudanca = inverterLogicaWarning ? 'piora' : 'melhora';
+  }
+
+  if (direcaoMudanca) {
+    let cenarioAlvo = '';
+    let sugestaoBase = '';
+    
+    if (direcaoMudanca === 'melhora') {
+      if (cenarioAtivo === 'inferior') { cenarioAlvo = 'intermediário'; sugestaoBase = 'Intermediário'; }
+      else if (cenarioAtivo === 'intermediario') { cenarioAlvo = 'superior'; sugestaoBase = 'Superior'; }
+      else { cenarioAlvo = 'extremo_superior'; sugestaoBase = 'Máximo'; }
+    } else {
+      if (cenarioAtivo === 'superior') { cenarioAlvo = 'intermediário'; sugestaoBase = 'Intermediário'; }
+      else if (cenarioAtivo === 'intermediario') { cenarioAlvo = 'inferior'; sugestaoBase = 'Inferior'; }
+      else { cenarioAlvo = 'extremo_inferior'; sugestaoBase = 'Mínimo'; }
+    }
+
+    if (cenarioAlvo === 'extremo_superior') {
+      warning = `Com este valor, os seus resultados ultrapassam o cenário superior da sua região.`;
+    } else if (cenarioAlvo === 'extremo_inferior') {
+      const adj = inverterLogicaWarning ? 'altos' : 'baixos';
+      warning = `Atenção: Simulação com valores atipicamente ${adj}, fora da escala do cenário inferior da sua região.`;
+    } else {
+      warning = (
+        <span>
+          <strong>{formatText(val)}</strong> está {direcaoMudanca === 'piora' ? 'abaixo' : 'acima'} do recomendado para este cenário.<br /><br />
+          <span className="text-amber-400 font-semibold">💡 Sugestão:</span> Tente mudar para o <strong>Cenário {sugestaoBase}</strong> para alinhar a simulação.
+        </span>
+      );
+    }
+  }
+
+  return { warning, corSlider, corCaixa, corFaixaLabel };
+}
+
   /**
    * @description Renderiza o grupo de controle completo (Label, Input Slider e Alertas).
    * Posiciona a mensagem de alerta abaixo do slider e elimina duplicação de código.
@@ -442,60 +502,39 @@ export default function SimulacaoPage() {
     const val = simulacao[chave];
     const isDesabilitado = isSimulando || tempoBloqueio > 0;
 
-    let warning = null;
-    let corSlider = 'accent-primary';
+    let { warning, corSlider, corCaixa, corFaixaLabel } = getSliderAlertState(val, param, cenarioAtivo, inverterLogicaWarning, formatText);
 
     if (isDesabilitado) {
       corSlider = 'accent-gray-400 cursor-not-allowed';
-    } else if (param.fronteiras_cenario) {
-      if (val < param.fronteiras_cenario.limite_inferior || val > param.fronteiras_cenario.limite_superior) {
-        corSlider = 'accent-orange-500';
-      }
-
-      let direcaoMudanca: 'melhora' | 'piora' | null = null;
-
-      // Identifica a direção da simulação com base na lógica (direta ou invertida)
-      if (val < param.fronteiras_cenario.limite_inferior) {
-        direcaoMudanca = inverterLogicaWarning ? 'melhora' : 'piora';
-      } else if (val > param.fronteiras_cenario.limite_superior) {
-        direcaoMudanca = inverterLogicaWarning ? 'piora' : 'melhora';
-      }
-
-      if (direcaoMudanca) {
-        let cenarioAlvo = '';
-        
-        // Máquina de estados simples para descobrir para qual cenário o usuário está indo
-        if (direcaoMudanca === 'melhora') {
-          if (cenarioAtivo === 'inferior') cenarioAlvo = 'intermediário';
-          else if (cenarioAtivo === 'intermediario') cenarioAlvo = 'superior';
-          else cenarioAlvo = 'extremo_superior';
-        } else {
-          if (cenarioAtivo === 'superior') cenarioAlvo = 'intermediário';
-          else if (cenarioAtivo === 'intermediario') cenarioAlvo = 'inferior';
-          else cenarioAlvo = 'extremo_inferior';
-        }
-
-        // Geração da mensagem exata baseada no alvo
-        if (cenarioAlvo === 'extremo_superior') {
-          warning = `Com este valor, os seus resultados ultrapassam o cenário superior da sua região.`;
-        } else if (cenarioAlvo === 'extremo_inferior') {
-          const adj = inverterLogicaWarning ? 'altos' : 'baixos';
-          warning = `Atenção: Simulação com valores atipicamente ${adj}, fora da escala do cenário inferior da sua região.`;
-        } else {
-          warning = `Com este valor, os seus resultados aproximam-se do cenário ${cenarioAlvo}. Considere mudar o seu cenário base para uma comparação ideal.`;
-        }
-      }
     }
 
     return (
-      <div>
-        <label htmlFor={chave} className="text-sm font-semibold text-gray-700 flex justify-between items-start gap-2">
-          <span className="inline-flex flex-wrap items-center gap-1.5 flex-1 leading-tight pr-2">
-            {titulo}
-            {warning && (
-              <span className="text-yellow-500 text-sm leading-none shrink-0" aria-label="Alerta" title="Atenção: verifique a mensagem abaixo">⚠️</span>
+      <div className={`p-4 rounded-xl border transition-all duration-300 ${corCaixa}`}>
+        <label htmlFor={chave} className="text-sm font-semibold text-gray-700 flex justify-between items-start gap-2 mb-3">
+          <div className="flex items-center gap-2 flex-1">
+            {/* Indicador 1: Ponto Pulsante de Alerta de Transbordo */}
+            {warning && !isDesabilitado && (
+              <span className="relative flex h-2.5 w-2.5 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+              </span>
             )}
-          </span>
+            
+            <span className="leading-tight">{titulo}</span>
+            
+            {/* Indicador 2: Lâmpada de Sugestão/Insight com Tooltip */}
+            {warning && !isDesabilitado && (
+              <TooltipContextual content={warning}>
+                <button 
+                  type="button" 
+                  className="p-1 bg-amber-50 hover:bg-amber-100 rounded text-amber-600 border border-amber-200/50 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-amber-400 shrink-0"
+                  aria-label="Ver sugestão do sistema"
+                >
+                  <Lightbulb size={14} />
+                </button>
+              </TooltipContextual>
+            )}
+          </div>
           {paramEditando === chave ? (
             <input
               type="number"
@@ -509,7 +548,7 @@ export default function SimulacaoPage() {
             />
           ) : (
             <span 
-              className={`${isDesabilitado ? 'text-gray-400 cursor-not-allowed' : 'text-primary cursor-pointer hover:underline'} decoration-dashed underline-offset-2 shrink-0 text-right font-medium`}
+              className={`${isDesabilitado ? 'text-gray-400 cursor-not-allowed bg-gray-100 border-gray-200' : 'text-slate-800 cursor-pointer bg-slate-100 border-slate-200'} px-2 py-1 rounded-lg border shrink-0 text-right font-mono font-bold text-sm`}
               onClick={(e) => { e.preventDefault(); if (!isDesabilitado) handleEditClick(chave, val); }}
               title={isDesabilitado ? 'Aguarde o cálculo do cenário...' : 'Clique para realizar um ajuste fino'}
             >
@@ -529,15 +568,22 @@ export default function SimulacaoPage() {
               executarSimulacao({ ...simulacao, [chave]: parseFloat(e.currentTarget.value) });
             }
           }}
-          className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-3 mb-1 transition-colors ${corSlider}`}
+          className={`w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer mb-1 transition-colors focus:outline-none ${corSlider} ${warning && !isDesabilitado ? '[&::-webkit-slider-thumb]:bg-amber-600' : ''}`}
+          style={warning && !isDesabilitado ? { accentColor: '#d97706' } : {}}
         />
 
-        {/* Mensagem de alerta reposicionada abaixo do slider */}
-        {warning && (
-          <div className="mt-2 p-2.5 bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs leading-snug rounded-lg shadow-sm">
-            {warning}
-          </div>
-        )}
+        {/* Legenda Dinâmica e Detalhada (Sempre Visível) */}
+        <div className="flex justify-between text-[10px] text-slate-400 mt-2 px-0.5 select-none font-medium">
+          <span>Min: {formatText(param.min)}</span>
+          {param.fronteiras_cenario ? (
+            <span className={`${corFaixaLabel} font-semibold px-1.5 py-0.5 rounded transition-all duration-200`}>
+              Faixa Recomendada ({formatText(param.fronteiras_cenario.limite_inferior)} - {formatText(param.fronteiras_cenario.limite_superior)})
+            </span>
+          ) : (
+            <span>Faixa Livre</span>
+          )}
+          <span>Max: {formatText(param.max)}</span>
+        </div>
       </div>
     );
   };

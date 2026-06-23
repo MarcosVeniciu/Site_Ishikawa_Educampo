@@ -12,6 +12,7 @@
 import './globals.css';
 import { ReactNode } from 'react';
 import { SessionRefresher } from '@/components/SessionRefresher';
+import { GlobalProviders } from '@/components/GlobalProviders';
 
 export const metadata = {
   title: 'Educampo | DX Leite',
@@ -27,7 +28,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="antialiased bg-fundo-alt text-slate-900">
         <SessionRefresher />
         {/* O 'children' aqui será substituído pelo conteúdo das suas páginas (ex: page.tsx do login) */}
-        {children}
+        <GlobalProviders>
+          {children}
+        </GlobalProviders>
       </body>
     </html>
   );
