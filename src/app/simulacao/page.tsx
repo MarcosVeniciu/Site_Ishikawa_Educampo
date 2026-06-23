@@ -635,7 +635,7 @@ function getSliderAlertState(val: number, param: any, cenarioAtivo: string, inve
         
         {/* PAINEL ESQUERDO: CONTROLES (Inputs & Sliders) */}
         {/* Fix: h-[calc(100vh-6rem)] trava a altura do painel para habilitar o scroll interno do flex-1 */}
-        <aside className="w-full lg:w-96 flex-shrink-0 bg-white rounded-2xl shadow-lg border border-gray-100 p-6 flex flex-col h-[calc(100vh-6rem)] sticky top-8">
+        <aside className="w-full lg:w-96 flex-shrink-0 bg-white rounded-2xl shadow-lg border border-gray-100 p-6 flex flex-col h-[90vh] sticky top-8">
           <div className="mb-6 flex justify-between items-start">
             <div>
               <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">

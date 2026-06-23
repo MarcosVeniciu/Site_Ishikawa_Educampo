@@ -25,10 +25,15 @@ jest.mock('@/store/useFazendaStore', () => ({
 }));
 
 describe('SimulacaoPage - Layout Contract', () => {
-  it('deve renderizar o sidebar com a classe de altura fixa baseada na viewport', () => {
+  // 1. Happy Path: Layout Estrutural Principal
+  it('deve renderizar o sidebar com a classe de altura fixa baseada em porcentagem da viewport (90vh)', () => {
     render(<SimulacaoPage />);
+    
     const sidebar = screen.getByRole('complementary');
-    expect(sidebar).toHaveClass('h-[calc(100vh-6rem)]');
+    
+    // Asserções do contrato visual
+    expect(sidebar).toHaveClass('h-[90vh]');
+    expect(sidebar).not.toHaveClass('h-[calc(100vh-6rem)]');
     expect(sidebar).not.toHaveClass('h-max');
   });
 
