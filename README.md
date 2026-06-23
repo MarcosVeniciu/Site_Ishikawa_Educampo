@@ -186,7 +186,10 @@ site_ishikawa_educampo/
 │   │   │   ├── health/                              # Verificação de saúde da API externa (Health Check via BFF).
 │   │   │   ├── parametros-painel/                   # Rota para consultar os limites dinâmicos dos sliders.
 │   │   │   ├── ping/                                # Rota gatilho para despertar a API externa do Cold Start.
-│   │   │   └── simulacao/                           # Rota para simulação interativa.
+│   │   │   ├── simulacao/                           # Rota para simulação interativa.
+│   │   │   ├── test-data/                           # Rota proxy para injeção de Fazendas de Teste (Mock Data).
+│   │   │   │   ├── route.ts
+│   │   │   │   └── README.md
 │   │   │   └── README.md
 │   │   ├── carregando/                              # Tela de processamento paralelo dos dados (Diagnóstico + Simulação + Parâmetros).
 │   │   │   └── page.tsx
