@@ -12,7 +12,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useFazendaStore } from '@/store/useFazendaStore';
@@ -60,6 +60,60 @@ const InputComDica: React.FC<InputComDicaProps> = ({ label, unidade, dica, place
 );
 
 /**
+ * @description Contrato de dados da lista simplificada de Fazendas de Teste.
+ */
+interface TestFarmListItem {
+  nome: string;
+  sistema_producao: string;
+}
+
+/**
+ * @description Contrato de dados detalhado da API de Fazendas de Teste.
+ */
+interface TestFarmApiResponse {
+  nome: string;
+  dados: {
+    sistema_producao: string;
+    regiao_sebrae: string;
+    total_vacas: number;
+    percentual_lactacao: number;
+    total_rebanho: number;
+    area_atividade: number;
+    numero_trabalhadores: number;
+    producao_vaca: number;
+    preco_recebido: number;
+    preco_referencia: number;
+    custo_concentrado: number;
+    ccs: number;
+  };
+}
+
+/**
+ * @description Adapter pattern: mapeia explicitamente os dados aninhados ("dados") 
+ * e com nomes de propriedades divergentes da API para o estado "formData" esperado pela UI.
+ * Contexto de Domínio: Resolve falha de preenchimento de campos de formulário (mock data).
+ * @param {TestFarmApiResponse} data - Payload bruto da API.
+ * @returns Objeto com as chaves exatas esperadas pelo formData.
+ */
+function mapFarmApiToFormData(data: TestFarmApiResponse) {
+  return {
+    nome_fazenda: data.nome ?? '',
+    sistema_producao: data.dados?.sistema_producao ?? '',
+    total_vacas: data.dados?.total_vacas?.toString() ?? '',
+    percentual_lactacao: data.dados?.percentual_lactacao?.toString() ?? '',
+    animais_rebanho: data.dados?.total_rebanho?.toString() ?? '',
+    area_atividade: data.dados?.area_atividade?.toString() ?? '',
+    mao_obra_total: data.dados?.numero_trabalhadores?.toString() ?? '',
+    producao_vaca: data.dados?.producao_vaca?.toString() ?? '',
+    preco_leite: data.dados?.preco_recebido?.toString() ?? '',
+    preco_referencia: data.dados?.preco_referencia?.toString() ?? '',
+    preco_concentrado: data.dados?.custo_concentrado?.toString() ?? '',
+    ccs: data.dados?.ccs?.toString() ?? '',
+    regiao: data.dados?.regiao_sebrae ?? '',
+  };
+}
+
+/**
  * @description Componente principal da página de formulário.
  * Renderiza os quadrantes de entrada e gerencia os estados locais da coleta de dados.
  * @returns {JSX.Element} A interface completa da etapa de Coleta de Dados.
@@ -90,9 +144,10 @@ export default function FormularioPage() {
 
   const [erros, setErros] = useState<string[]>([]);
   
-  const [testFarms, setTestFarms] = useState<any[]>([]);
+  const [testFarms, setTestFarms] = useState<TestFarmListItem[]>([]);
   const [isLoadingTestData, setIsLoadingTestData] = useState(false);
   const enableTestFarms = process.env.NEXT_PUBLIC_ENABLE_TEST_FARMS === 'true';
+  const cacheFazendas = useRef<Record<string, ReturnType<typeof mapFarmApiToFormData>>>({});
 
   /**
    * @description Busca a lista de fazendas de teste ao montar o componente (se habilitado).
@@ -122,12 +177,20 @@ export default function FormularioPage() {
     const nome = e.target.value;
     if (!nome) return;
 
+    if (cacheFazendas.current[nome]) {
+      setFormData((prev) => ({ ...prev, ...cacheFazendas.current[nome] }));
+      return;
+    }
+
     setIsLoadingTestData(true);
     try {
       const res = await fetch(`/api/test-data?nome=${encodeURIComponent(nome)}`);
       if (res.ok) {
-        const data = await res.json();
-        setFormData((prev) => ({ ...prev, ...data }));
+        const data: TestFarmApiResponse = await res.json();
+        const mappedData = mapFarmApiToFormData(data);
+
+        cacheFazendas.current[nome] = mappedData;
+        setFormData((prev) => ({ ...prev, ...mappedData }));
       }
     } catch (error) {
       console.error('Erro ao carregar dados da fazenda:', error);

@@ -176,19 +176,21 @@ describe('Tela de Coleta de Dados (Formulário)', () => {
         { nome: 'Fazenda Recanto', sistema_producao: 'compost_barn' },
       ];
       const mockFarmData = {
-        nome_fazenda: 'Fazenda Recanto',
-        sistema_producao: 'compost_barn',
-        total_vacas: '200',
-        percentual_lactacao: '85',
-        animais_rebanho: '250',
-        area_atividade: '50',
-        mao_obra_total: '4',
-        producao_vaca: '35',
-        preco_leite: '3.10',
-        preco_referencia: '3.00',
-        preco_concentrado: '2.50',
-        ccs: '200',
-        regiao: 'sul'
+        nome: 'Fazenda Recanto',
+        dados: {
+          sistema_producao: 'compost_barn',
+          total_vacas: 200,
+          percentual_lactacao: 85,
+          total_rebanho: 250,
+          area_atividade: 50,
+          numero_trabalhadores: 4,
+          producao_vaca: 35,
+          preco_recebido: 3.10,
+          preco_referencia: 3.00,
+          custo_concentrado: 2.50,
+          ccs: 200,
+          regiao_sebrae: 'sul'
+        }
       };
 
       // O primeiro fetch na montagem da tela busca a lista de fazendas
