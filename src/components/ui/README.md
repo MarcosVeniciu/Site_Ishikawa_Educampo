@@ -31,3 +31,7 @@ Este diretório armazena os **Componentes de Interface (UI)** reutilizáveis que
 * **`ImpactFactorBar.tsx`:**
   **O que é:** Fita visual quantitativa indicadora de progresso dividida por seções para aprofundamento comparativo de métricas.
   **Propósito:** Transmitir com facilidade a margem de progresso que falta de alcance linear para se afastar da zona crítica e alcançar o alvo/teto avaliativo regional dos produtores para dado parâmetro do banco de dados.
+
+* **`TooltipContextual.tsx`:**
+  **O que é:** Wrapper acessível para dicas de contexto baseadas no `@radix-ui/react-tooltip`.
+  **Propósito:** Renderizar popups informativos de forma robusta e livre de problemas de corte de tela (`overflow: hidden`), utilizando Portals e sinalizadores visuais condicionados ao estado do componente.

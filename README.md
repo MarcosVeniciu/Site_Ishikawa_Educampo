@@ -215,7 +215,9 @@ site_ishikawa_educampo/
 │   │   ├── page.tsx                                 # Página raiz.
 │   │   └── README.md                                # Índice e documentação das páginas de navegação.
 │   ├── components/                                  # Componentes visuais reutilizáveis (UI)
+│   │   ├── GlobalProviders.tsx                      # Provedores globais de contexto React (ex: Tooltip).
 │   │   ├── SessionRefresher.tsx                     # Gestor silencioso de renovação de sessão (Polling/Debounce).
+│   │   ├── README.md                                # Documentação da arquitetura de UI.
 │   │   └── ui/                                      # Componentes base e estruturas visuais.
 │   │       ├── Acelerometro.tsx
 │   │       ├── CausaItem.tsx
@@ -224,6 +226,7 @@ site_ishikawa_educampo/
 │   │       ├── Navbar.tsx
 │   │       ├── SplitScreenLayout.tsx                # Componente estrutural de responsividade.
 │   │       ├── TextoComCitacoes.tsx
+│   │       ├── TooltipContextual.tsx                # Contexto em popup dinâmico acessível via Radix.
 │   │       └── README.md
 │   ├── store/                                       # Gerenciamento de estado global no cliente
 │   │   ├── useFazendaStore.ts                       # Zustand: Armazena dados preenchidos e resultados da API.
