@@ -29,6 +29,7 @@ import { SplitScreenLayout } from '@/components/ui/SplitScreenLayout';
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
@@ -50,7 +51,7 @@ export default function LoginPage() {
       const response = await fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, rememberMe }),
       });
 
       if (response.ok) {
@@ -109,6 +110,19 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
+          </div>
+
+          <div className="flex items-center">
+            <input
+              id="remember-me"
+              type="checkbox"
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+            />
+            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+              Lembrar de Mim
+            </label>
           </div>
 
           {error && (
