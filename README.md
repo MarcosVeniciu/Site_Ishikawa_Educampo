@@ -182,11 +182,15 @@ site_ishikawa_educampo/
 │   │   │   └── README.md
 │   │   ├── api/                                     # Backend-For-Frontend (BFF) - Rotas de API internas
 │   │   │   ├── auth/                                # Gerencia o login e injeta o token via Cookie HttpOnly.
+│   │   │   │   ├── refresh/                         # Renovação silenciosa da sessão (Sliding Session).
 │   │   │   ├── diagnostico/                         # Proxy seguro: mascara as chaves e chama a API real da IA.
 │   │   │   ├── health/                              # Verificação de saúde da API externa (Health Check via BFF).
 │   │   │   ├── parametros-painel/                   # Rota para consultar os limites dinâmicos dos sliders.
 │   │   │   ├── ping/                                # Rota gatilho para despertar a API externa do Cold Start.
-│   │   │   └── simulacao/                           # Rota para simulação interativa.
+│   │   │   ├── simulacao/                           # Rota para simulação interativa.
+│   │   │   ├── test-data/                           # Rota proxy para injeção de Fazendas de Teste (Mock Data).
+│   │   │   │   ├── route.ts
+│   │   │   │   └── README.md
 │   │   │   └── README.md
 │   │   ├── carregando/                              # Tela de processamento paralelo dos dados (Diagnóstico + Simulação + Parâmetros).
 │   │   │   └── page.tsx
@@ -211,6 +215,9 @@ site_ishikawa_educampo/
 │   │   ├── page.tsx                                 # Página raiz.
 │   │   └── README.md                                # Índice e documentação das páginas de navegação.
 │   ├── components/                                  # Componentes visuais reutilizáveis (UI)
+│   │   ├── GlobalProviders.tsx                      # Provedores globais de contexto React (ex: Tooltip).
+│   │   ├── SessionRefresher.tsx                     # Gestor silencioso de renovação de sessão (Polling/Debounce).
+│   │   ├── README.md                                # Documentação da arquitetura de UI.
 │   │   └── ui/                                      # Componentes base e estruturas visuais.
 │   │       ├── Acelerometro.tsx
 │   │       ├── CausaItem.tsx
@@ -219,6 +226,7 @@ site_ishikawa_educampo/
 │   │       ├── Navbar.tsx
 │   │       ├── SplitScreenLayout.tsx                # Componente estrutural de responsividade.
 │   │       ├── TextoComCitacoes.tsx
+│   │       ├── TooltipContextual.tsx                # Contexto em popup dinâmico acessível via Radix.
 │   │       └── README.md
 │   ├── store/                                       # Gerenciamento de estado global no cliente
 │   │   ├── useFazendaStore.ts                       # Zustand: Armazena dados preenchidos e resultados da API.
@@ -235,6 +243,9 @@ site_ishikawa_educampo/
 │   └── README.md                                    # Visão geral da arquitetura do código-fonte (src).
 │
 ├── tests/                                           # Suíte de Testes (A Lei do Projeto)
+│   ├── app/                                         # Testes estruturais colados à hierarquia do App Router
+│   │   └── simulacao/
+│   │       └── page.test.tsx                        # Contratos de layout e UI da tela de simulação
 │   ├── api/                                         # Testes do BFF
 │   │   ├── bff.spec.ts                              # Simulação de chamadas seguras e tolerância a falhas.
 │   │   ├── parametros-painel.spec.ts                # Validação da extração de limites para os sliders.

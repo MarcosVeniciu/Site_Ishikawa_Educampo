@@ -12,7 +12,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useFazendaStore } from '@/store/useFazendaStore';
@@ -60,6 +60,60 @@ const InputComDica: React.FC<InputComDicaProps> = ({ label, unidade, dica, place
 );
 
 /**
+ * @description Contrato de dados da lista simplificada de Fazendas de Teste.
+ */
+interface TestFarmListItem {
+  nome: string;
+  sistema_producao: string;
+}
+
+/**
+ * @description Contrato de dados detalhado da API de Fazendas de Teste.
+ */
+interface TestFarmApiResponse {
+  nome: string;
+  dados: {
+    sistema_producao: string;
+    regiao_sebrae: string;
+    total_vacas: number;
+    percentual_lactacao: number;
+    total_rebanho: number;
+    area_atividade: number;
+    numero_trabalhadores: number;
+    producao_vaca: number;
+    preco_recebido: number;
+    preco_referencia: number;
+    custo_concentrado: number;
+    ccs: number;
+  };
+}
+
+/**
+ * @description Adapter pattern: mapeia explicitamente os dados aninhados ("dados") 
+ * e com nomes de propriedades divergentes da API para o estado "formData" esperado pela UI.
+ * Contexto de Domínio: Resolve falha de preenchimento de campos de formulário (mock data).
+ * @param {TestFarmApiResponse} data - Payload bruto da API.
+ * @returns Objeto com as chaves exatas esperadas pelo formData.
+ */
+function mapFarmApiToFormData(data: TestFarmApiResponse) {
+  return {
+    nome_fazenda: data.nome ?? '',
+    sistema_producao: data.dados?.sistema_producao ?? '',
+    total_vacas: data.dados?.total_vacas?.toString() ?? '',
+    percentual_lactacao: data.dados?.percentual_lactacao?.toString() ?? '',
+    animais_rebanho: data.dados?.total_rebanho?.toString() ?? '',
+    area_atividade: data.dados?.area_atividade?.toString() ?? '',
+    mao_obra_total: data.dados?.numero_trabalhadores?.toString() ?? '',
+    producao_vaca: data.dados?.producao_vaca?.toString() ?? '',
+    preco_leite: data.dados?.preco_recebido?.toString() ?? '',
+    preco_referencia: data.dados?.preco_referencia?.toString() ?? '',
+    preco_concentrado: data.dados?.custo_concentrado?.toString() ?? '',
+    ccs: data.dados?.ccs?.toString() ?? '',
+    regiao: data.dados?.regiao_sebrae ?? '',
+  };
+}
+
+/**
  * @description Componente principal da página de formulário.
  * Renderiza os quadrantes de entrada e gerencia os estados locais da coleta de dados.
  * @returns {JSX.Element} A interface completa da etapa de Coleta de Dados.
@@ -89,6 +143,61 @@ export default function FormularioPage() {
   });
 
   const [erros, setErros] = useState<string[]>([]);
+  
+  const [testFarms, setTestFarms] = useState<TestFarmListItem[]>([]);
+  const [isLoadingTestData, setIsLoadingTestData] = useState(false);
+  const enableTestFarms = process.env.NEXT_PUBLIC_ENABLE_TEST_FARMS === 'true';
+  const cacheFazendas = useRef<Record<string, ReturnType<typeof mapFarmApiToFormData>>>({});
+
+  /**
+   * @description Busca a lista de fazendas de teste ao montar o componente (se habilitado).
+   * Contexto de Domínio: Facilita testes de UX/UI sem preenchimento manual massivo.
+   */
+  useEffect(() => {
+    if (enableTestFarms) {
+      const fetchTestFarms = async () => {
+        try {
+          const res = await fetch('/api/test-data');
+          if (res.ok) {
+            const data = await res.json();
+            setTestFarms(data);
+          }
+        } catch (error) {
+          console.error('Erro ao buscar fazendas de teste:', error);
+        }
+      };
+      fetchTestFarms();
+    }
+  }, [enableTestFarms]);
+
+  /**
+   * @description Lida com a seleção de uma fazenda de teste, buscando dados e populando o formulário.
+   */
+  const handleTestFarmChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const nome = e.target.value;
+    if (!nome) return;
+
+    if (cacheFazendas.current[nome]) {
+      setFormData((prev) => ({ ...prev, ...cacheFazendas.current[nome] }));
+      return;
+    }
+
+    setIsLoadingTestData(true);
+    try {
+      const res = await fetch(`/api/test-data?nome=${encodeURIComponent(nome)}`);
+      if (res.ok) {
+        const data: TestFarmApiResponse = await res.json();
+        const mappedData = mapFarmApiToFormData(data);
+
+        cacheFazendas.current[nome] = mappedData;
+        setFormData((prev) => ({ ...prev, ...mappedData }));
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados da fazenda:', error);
+    } finally {
+      setIsLoadingTestData(false);
+    }
+  };
 
   /**
    * @description Captura e atualiza o estado local conforme a interação com os campos de entrada (inputs e selects).
@@ -167,7 +276,44 @@ export default function FormularioPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-8 relative">
+          
+          {/* Bloqueador visual durante o carregamento de dados */}
+          {isLoadingTestData && (
+            <div className="absolute inset-0 bg-white/50 z-50 flex items-center justify-center rounded-xl">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+            </div>
+          )}
+
+          {/* Seção Dinâmica de Fazendas de Teste (Somente DEV) */}
+          {enableTestFarms && (
+            <section className="bg-blue-50 p-8 rounded-xl shadow-sm border border-blue-100">
+              <h2 className="text-xl font-bold text-blue-800 mb-4 flex items-center gap-2">
+                <span className="text-2xl">🧪</span> Fazendas de Teste (Ambiente de Desenvolvimento)
+              </h2>
+              <div className="flex flex-col gap-1 w-full md:w-1/2">
+                <LabelComDica
+                  htmlFor="test_farm_select"
+                  label="Selecionar Fazenda de Teste"
+                  dica="Escolha um perfil predefinido para preencher automaticamente os campos do formulário."
+                />
+                <select
+                  id="test_farm_select"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
+                  onChange={handleTestFarmChange}
+                  disabled={isLoadingTestData}
+                  defaultValue=""
+                >
+                  <option value="" disabled>Selecione uma fazenda...</option>
+                  {testFarms.map((farm, idx) => (
+                    <option key={idx} value={farm.nome}>
+                      {farm.nome} ({farm.sistema_producao})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </section>
+          )}
 
           {/* Quadrante 1: Informações Gerais */}
           <section className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
@@ -314,32 +460,6 @@ export default function FormularioPage() {
             </button>
           </div>
         </form>
-
-        {/* --- INÍCIO: PREENCHIMENTO AUTOMÁTICO PARA TESTES (REMOVER EM PRODUÇÃO - basta excluir esse bloco) --- */}
-        <div className="mt-12 flex justify-center border-t border-gray-200 pt-6">
-          <button
-            type="button"
-            onClick={() => setFormData({
-              nome_fazenda: 'Fazenda Auto Teste',
-              sistema_producao: 'compost_barn',
-              total_vacas: '100',
-              percentual_lactacao: '85',
-              animais_rebanho: '120',
-              area_atividade: '10.0',
-              mao_obra_total: '2',
-              producao_vaca: '35.0',
-              preco_leite: '3.20',
-              preco_referencia: '2.50',
-              preco_concentrado: '2.30',
-              ccs: '150',
-              regiao: 'triangulo',
-            })}
-            className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-600 font-medium py-2 px-4 rounded-md transition-colors"
-          >
-            🧪 Preenchimento Automático (DEV)
-          </button>
-        </div>
-        {/* --- FIM: PREENCHIMENTO AUTOMÁTICO --- */}
       </main>
     </div>
   );

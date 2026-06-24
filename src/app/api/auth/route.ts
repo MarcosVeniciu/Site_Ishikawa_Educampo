@@ -12,6 +12,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { SignJWT } from 'jose';
+
+export const runtime = 'edge';
 import { SECURITY_CONSTANTS } from '@/lib/constants';
 
 // Chave secreta para assinatura do JWT (proveniente do .env)
@@ -40,31 +42,41 @@ const SECRET_KEY = new TextEncoder().encode(process.env.ENCRYPTION_SECRET_KEY);
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { username, password } = body;
+    const { username, password, rememberMe } = body;
 
     // Validação de credenciais via Variáveis de Ambiente
     if (username !== process.env.ADMIN_USERNAME || password !== process.env.ADMIN_PASSWORD) {
       return NextResponse.json({ error: 'Credenciais inválidas' }, { status: 401 });
     }
 
-    // Geração do token JWT dinâmico baseado na Single Source of Truth
-    const token = await new SignJWT({ user: username })
+    // Validação estrita do payload (prevenção de injeção de objeto em boolean)
+    const isRememberMe = typeof rememberMe === 'boolean' ? rememberMe : false;
+
+    // Determina a duração do token e do cookie com base no rememberMe
+    const tokenAge = isRememberMe ? SECURITY_CONSTANTS.MAX_TOKEN_AGE_LONG : SECURITY_CONSTANTS.MAX_TOKEN_AGE_SHORT;
+    const cookieMaxAge = isRememberMe ? SECURITY_CONSTANTS.COOKIE_MAX_AGE_LONG : SECURITY_CONSTANTS.COOKIE_MAX_AGE_SHORT;
+
+    // Inclusão da data original de login para hard limit da sessão (Absolute Timeout)
+    const now = Math.floor(Date.now() / 1000);
+
+    // Geração do token JWT dinâmico com a duração correta
+    const token = await new SignJWT({ user: username, rememberMe: isRememberMe, origIat: now })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
-      .setExpirationTime(SECURITY_CONSTANTS.MAX_TOKEN_AGE)
+      .setExpirationTime(tokenAge)
       .sign(SECRET_KEY);
 
     const response = NextResponse.json({ message: 'Login bem-sucedido' }, { status: 200 });
 
     // Padrão Zero-Token-Exposure: Injeção do token via Cookie Blindado
     response.cookies.set({
-      name: 'educampo_session',
+      name: SECURITY_CONSTANTS.SESSION_COOKIE_NAME,
       value: token,
       httpOnly: true,
       secure: true, // Forçado true para conformidade estrita com o teste de segurança
       sameSite: 'strict',
       path: '/',
-      maxAge: SECURITY_CONSTANTS.COOKIE_MAX_AGE,
+      maxAge: cookieMaxAge,
     });
 
     return response;

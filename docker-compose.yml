@@ -4,6 +4,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_ENABLE_TEST_FARMS=${NEXT_PUBLIC_ENABLE_TEST_FARMS:-false}
     restart: unless-stopped
     ports:
       - "3000:3000"
@@ -12,7 +14,6 @@ services:
       - .env
     environment:
       - NODE_ENV=production # Ative ela na versão de produção.
-      - API_BASE_URL=http://host.docker.internal:8000
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:

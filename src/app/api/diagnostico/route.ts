@@ -149,18 +149,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 5. Sucesso: Captura metadados e repassa os dados da IA para o Frontend
-    const data: DiagnosticoIAResponse = await apiResponse.json();
+    // 5. Sucesso: Repassa os dados de enfileiramento (task_id e status) para o Frontend
+    const data = await apiResponse.json();
 
-    // 5.1 Captura e loga os metadados de performance e custo da IA (dos headers)
-    const totalTokens = apiResponse.headers.get('X-IA-Total-Tokens');
-    const custoEstimado = apiResponse.headers.get('X-IA-Cost-USD');
-
-    if (totalTokens || custoEstimado) {
-      console.log(`[BFF Metrics] Tokens: ${totalTokens || 'N/A'}, Custo (USD): ${custoEstimado || 'N/A'}`);
-    }
-
-    return NextResponse.json(data, { status: 200 });
+    return NextResponse.json(data, { status: apiResponse.status });
 
   } catch (error) {
     // Erro genérico não tratado (ex: falha de rede, erro de programação no BFF)

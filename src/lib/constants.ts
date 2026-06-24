@@ -6,12 +6,24 @@
  */
 
 export const SECURITY_CONSTANTS = {
-  /** Tempo máximo de validade do token JWT de sessão para a biblioteca jose (1 hora) */
-  MAX_TOKEN_AGE: '1h',
-  /** Tempo de expiração do cookie no navegador (em segundos: 3600s = 1 hora) */
-  COOKIE_MAX_AGE: 3600 * 1,
+  /** Tempo padrão de validade do token JWT de sessão (15 minutos) */
+  MAX_TOKEN_AGE_SHORT: '15m',
+  /** Tempo longo de validade do token JWT para "Lembrar de Mim" (7 dias) */
+  MAX_TOKEN_AGE_LONG: '7d',
+  /** Tempo máximo absoluto (hard limit) da sessão curta (8 horas em segundos) */
+  ABSOLUTE_TIMEOUT_SHORT: 8 * 3600,
+  /** Tempo máximo absoluto (hard limit) da sessão longa (7 dias em segundos) */
+  ABSOLUTE_TIMEOUT_LONG: 7 * 24 * 3600,
+  /** Tempo de expiração do cookie curto (em segundos: 900s = 15 minutos) */
+  COOKIE_MAX_AGE_SHORT: 15 * 60,
+  /** Tempo de expiração do cookie longo (em segundos: 604800s = 7 dias) */
+  COOKIE_MAX_AGE_LONG: 7 * 24 * 60 * 60,
   /** Nome oficial do cookie de sessão utilizado em toda a aplicação */
   SESSION_COOKIE_NAME: 'educampo_session',
+  /** (LEGADO) Tempo máximo de validade do token JWT de sessão (1 hora) */
+  MAX_TOKEN_AGE: '1h',
+  /** (LEGADO) Tempo de expiração do cookie no navegador (1 hora) */
+  COOKIE_MAX_AGE: 3600 * 1,
 } as const;
 
 export const ROUTES = {

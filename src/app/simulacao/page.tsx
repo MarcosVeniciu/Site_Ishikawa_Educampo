@@ -11,9 +11,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Navbar } from '@/components/ui/Navbar';
 import { useFazendaStore } from '@/store/useFazendaStore';
-import { TrendingUp, TrendingDown, Minus, Loader2, RotateCcw, ChevronDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Loader2, RotateCcw, ChevronDown, Lightbulb } from 'lucide-react';
 import Link from 'next/link';
 import { formatSidebarNumber } from '@/lib/formatters';
+import { TooltipContextual } from '@/components/ui/TooltipContextual';
 
 /**
  * @description Renderiza um gráfico de barra comparativo puro, sem dependências.
@@ -25,14 +26,14 @@ import { formatSidebarNumber } from '@/lib/formatters';
  * @param inverterCores Se verdadeiro, barras menores ganham cores positivas (ex: CCS).
  * @param diferencaPercentualAPI Opcional. A diferença percentual calculada com precisão pela inteligência no backend.
  */
-const BarChartSimulacao = ({ 
-  titulo, 
-  valorSimulado, 
-  valorReferencia, 
-  unidade, 
+const BarChartSimulacao = ({
+  titulo,
+  valorSimulado,
+  valorReferencia,
+  unidade,
   inverterCores = false,
   diferencaPercentualAPI
-}: { 
+}: {
   titulo: string, valorSimulado: number, valorReferencia: number, unidade: string, inverterCores?: boolean, diferencaPercentualAPI?: number
 }) => {
   /**
@@ -63,10 +64,10 @@ const BarChartSimulacao = ({
    * Cálculos do Indicador Percentual para o canto superior direito do componente.
    */
   const diff = valorSimulado - valorReferencia;
-  const pct = diferencaPercentualAPI !== undefined 
-    ? diferencaPercentualAPI 
+  const pct = diferencaPercentualAPI !== undefined
+    ? diferencaPercentualAPI
     : (Math.abs(valorReferencia) > 0 ? (diff / Math.abs(valorReferencia)) * 100 : 0);
-  
+
   let indicatorColor = 'text-gray-500 bg-gray-100';
   let prefix = '';
   let Icon = Minus;
@@ -99,7 +100,7 @@ const BarChartSimulacao = ({
       <div className="flex justify-between items-start gap-4 mb-4">
         <h3 className="text-sm font-bold text-gray-700 leading-tight">{titulo}</h3>
         {/* Badge Indicador de Diferença Percentual */}
-        <div 
+        <div
           className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${indicatorColor}`}
           title="Diferença em relação à referência"
         >
@@ -107,7 +108,7 @@ const BarChartSimulacao = ({
           <span>{prefix}{Math.abs(pct).toFixed(1)}%</span>
         </div>
       </div>
-      
+
       {/* Container das Barras (Cresce de baixo para cima) */}
       <div className="flex-1 flex items-end justify-center gap-6 pb-2">
         {/* Barra Simulada (Em Tempo Real) */}
@@ -117,12 +118,12 @@ const BarChartSimulacao = ({
             <span className={`text-xs font-bold mb-1 transition-all duration-300 ${corTextoSimulado}`}>
               {formatNumber(valorSimulado)}
             </span>
-            <div 
+            <div
               className={`w-full ${corBarraSimulada} rounded-t-sm transition-all duration-300 ease-out relative shadow-sm`}
               style={{ height: alturaSimulado }}
             >
-               {/* Tooltip Hover */}
-               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-gray-800 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap z-10">
+              {/* Tooltip Hover */}
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-gray-800 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap z-10">
                 Valor Simulado
               </div>
             </div>
@@ -136,7 +137,7 @@ const BarChartSimulacao = ({
             <span className="text-xs text-gray-500 mb-1 font-medium transition-all duration-500">
               {formatNumber(valorReferencia)}
             </span>
-            <div 
+            <div
               className="w-full bg-primary rounded-t-sm transition-all duration-500 ease-out relative"
               style={{ height: alturaReferencia }}
             >
@@ -149,7 +150,7 @@ const BarChartSimulacao = ({
           <span className="text-[10px] font-bold text-primary mt-2 uppercase tracking-wider">Referência</span>
         </div>
       </div>
-      
+
       {unidade && (
         <div className="text-center mt-2 pt-2 border-t border-gray-50">
           <span className="text-xs text-gray-500">{unidade}</span>
@@ -166,7 +167,7 @@ const BarChartSimulacao = ({
  */
 export default function SimulacaoPage() {
   const { dadosFazenda, resultadoSimulacao, setResultadoSimulacao } = useFazendaStore();
-  
+
   /**
    * Estados para os acordeões dos grupos de variáveis.
    * Mercado inicia expandido, Ajustes Técnicos inicia fechado por padrão.
@@ -210,7 +211,7 @@ export default function SimulacaoPage() {
 
   const [isSimulando, setIsSimulando] = useState(false);
   const [cenarioAtivo, setCenarioAtivo] = useState<'inferior' | 'intermediario' | 'superior'>('intermediario');
-  
+
   /**
    * Estado para a barreira do Rate Limiting que impede cliques em massa no botão de simulação.
    */
@@ -306,7 +307,7 @@ export default function SimulacaoPage() {
 
       if (response.ok) {
         const data = await response.json();
-        
+
         /**
          * Instrumentação de Logs (Apenas Desenvolvimento)
          * Inspeciona o payload recebido para facilitar a depuração de valores negativos nas margens,
@@ -406,14 +407,14 @@ export default function SimulacaoPage() {
    */
   const getParam = (chave: ParamKey) => {
     const painel = resultadoSimulacao?.parametros_painel;
-    
+
     if (painel && painel[chave]) {
       const paramData = painel[chave];
-      
+
       if (paramData[cenarioAtivo]) {
         return paramData[cenarioAtivo];
       }
-      
+
       return {
         min: paramData.min ?? defaultParams[chave].min,
         max: paramData.max ?? defaultParams[chave].max,
@@ -434,6 +435,65 @@ export default function SimulacaoPage() {
   const pNumeroTrabalhadores = getParam('numero_trabalhadores');
 
   /**
+   * @description Helper puro que calcula o estado visual (cores e avisos) de um slider de simulação,
+   * isolando a lógica da máquina de estados do componente React para aplicar o Single Responsibility.
+   */
+  function getSliderAlertState(val: number, param: any, cenarioAtivo: string, inverterLogicaWarning: boolean, formatText: (v: number) => string) {
+    let warning: React.ReactNode = null;
+    let corSlider = 'accent-primary';
+    let corCaixa = 'border-slate-200 bg-white';
+    let corFaixaLabel = 'text-emerald-600 bg-emerald-50';
+
+    if (!param.fronteiras_cenario) {
+      return { warning, corSlider, corCaixa, corFaixaLabel };
+    }
+
+    if (val < param.fronteiras_cenario.limite_inferior || val > param.fronteiras_cenario.limite_superior) {
+      corSlider = 'accent-amber-500';
+      corCaixa = 'border-amber-300 bg-amber-50/10';
+      corFaixaLabel = 'text-amber-600 bg-amber-50';
+    }
+
+    let direcaoMudanca: 'melhora' | 'piora' | null = null;
+    if (val < param.fronteiras_cenario.limite_inferior) {
+      direcaoMudanca = inverterLogicaWarning ? 'melhora' : 'piora';
+    } else if (val > param.fronteiras_cenario.limite_superior) {
+      direcaoMudanca = inverterLogicaWarning ? 'piora' : 'melhora';
+    }
+
+    if (direcaoMudanca) {
+      let cenarioAlvo = '';
+      let sugestaoBase = '';
+
+      if (direcaoMudanca === 'melhora') {
+        if (cenarioAtivo === 'inferior') { cenarioAlvo = 'intermediário'; sugestaoBase = 'Intermediário'; }
+        else if (cenarioAtivo === 'intermediario') { cenarioAlvo = 'superior'; sugestaoBase = 'Superior'; }
+        else { cenarioAlvo = 'extremo_superior'; sugestaoBase = 'Máximo'; }
+      } else {
+        if (cenarioAtivo === 'superior') { cenarioAlvo = 'intermediário'; sugestaoBase = 'Intermediário'; }
+        else if (cenarioAtivo === 'intermediario') { cenarioAlvo = 'inferior'; sugestaoBase = 'Inferior'; }
+        else { cenarioAlvo = 'extremo_inferior'; sugestaoBase = 'Mínimo'; }
+      }
+
+      if (cenarioAlvo === 'extremo_superior') {
+        warning = `Com este valor, os seus resultados ultrapassam o cenário superior da sua região.`;
+      } else if (cenarioAlvo === 'extremo_inferior') {
+        const adj = inverterLogicaWarning ? 'altos' : 'baixos';
+        warning = `Atenção: Simulação com valores atipicamente ${adj}, fora da escala do cenário inferior da sua região.`;
+      } else {
+        warning = (
+          <span>
+            <strong>{formatText(val)}</strong> está {direcaoMudanca === 'piora' ? 'abaixo' : 'acima'} do recomendado para este cenário.<br /><br />
+            <span className="text-amber-400 font-semibold">💡 Sugestão:</span> Tente mudar para o <strong>Cenário {sugestaoBase}</strong> para alinhar a simulação.
+          </span>
+        );
+      }
+    }
+
+    return { warning, corSlider, corCaixa, corFaixaLabel };
+  }
+
+  /**
    * @description Renderiza o grupo de controle completo (Label, Input Slider e Alertas).
    * Posiciona a mensagem de alerta abaixo do slider e elimina duplicação de código.
    */
@@ -442,60 +502,39 @@ export default function SimulacaoPage() {
     const val = simulacao[chave];
     const isDesabilitado = isSimulando || tempoBloqueio > 0;
 
-    let warning = null;
-    let corSlider = 'accent-primary';
+    let { warning, corSlider, corCaixa, corFaixaLabel } = getSliderAlertState(val, param, cenarioAtivo, inverterLogicaWarning, formatText);
 
     if (isDesabilitado) {
       corSlider = 'accent-gray-400 cursor-not-allowed';
-    } else if (param.fronteiras_cenario) {
-      if (val < param.fronteiras_cenario.limite_inferior || val > param.fronteiras_cenario.limite_superior) {
-        corSlider = 'accent-orange-500';
-      }
-
-      let direcaoMudanca: 'melhora' | 'piora' | null = null;
-
-      // Identifica a direção da simulação com base na lógica (direta ou invertida)
-      if (val < param.fronteiras_cenario.limite_inferior) {
-        direcaoMudanca = inverterLogicaWarning ? 'melhora' : 'piora';
-      } else if (val > param.fronteiras_cenario.limite_superior) {
-        direcaoMudanca = inverterLogicaWarning ? 'piora' : 'melhora';
-      }
-
-      if (direcaoMudanca) {
-        let cenarioAlvo = '';
-        
-        // Máquina de estados simples para descobrir para qual cenário o usuário está indo
-        if (direcaoMudanca === 'melhora') {
-          if (cenarioAtivo === 'inferior') cenarioAlvo = 'intermediário';
-          else if (cenarioAtivo === 'intermediario') cenarioAlvo = 'superior';
-          else cenarioAlvo = 'extremo_superior';
-        } else {
-          if (cenarioAtivo === 'superior') cenarioAlvo = 'intermediário';
-          else if (cenarioAtivo === 'intermediario') cenarioAlvo = 'inferior';
-          else cenarioAlvo = 'extremo_inferior';
-        }
-
-        // Geração da mensagem exata baseada no alvo
-        if (cenarioAlvo === 'extremo_superior') {
-          warning = `Com este valor, os seus resultados ultrapassam o cenário superior da sua região.`;
-        } else if (cenarioAlvo === 'extremo_inferior') {
-          const adj = inverterLogicaWarning ? 'altos' : 'baixos';
-          warning = `Atenção: Simulação com valores atipicamente ${adj}, fora da escala do cenário inferior da sua região.`;
-        } else {
-          warning = `Com este valor, os seus resultados aproximam-se do cenário ${cenarioAlvo}. Considere mudar o seu cenário base para uma comparação ideal.`;
-        }
-      }
     }
 
     return (
-      <div>
-        <label htmlFor={chave} className="text-sm font-semibold text-gray-700 flex justify-between items-start gap-2">
-          <span className="inline-flex flex-wrap items-center gap-1.5 flex-1 leading-tight pr-2">
-            {titulo}
-            {warning && (
-              <span className="text-yellow-500 text-sm leading-none shrink-0" aria-label="Alerta" title="Atenção: verifique a mensagem abaixo">⚠️</span>
+      <div className={`p-4 rounded-xl border transition-all duration-300 ${corCaixa}`}>
+        <label htmlFor={chave} className="text-sm font-semibold text-gray-700 flex justify-between items-start gap-2 mb-3">
+          <div className="flex items-center gap-2 flex-1">
+            {/* Indicador 1: Ponto Pulsante de Alerta de Transbordo */}
+            {warning && !isDesabilitado && (
+              <span className="relative flex h-2.5 w-2.5 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+              </span>
             )}
-          </span>
+
+            <span className="leading-tight">{titulo}</span>
+
+            {/* Indicador 2: Lâmpada de Sugestão/Insight com Tooltip */}
+            {warning && !isDesabilitado && (
+              <TooltipContextual content={warning}>
+                <button
+                  type="button"
+                  className="p-1 bg-amber-50 hover:bg-amber-100 rounded text-amber-600 border border-amber-200/50 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-amber-400 shrink-0"
+                  aria-label="Ver sugestão do sistema"
+                >
+                  <Lightbulb size={14} />
+                </button>
+              </TooltipContextual>
+            )}
+          </div>
           {paramEditando === chave ? (
             <input
               type="number"
@@ -508,8 +547,8 @@ export default function SimulacaoPage() {
               disabled={isDesabilitado}
             />
           ) : (
-            <span 
-              className={`${isDesabilitado ? 'text-gray-400 cursor-not-allowed' : 'text-primary cursor-pointer hover:underline'} decoration-dashed underline-offset-2 shrink-0 text-right font-medium`}
+            <span
+              className={`${isDesabilitado ? 'text-gray-400 cursor-not-allowed bg-gray-100 border-gray-200' : 'text-slate-800 cursor-pointer bg-slate-100 border-slate-200'} px-2 py-1 rounded-lg border shrink-0 text-right font-mono font-bold text-sm`}
               onClick={(e) => { e.preventDefault(); if (!isDesabilitado) handleEditClick(chave, val); }}
               title={isDesabilitado ? 'Aguarde o cálculo do cenário...' : 'Clique para realizar um ajuste fino'}
             >
@@ -517,10 +556,10 @@ export default function SimulacaoPage() {
             </span>
           )}
         </label>
-        
-        <input 
-          id={chave} name={chave} type="range" 
-          min={param.min} max={param.max} step={param.step} 
+
+        <input
+          id={chave} name={chave} type="range"
+          min={param.min} max={param.max} step={param.step}
           value={val} onChange={handleChange}
           disabled={isDesabilitado}
           onPointerUp={(e) => { if (!isDesabilitado) executarSimulacao({ ...simulacao, [chave]: parseFloat(e.currentTarget.value) }); }}
@@ -529,15 +568,15 @@ export default function SimulacaoPage() {
               executarSimulacao({ ...simulacao, [chave]: parseFloat(e.currentTarget.value) });
             }
           }}
-          className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-3 mb-1 transition-colors ${corSlider}`}
+          className={`w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer mb-1 transition-colors focus:outline-none ${corSlider} ${warning && !isDesabilitado ? '[&::-webkit-slider-thumb]:bg-amber-600' : ''}`}
+          style={warning && !isDesabilitado ? { accentColor: '#d97706' } : {}}
         />
 
-        {/* Mensagem de alerta reposicionada abaixo do slider */}
-        {warning && (
-          <div className="mt-2 p-2.5 bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs leading-snug rounded-lg shadow-sm">
-            {warning}
-          </div>
-        )}
+        {/* Legenda Dinâmica e Detalhada (Sempre Visível) */}
+        <div className="flex justify-between text-[10px] text-slate-400 mt-2 px-0.5 select-none font-medium">
+          <span>Min: {formatText(param.min)}</span>
+          <span>Max: {formatText(param.max)}</span>
+        </div>
       </div>
     );
   };
@@ -550,12 +589,12 @@ export default function SimulacaoPage() {
   const renderMetricCards = (metricas: any[]) => {
     return metricas.map((item: any) => {
       const cenarioRef = item.cenarios?.[cenarioAtivo];
-      
+
       const valorSimulado = cenarioRef?.valor_produtor ?? 0;
       const valorReferencia = cenarioRef?.valor_referencia ?? 0;
       const diferencaPercentual = cenarioRef?.diferenca_percentual;
       const inverter = item.direcao_otimizacao === 'menor_melhor';
-      
+
       return (
         <div key={item.metrica} className="relative h-full">
           {isSimulando && (
@@ -563,13 +602,13 @@ export default function SimulacaoPage() {
               <Loader2 className="w-10 h-10 text-primary animate-spin" />
             </div>
           )}
-          <BarChartSimulacao 
-            titulo={item.titulo_grafico} 
+          <BarChartSimulacao
+            titulo={item.titulo_grafico}
             valorSimulado={valorSimulado}
             valorReferencia={valorReferencia}
             unidade=""
             inverterCores={inverter}
-                diferencaPercentualAPI={diferencaPercentual}
+            diferencaPercentualAPI={diferencaPercentual}
           />
         </div>
       );
@@ -591,11 +630,12 @@ export default function SimulacaoPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
-      
+
       <main className="flex-1 max-w-[95%] w-full mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8">
-        
+
         {/* PAINEL ESQUERDO: CONTROLES (Inputs & Sliders) */}
-        <aside className="w-full lg:w-80 flex-shrink-0 bg-white rounded-2xl shadow-lg border border-gray-100 p-6 flex flex-col h-[calc(100vh-8rem)] sticky top-8">
+        {/* Fix: h-[calc(100vh-6rem)] trava a altura do painel para habilitar o scroll interno do flex-1 */}
+        <aside className="w-full lg:w-96 flex-shrink-0 bg-white rounded-2xl shadow-lg border border-gray-100 p-6 flex flex-col h-[85vh] sticky top-8">
           <div className="mb-6 flex justify-between items-start">
             <div>
               <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
@@ -613,7 +653,7 @@ export default function SimulacaoPage() {
           </div>
 
           <div className="space-y-4 flex-1 overflow-y-auto pr-2 custom-scrollbar pb-4">
-            
+
             {/* GRUPO 1: Mercado & Escala */}
             <div className="border border-gray-100 rounded-xl overflow-hidden bg-white shadow-sm">
               <button
@@ -627,7 +667,7 @@ export default function SimulacaoPage() {
               <div className={`grid transition-all duration-300 ease-in-out ${isMercadoOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                 <div className="overflow-hidden">
                   <div className="p-4 space-y-6">
-                    
+
                     {/* Controle: Quantidade de Vacas */}
                     {renderControl('total_vacas', 'Quantidade de Vacas', (v) => `${formatSidebarNumber(v)} vacas`)}
 
@@ -635,7 +675,7 @@ export default function SimulacaoPage() {
                     {renderControl('preco_recebido', 'Preço do Leite', (v) => `R$ ${formatSidebarNumber(v, 2, 2)}`)}
 
                     {/* Controle: Custo do Concentrado */}
-                    {renderControl('custo_concentrado', 'Custo Concentrado', (v) => `R$ ${formatSidebarNumber(v, 2, 2)}`)}
+                    {renderControl('custo_concentrado', 'Preço Concentrado', (v) => `R$ ${formatSidebarNumber(v, 2, 2)}`)}
 
                   </div>
                 </div>
@@ -660,7 +700,7 @@ export default function SimulacaoPage() {
                     {renderControl('percentual_lactacao', 'Percentual em Lactação', (v) => `${formatSidebarNumber(v)} %`)}
 
                     {/* Controle: CCS */}
-                    {renderControl('ccs', 'CCS', (v) => `${formatSidebarNumber(v)} x1000 céls/mL`, true)}
+                    {renderControl('ccs', 'CCS', (v) => `${formatSidebarNumber(v)} mil céls/mL`, true)}
 
                     {/* Controle: Produção por Vaca */}
                     {renderControl('producao_vaca', 'Produção por vaca', (v) => `${formatSidebarNumber(v)} L/dia`)}
@@ -686,22 +726,21 @@ export default function SimulacaoPage() {
 
         {/* PAINEL DIREITO: TABS E GRÁFICOS */}
         <section className="flex-1 flex flex-col">
-          
+
           {/* Topo: Bloco de Controle de Cenário (Card Unificado) */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-6 flex flex-col items-center w-full">
             <h3 className="text-gray-800 font-bold text-lg text-center">Perfil de desempenho</h3>
             <p className="text-gray-500 text-sm text-center mb-4">Selecione o perfil de desempenho que deseja alcançar</p>
-            
+
             <div className="bg-gray-50 border border-gray-100/50 rounded-2xl p-1.5 flex gap-1">
               {(['inferior', 'intermediario', 'superior'] as const).map(cenario => (
                 <button
                   key={cenario}
                   onClick={() => setCenarioAtivo(cenario)}
-                  className={`px-6 py-2 rounded-xl text-sm font-bold capitalize transition-all duration-300 ${
-                    cenarioAtivo === cenario 
-                    ? 'bg-primary text-white shadow-md' 
+                  className={`px-6 py-2 rounded-xl text-sm font-bold capitalize transition-all duration-300 ${cenarioAtivo === cenario
+                    ? 'bg-primary text-white shadow-md'
                     : 'text-gray-500 hover:bg-gray-200'
-                  }`}
+                    }`}
                 >
                   {cenario}
                 </button>
@@ -728,7 +767,7 @@ export default function SimulacaoPage() {
               ])}
             </div>
           ) : (
-             <div className="flex justify-center items-center h-56 text-gray-400">Aguardando dados...</div>
+            <div className="flex justify-center items-center h-56 text-gray-400">Aguardando dados...</div>
           )}
         </section>
 
